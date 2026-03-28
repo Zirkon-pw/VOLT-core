@@ -2,6 +2,8 @@ import type { FileEntry } from '@api/note/types';
 
 const MARKDOWN_EXTENSION = '.md';
 
+export type FileTreeDropPosition = 'inside' | 'before' | 'after';
+
 export function isMarkdownName(name: string): boolean {
   return name.toLowerCase().endsWith(MARKDOWN_EXTENSION);
 }
@@ -52,6 +54,10 @@ export function buildRenamedFilePath(path: string, nextName: string, preserveMar
   return joinRelativePath(getParentPath(path), normalizedName);
 }
 
+export function buildMovedPath(path: string, destinationParentPath: string): string {
+  return joinRelativePath(destinationParentPath, getPathBasename(path));
+}
+
 export function validateInlineName(name: string): string | null {
   const trimmed = name.trim();
 
@@ -92,6 +98,59 @@ export function removePathPrefixFromList(paths: string[], prefix: string): strin
 
 export function getTabLabelFromPath(path: string): string {
   return getEntryDisplayName(getPathBasename(path), false);
+}
+
+export function getDropPositionForPointer(
+  offsetY: number,
+  itemHeight: number,
+  isDir: boolean,
+): FileTreeDropPosition {
+  const topBoundary = itemHeight * 0.25;
+  const bottomBoundary = itemHeight * 0.75;
+
+  if (offsetY <= topBoundary) {
+    return 'before';
+  }
+
+  if (offsetY >= bottomBoundary) {
+    return 'after';
+  }
+
+  if (isDir) {
+    return 'inside';
+  }
+
+  return offsetY < itemHeight / 2 ? 'before' : 'after';
+}
+
+export function getDropParentPath(entry: Pick<FileEntry, 'path' | 'isDir'>, position: FileTreeDropPosition): string {
+  if (position === 'inside' && entry.isDir) {
+    return entry.path;
+  }
+
+  return getParentPath(entry.path);
+}
+
+export function isFolderMoveIntoOwnSubtree(sourcePath: string, destinationParentPath: string): boolean {
+  return destinationParentPath === sourcePath || hasPathPrefix(destinationParentPath, sourcePath);
+}
+
+export function validateMoveTarget(
+  sourcePath: string,
+  destinationParentPath: string,
+  isDir: boolean,
+): string | null {
+  const nextPath = buildMovedPath(sourcePath, destinationParentPath);
+
+  if (nextPath === sourcePath) {
+    return 'Item is already in this folder';
+  }
+
+  if (isDir && isFolderMoveIntoOwnSubtree(sourcePath, destinationParentPath)) {
+    return 'Cannot move a folder into itself';
+  }
+
+  return null;
 }
 
 export function findEntryByPath(entries: FileEntry[], targetPath: string): FileEntry | null {

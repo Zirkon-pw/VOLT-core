@@ -20,15 +20,22 @@ export function FileTree({ voltId, voltPath }: FileTreeProps) {
   const error = useFileTreeStore((state) => state.error[voltId] ?? null);
   const pendingCreate = useFileTreeStore((state) => state.pendingCreate[voltId] ?? null);
   const pendingDelete = useFileTreeStore((state) => state.pendingDelete[voltId] ?? null);
+  const draggingPath = useFileTreeStore((state) => state.draggingPath[voltId] ?? null);
+  const dropTargetPath = useFileTreeStore((state) => state.dropTargetPath[voltId] ?? null);
+  const dropTargetParentPath = useFileTreeStore((state) => state.dropTargetParentPath[voltId] ?? null);
+  const dropPosition = useFileTreeStore((state) => state.dropPosition[voltId] ?? null);
   const selectedPath = useFileTreeStore((state) => state.selectedPath[voltId] ?? null);
   const loadTree = useFileTreeStore((state) => state.loadTree);
-  const notifyFsMutation = useFileTreeStore((state) => state.notifyFsMutation);
   const startRename = useFileTreeStore((state) => state.startRename);
   const updatePendingCreateValue = useFileTreeStore((state) => state.updatePendingCreateValue);
   const commitInlineEdit = useFileTreeStore((state) => state.commitInlineEdit);
   const cancelInlineEdit = useFileTreeStore((state) => state.cancelInlineEdit);
   const cancelDelete = useFileTreeStore((state) => state.cancelDelete);
   const confirmDelete = useFileTreeStore((state) => state.confirmDelete);
+  const updateDropTarget = useFileTreeStore((state) => state.updateDropTarget);
+  const clearDropTarget = useFileTreeStore((state) => state.clearDropTarget);
+  const commitMove = useFileTreeStore((state) => state.commitMove);
+  const cancelHoverExpand = useFileTreeStore((state) => state.cancelHoverExpand);
 
   useEffect(() => {
     void loadTree(voltId, voltPath).catch(() => undefined);
@@ -63,6 +70,9 @@ export function FileTree({ voltId, voltPath }: FileTreeProps) {
   }, [pendingCreate, selectedPath, startRename, tree, voltId]);
 
   const showRootCreate = pendingCreate?.parentPath === '';
+  const isDragging = draggingPath != null;
+  const isRootDropBefore = isDragging && dropTargetPath == null && dropTargetParentPath === '' && dropPosition === 'before';
+  const isRootDropAfter = isDragging && dropTargetPath == null && dropTargetParentPath === '' && dropPosition === 'after';
 
   return (
     <>
@@ -81,6 +91,23 @@ export function FileTree({ voltId, voltPath }: FileTreeProps) {
 
         {(tree.length > 0 || showRootCreate) && !error ? (
           <div className={styles.list}>
+            {isDragging ? (
+              <div
+                className={`${styles.rootDropZone} ${isRootDropBefore ? styles.rootDropZoneActive : ''}`}
+                onDragOver={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  cancelHoverExpand(voltId);
+                  updateDropTarget(voltId, null, '', 'before');
+                }}
+                onDrop={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  void commitMove(voltId, voltPath);
+                }}
+              />
+            ) : null}
+
             {showRootCreate && pendingCreate ? (
               <FileTreeInlineEditor
                 depth={0}
@@ -104,6 +131,23 @@ export function FileTree({ voltId, voltPath }: FileTreeProps) {
                 depth={0}
               />
             ))}
+
+            {isDragging ? (
+              <div
+                className={`${styles.rootDropZone} ${styles.rootDropZoneBottom} ${isRootDropAfter ? styles.rootDropZoneActive : ''}`}
+                onDragOver={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  cancelHoverExpand(voltId);
+                  updateDropTarget(voltId, null, '', 'after');
+                }}
+                onDrop={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  void commitMove(voltId, voltPath);
+                }}
+              />
+            ) : null}
           </div>
         ) : null}
       </div>
