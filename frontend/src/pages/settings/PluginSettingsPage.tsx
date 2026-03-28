@@ -2,10 +2,12 @@ import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { listPlugins, setPluginEnabled } from '@api/plugin';
 import type { PluginInfo } from '@api/plugin';
+import { useI18n } from '@app/providers/I18nProvider';
 import { Icon } from '@uikit/icon';
 import styles from './PluginSettingsPage.module.scss';
 
 export function PluginSettingsPage() {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const [plugins, setPlugins] = useState<PluginInfo[]>([]);
   const [loading, setLoading] = useState(true);
@@ -52,14 +54,14 @@ export function PluginSettingsPage() {
           if (e.key === 'Enter') navigate(-1);
         }}
       >
-        <Icon name="arrowLeft" size={14} /> Back
+        <Icon name="arrowLeft" size={14} /> {t('common.back')}
       </span>
-      <h1 className={styles.title}>Plugins</h1>
-      <p className={styles.subtitle}>Manage installed plugins</p>
+      <h1 className={styles.title}>{t('plugins.title')}</h1>
+      <p className={styles.subtitle}>{t('plugins.subtitle')}</p>
 
       {loading ? null : plugins.length === 0 ? (
         <div className={styles.empty}>
-          No plugins installed. Add plugin folders to ~/.volt/plugins/ to get started.
+          {t('plugins.empty')}
         </div>
       ) : (
         <div className={styles.list}>
@@ -79,7 +81,10 @@ export function PluginSettingsPage() {
               <button
                 className={`${styles.toggle} ${p.enabled ? styles.toggleOn : ''}`}
                 onClick={() => handleToggle(p.manifest.id, p.enabled)}
-                aria-label={`${p.enabled ? 'Disable' : 'Enable'} ${p.manifest.name}`}
+                aria-label={t(
+                  p.enabled ? 'plugins.toggle.disable' : 'plugins.toggle.enable',
+                  { name: p.manifest.name },
+                )}
               />
             </div>
           ))}

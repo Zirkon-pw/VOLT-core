@@ -4,6 +4,7 @@ import {
   hasPathPrefix,
   replacePathPrefix,
 } from '@app/lib/fileTree';
+import { translate } from '@app/i18n/runtime';
 
 export type TabType = 'file' | 'graph';
 
@@ -80,7 +81,7 @@ export const useTabStore = create<TabState>((set, get) => ({
         id: GRAPH_TAB_ID,
         type: 'graph',
         filePath: '',
-        fileName: 'Graph',
+        fileName: translate('sidebar.graph'),
         isDirty: false,
       };
       set({

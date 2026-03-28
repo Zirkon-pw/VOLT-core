@@ -3,6 +3,7 @@ import { PluginKey } from '@tiptap/pm/state';
 import Suggestion from '@tiptap/suggestion';
 import { createRoot, type Root } from 'react-dom/client';
 import { createElement, createRef } from 'react';
+import { translate } from '@app/i18n/runtime';
 import {
   SlashCommandMenu,
   type SlashCommandMenuHandle,
@@ -15,99 +16,101 @@ export interface SlashCommandItem {
   command: (editor: any, range: any) => void;
 }
 
-export const slashCommandItems: SlashCommandItem[] = [
-  {
-    title: 'Text',
-    description: 'Plain text block',
-    icon: 'file',
-    command: (editor, range) =>
-      editor.chain().focus().deleteRange(range).setParagraph().run(),
-  },
-  {
-    title: 'Heading 1',
-    description: 'Large heading',
-    icon: 'heading',
-    command: (editor, range) =>
-      editor.chain().focus().deleteRange(range).setHeading({ level: 1 }).run(),
-  },
-  {
-    title: 'Heading 2',
-    description: 'Medium heading',
-    icon: 'heading',
-    command: (editor, range) =>
-      editor.chain().focus().deleteRange(range).setHeading({ level: 2 }).run(),
-  },
-  {
-    title: 'Heading 3',
-    description: 'Small heading',
-    icon: 'heading',
-    command: (editor, range) =>
-      editor.chain().focus().deleteRange(range).setHeading({ level: 3 }).run(),
-  },
-  {
-    title: 'Bullet List',
-    description: 'Unordered list',
-    icon: 'list',
-    command: (editor, range) =>
-      editor.chain().focus().deleteRange(range).toggleBulletList().run(),
-  },
-  {
-    title: 'Numbered List',
-    description: 'Ordered list',
-    icon: 'listOrdered',
-    command: (editor, range) =>
-      editor.chain().focus().deleteRange(range).toggleOrderedList().run(),
-  },
-  {
-    title: 'Task List',
-    description: 'Checklist with checkboxes',
-    icon: 'checkSquare',
-    command: (editor, range) =>
-      editor.chain().focus().deleteRange(range).toggleTaskList().run(),
-  },
-  {
-    title: 'Code Block',
-    description: 'Code snippet',
-    icon: 'code',
-    command: (editor, range) =>
-      editor.chain().focus().deleteRange(range).toggleCodeBlock().run(),
-  },
-  {
-    title: 'Blockquote',
-    description: 'Quote block',
-    icon: 'quote',
-    command: (editor, range) =>
-      editor.chain().focus().deleteRange(range).toggleBlockquote().run(),
-  },
-  {
-    title: 'Table',
-    description: 'Insert a table',
-    icon: 'table',
-    command: (editor, range) =>
-      editor
-        .chain()
-        .focus()
-        .deleteRange(range)
-        .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
-        .run(),
-  },
-  {
-    title: 'Image',
-    description: 'Insert an image from file',
-    icon: 'image',
-    command: (editor, range) => {
-      editor.chain().focus().deleteRange(range).run();
-      window.dispatchEvent(new CustomEvent('volt:pick-image'));
+export function getSlashCommandItems(): SlashCommandItem[] {
+  return [
+    {
+      title: translate('editor.slash.text.title'),
+      description: translate('editor.slash.text.description'),
+      icon: 'file',
+      command: (editor, range) =>
+        editor.chain().focus().deleteRange(range).setParagraph().run(),
     },
-  },
-  {
-    title: 'Divider',
-    description: 'Horizontal rule',
-    icon: 'minus',
-    command: (editor, range) =>
-      editor.chain().focus().deleteRange(range).setHorizontalRule().run(),
-  },
-];
+    {
+      title: translate('editor.slash.heading1.title'),
+      description: translate('editor.slash.heading1.description'),
+      icon: 'heading',
+      command: (editor, range) =>
+        editor.chain().focus().deleteRange(range).setHeading({ level: 1 }).run(),
+    },
+    {
+      title: translate('editor.slash.heading2.title'),
+      description: translate('editor.slash.heading2.description'),
+      icon: 'heading',
+      command: (editor, range) =>
+        editor.chain().focus().deleteRange(range).setHeading({ level: 2 }).run(),
+    },
+    {
+      title: translate('editor.slash.heading3.title'),
+      description: translate('editor.slash.heading3.description'),
+      icon: 'heading',
+      command: (editor, range) =>
+        editor.chain().focus().deleteRange(range).setHeading({ level: 3 }).run(),
+    },
+    {
+      title: translate('editor.slash.bulletList.title'),
+      description: translate('editor.slash.bulletList.description'),
+      icon: 'list',
+      command: (editor, range) =>
+        editor.chain().focus().deleteRange(range).toggleBulletList().run(),
+    },
+    {
+      title: translate('editor.slash.numberedList.title'),
+      description: translate('editor.slash.numberedList.description'),
+      icon: 'listOrdered',
+      command: (editor, range) =>
+        editor.chain().focus().deleteRange(range).toggleOrderedList().run(),
+    },
+    {
+      title: translate('editor.slash.taskList.title'),
+      description: translate('editor.slash.taskList.description'),
+      icon: 'checkSquare',
+      command: (editor, range) =>
+        editor.chain().focus().deleteRange(range).toggleTaskList().run(),
+    },
+    {
+      title: translate('editor.slash.codeBlock.title'),
+      description: translate('editor.slash.codeBlock.description'),
+      icon: 'code',
+      command: (editor, range) =>
+        editor.chain().focus().deleteRange(range).toggleCodeBlock().run(),
+    },
+    {
+      title: translate('editor.slash.blockquote.title'),
+      description: translate('editor.slash.blockquote.description'),
+      icon: 'quote',
+      command: (editor, range) =>
+        editor.chain().focus().deleteRange(range).toggleBlockquote().run(),
+    },
+    {
+      title: translate('editor.slash.table.title'),
+      description: translate('editor.slash.table.description'),
+      icon: 'table',
+      command: (editor, range) =>
+        editor
+          .chain()
+          .focus()
+          .deleteRange(range)
+          .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
+          .run(),
+    },
+    {
+      title: translate('editor.slash.image.title'),
+      description: translate('editor.slash.image.description'),
+      icon: 'image',
+      command: (editor, range) => {
+        editor.chain().focus().deleteRange(range).run();
+        window.dispatchEvent(new CustomEvent('volt:pick-image'));
+      },
+    },
+    {
+      title: translate('editor.slash.divider.title'),
+      description: translate('editor.slash.divider.description'),
+      icon: 'minus',
+      command: (editor, range) =>
+        editor.chain().focus().deleteRange(range).setHorizontalRule().run(),
+    },
+  ];
+}
 
 const slashCommandPluginKey = new PluginKey('slashCommand');
 
@@ -131,7 +134,7 @@ export const SlashCommand = Extension.create({
           props.command(editor, range);
         },
         items: ({ query }: { query: string }): SlashCommandItem[] => {
-          return slashCommandItems.filter((item) =>
+          return getSlashCommandItems().filter((item) =>
             item.title.toLowerCase().includes(query.toLowerCase()),
           );
         },

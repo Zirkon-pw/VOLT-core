@@ -12,15 +12,17 @@ import { TableCell } from '@tiptap/extension-table-cell';
 import { TableHeader } from '@tiptap/extension-table-header';
 import { Markdown } from 'tiptap-markdown';
 import { common, createLowlight } from 'lowlight';
+import { translate } from '@app/i18n/runtime';
 import { SlashCommand } from '../extensions/slashCommand';
 
 const lowlight = createLowlight(common);
 
 interface UseEditorSetupOptions {
   onUpdate?: (editor: Editor) => void;
+  placeholder?: string;
 }
 
-export function useEditorSetup({ onUpdate }: UseEditorSetupOptions = {}) {
+export function useEditorSetup({ onUpdate, placeholder = translate('editor.placeholder') }: UseEditorSetupOptions = {}) {
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -33,7 +35,7 @@ export function useEditorSetup({ onUpdate }: UseEditorSetupOptions = {}) {
         },
       }),
       Placeholder.configure({
-        placeholder: 'Start writing...',
+        placeholder,
       }),
       TaskList,
       TaskItem.configure({

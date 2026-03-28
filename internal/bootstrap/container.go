@@ -2,11 +2,13 @@ package bootstrap
 
 import (
 	"log"
+	"path/filepath"
 
 	appgraph "volt/internal/application/graph"
 	appnote "volt/internal/application/note"
 	appplugin "volt/internal/application/plugin"
 	appsearch "volt/internal/application/search"
+	appsettings "volt/internal/application/settings"
 	appvolt "volt/internal/application/volt"
 	"volt/internal/infrastructure/filesystem"
 	"volt/internal/infrastructure/persistence/local"
@@ -14,13 +16,14 @@ import (
 )
 
 type Container struct {
-	App           *wailshandler.AppHandler
-	voltHandler   *wailshandler.VoltHandler
-	noteHandler   *wailshandler.NoteHandler
-	searchHandler *wailshandler.SearchHandler
-	graphHandler  *wailshandler.GraphHandler
-	pluginHandler *wailshandler.PluginHandler
-	imageHandler  *wailshandler.ImageHandler
+	App             *wailshandler.AppHandler
+	voltHandler     *wailshandler.VoltHandler
+	noteHandler     *wailshandler.NoteHandler
+	searchHandler   *wailshandler.SearchHandler
+	graphHandler    *wailshandler.GraphHandler
+	pluginHandler   *wailshandler.PluginHandler
+	imageHandler    *wailshandler.ImageHandler
+	settingsHandler *wailshandler.SettingsHandler
 }
 
 func NewContainer() *Container {
@@ -28,6 +31,16 @@ func NewContainer() *Container {
 	voltStore, err := local.NewVoltStore()
 	if err != nil {
 		log.Fatalf("failed to initialize volt store: %v", err)
+	}
+
+	settingsStore, err := local.NewAppSettingsStore()
+	if err != nil {
+		log.Fatalf("failed to initialize settings store: %v", err)
+	}
+
+	localization, err := appsettings.NewLocalizationService(settingsStore, filepath.Join(settingsStore.ConfigDir(), "locales"))
+	if err != nil {
+		log.Fatalf("failed to initialize localization service: %v", err)
 	}
 
 	noteRepo := filesystem.NewNoteRepository()
@@ -66,22 +79,24 @@ func NewContainer() *Container {
 	setPluginData := appplugin.NewSetPluginDataUseCase(pluginStore)
 
 	// Handlers
-	voltHandler := wailshandler.NewVoltHandler(listVolts, createVolt, deleteVolt)
-	noteHandler := wailshandler.NewNoteHandler(readNote, saveNote, listTree, createNote, createDir, deleteNote, renameNote)
-	searchHandler := wailshandler.NewSearchHandler(searchFiles)
-	graphHandler := wailshandler.NewGraphHandler(buildGraph)
-	pluginHandler := wailshandler.NewPluginHandler(listPlugins, loadPlugin, togglePlugin, getPluginData, setPluginData)
-	imageHandler := wailshandler.NewImageHandler()
+	voltHandler := wailshandler.NewVoltHandler(listVolts, createVolt, deleteVolt, localization)
+	noteHandler := wailshandler.NewNoteHandler(readNote, saveNote, listTree, createNote, createDir, deleteNote, renameNote, localization)
+	searchHandler := wailshandler.NewSearchHandler(searchFiles, localization)
+	graphHandler := wailshandler.NewGraphHandler(buildGraph, localization)
+	pluginHandler := wailshandler.NewPluginHandler(listPlugins, loadPlugin, togglePlugin, getPluginData, setPluginData, localization)
+	imageHandler := wailshandler.NewImageHandler(localization)
+	settingsHandler := wailshandler.NewSettingsHandler(localization)
 	appHandler := wailshandler.NewAppHandler(voltHandler, noteHandler, searchHandler, graphHandler, pluginHandler, imageHandler)
 
 	return &Container{
-		App:           appHandler,
-		voltHandler:   voltHandler,
-		noteHandler:   noteHandler,
-		searchHandler: searchHandler,
-		graphHandler:  graphHandler,
-		pluginHandler: pluginHandler,
-		imageHandler:  imageHandler,
+		App:             appHandler,
+		voltHandler:     voltHandler,
+		noteHandler:     noteHandler,
+		searchHandler:   searchHandler,
+		graphHandler:    graphHandler,
+		pluginHandler:   pluginHandler,
+		imageHandler:    imageHandler,
+		settingsHandler: settingsHandler,
 	}
 }
 
@@ -94,5 +109,6 @@ func (c *Container) Bindings() []interface{} {
 		c.graphHandler,
 		c.pluginHandler,
 		c.imageHandler,
+		c.settingsHandler,
 	}
 }

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 import cytoscape, { type Core, type NodeSingular } from 'cytoscape';
+import { useI18n } from '@app/providers/I18nProvider';
 import { useTheme } from '@app/providers/ThemeProvider';
 import { getGraph } from '@api/graph/graphApi';
 import { Icon } from '@uikit/icon';
@@ -149,6 +150,7 @@ export function GraphView({ voltPath, onNodeOpen }: GraphViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const cyRef = useRef<Core | null>(null);
   const { theme } = useTheme();
+  const { t } = useI18n();
   const [search, setSearch] = useState('');
   const [nodeCount, setNodeCount] = useState(0);
   const [edgeCount, setEdgeCount] = useState(0);
@@ -333,7 +335,7 @@ export function GraphView({ voltPath, onNodeOpen }: GraphViewProps) {
           <input
             className={styles.searchInput}
             type="text"
-            placeholder="Filter nodes..."
+            placeholder={t('graph.filterPlaceholder')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Escape') setSearch(''); }}
@@ -345,23 +347,23 @@ export function GraphView({ voltPath, onNodeOpen }: GraphViewProps) {
           )}
         </div>
         <div className={styles.toolbarActions}>
-          <button className={styles.toolBtn} onClick={handleZoomIn} title="Zoom in">
+          <button className={styles.toolBtn} onClick={handleZoomIn} title={t('graph.zoomIn')}>
             <Icon name="zoomIn" size={15} />
           </button>
-          <button className={styles.toolBtn} onClick={handleZoomOut} title="Zoom out">
+          <button className={styles.toolBtn} onClick={handleZoomOut} title={t('graph.zoomOut')}>
             <Icon name="zoomOut" size={15} />
           </button>
-          <button className={styles.toolBtn} onClick={handleFit} title="Fit to view">
+          <button className={styles.toolBtn} onClick={handleFit} title={t('graph.fit')}>
             <Icon name="maximize" size={15} />
           </button>
-          <button className={styles.toolBtn} onClick={handleResetLayout} title="Reset layout">
+          <button className={styles.toolBtn} onClick={handleResetLayout} title={t('graph.resetLayout')}>
             <Icon name="refreshCw" size={15} />
           </button>
         </div>
         <div className={styles.stats}>
-          <span>{nodeCount} nodes</span>
+          <span>{t('graph.stats.nodes', { count: nodeCount })}</span>
           <span className={styles.statDot} />
-          <span>{edgeCount} edges</span>
+          <span>{t('graph.stats.edges', { count: edgeCount })}</span>
         </div>
       </div>
       <div className={styles.canvasWrap}>
@@ -377,7 +379,7 @@ export function GraphView({ voltPath, onNodeOpen }: GraphViewProps) {
             <div className={styles.infoName}>{hoverInfo.name}</div>
             <div className={styles.infoPath}>{hoverInfo.path}</div>
             <div className={styles.infoMeta}>
-              {hoverInfo.links} links &middot; {hoverInfo.words}w
+              {t('graph.meta', { links: hoverInfo.links, words: hoverInfo.words })}
             </div>
           </div>
         )}

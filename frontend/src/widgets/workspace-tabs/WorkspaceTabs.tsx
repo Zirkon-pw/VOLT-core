@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useI18n } from '@app/providers/I18nProvider';
 import { useWorkspaceStore } from '@app/stores/workspaceStore';
 import { Icon } from '@uikit/icon';
 import styles from './WorkspaceTabs.module.scss';
 
 export function WorkspaceTabs() {
+  const { t } = useI18n();
   const { workspaces, activeWorkspaceId, setActiveWorkspace, closeWorkspace, reorderWorkspaces } =
     useWorkspaceStore();
   const navigate = useNavigate();
@@ -32,10 +34,10 @@ export function WorkspaceTabs() {
   return (
     <div className={styles.bar}>
       <div className={styles.headerButtons}>
-        <button className={styles.headerBtn} onClick={() => navigate('/')} title="Home">
+        <button className={styles.headerBtn} onClick={() => navigate('/')} title={t('workspaceTabs.home')}>
           <Icon name="home" size={16} />
         </button>
-        <button className={styles.headerBtn} onClick={() => navigate('/settings')} title="Settings">
+        <button className={styles.headerBtn} onClick={() => navigate('/settings')} title={t('workspaceTabs.settings')}>
           <Icon name="settings" size={16} />
         </button>
         <div className={styles.separator} />
@@ -72,7 +74,7 @@ export function WorkspaceTabs() {
           <button
             className={styles.closeBtn}
             onClick={(e) => handleClose(e, ws.voltId)}
-            aria-label={`Close ${ws.voltName}`}
+            aria-label={t('workspaceTabs.closeWorkspace', { name: ws.voltName })}
           >
             <Icon name="close" size={14} />
           </button>

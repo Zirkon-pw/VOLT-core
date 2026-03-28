@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useI18n } from '@app/providers/I18nProvider';
 import { useTabStore } from '@app/stores/tabStore';
 import { Icon } from '@uikit/icon';
 import styles from './FileTabs.module.scss';
@@ -8,6 +9,7 @@ interface FileTabsProps {
 }
 
 export function FileTabs({ voltId }: FileTabsProps) {
+  const { t } = useI18n();
   const { tabs, activeTabs, setActiveTab, closeTab, reorderTabs } = useTabStore();
   const voltTabs = tabs[voltId] ?? [];
   const activeTabId = activeTabs[voltId] ?? null;
@@ -27,51 +29,55 @@ export function FileTabs({ voltId }: FileTabsProps) {
 
   return (
     <div className={styles.bar}>
-      {voltTabs.map((tab, index) => (
-        <div
-          key={tab.id}
-          className={`${styles.tab} ${tab.id === activeTabId ? styles.active : ''} ${dragIndex === index ? styles.dragging : ''} ${dragOverIndex === index ? styles.dragOver : ''}`}
-          onClick={() => setActiveTab(voltId, tab.id)}
-          onMouseDown={(e) => handleMouseDown(e, tab.id)}
-          draggable={true}
-          onDragStart={(e) => {
-            e.dataTransfer.effectAllowed = 'move';
-            setDragIndex(index);
-          }}
-          onDragOver={(e) => {
-            e.preventDefault();
-            e.dataTransfer.dropEffect = 'move';
-            setDragOverIndex(index);
-          }}
-          onDrop={(e) => {
-            e.preventDefault();
-            if (dragIndex !== null && dragIndex !== index) {
-              reorderTabs(voltId, dragIndex, index);
-            }
-            setDragIndex(null);
-            setDragOverIndex(null);
-          }}
-          onDragEnd={() => {
-            setDragIndex(null);
-            setDragOverIndex(null);
-          }}
-        >
-          <span className={styles.label}>
-            {tab.isDirty && <span className={styles.dirty} />}
-            {tab.fileName}
-          </span>
-          <button
-            className={styles.closeBtn}
-            onClick={(e) => {
-              e.stopPropagation();
-              closeTab(voltId, tab.id);
+      {voltTabs.map((tab, index) => {
+        const tabLabel = tab.type === 'graph' ? t('sidebar.graph') : tab.fileName;
+
+        return (
+          <div
+            key={tab.id}
+            className={`${styles.tab} ${tab.id === activeTabId ? styles.active : ''} ${dragIndex === index ? styles.dragging : ''} ${dragOverIndex === index ? styles.dragOver : ''}`}
+            onClick={() => setActiveTab(voltId, tab.id)}
+            onMouseDown={(e) => handleMouseDown(e, tab.id)}
+            draggable={true}
+            onDragStart={(e) => {
+              e.dataTransfer.effectAllowed = 'move';
+              setDragIndex(index);
             }}
-            aria-label={`Close ${tab.fileName}`}
+            onDragOver={(e) => {
+              e.preventDefault();
+              e.dataTransfer.dropEffect = 'move';
+              setDragOverIndex(index);
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              if (dragIndex !== null && dragIndex !== index) {
+                reorderTabs(voltId, dragIndex, index);
+              }
+              setDragIndex(null);
+              setDragOverIndex(null);
+            }}
+            onDragEnd={() => {
+              setDragIndex(null);
+              setDragOverIndex(null);
+            }}
           >
-            <Icon name="close" size={14} />
-          </button>
-        </div>
-      ))}
+            <span className={styles.label}>
+              {tab.isDirty && <span className={styles.dirty} />}
+              {tabLabel}
+            </span>
+            <button
+              className={styles.closeBtn}
+              onClick={(e) => {
+                e.stopPropagation();
+                closeTab(voltId, tab.id);
+              }}
+              aria-label={t('fileTabs.closeTab', { name: tabLabel })}
+            >
+              <Icon name="close" size={14} />
+            </button>
+          </div>
+        );
+      })}
     </div>
   );
 }

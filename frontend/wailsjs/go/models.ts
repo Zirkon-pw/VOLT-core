@@ -197,6 +197,63 @@ export namespace search {
 
 }
 
+export namespace settings {
+	
+	export class AvailableLocale {
+	    code: string;
+	    label: string;
+	    source: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new AvailableLocale(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.code = source["code"];
+	        this.label = source["label"];
+	        this.source = source["source"];
+	    }
+	}
+	export class LocalizationPayload {
+	    selectedLocale: string;
+	    effectiveLocale: string;
+	    availableLocales: AvailableLocale[];
+	    messages: Record<string, string>;
+	
+	    static createFrom(source: any = {}) {
+	        return new LocalizationPayload(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.selectedLocale = source["selectedLocale"];
+	        this.effectiveLocale = source["effectiveLocale"];
+	        this.availableLocales = this.convertValues(source["availableLocales"], AvailableLocale);
+	        this.messages = source["messages"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+
+}
+
 export namespace volt {
 	
 	export class Volt {

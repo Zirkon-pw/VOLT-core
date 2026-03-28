@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { translate } from '@app/i18n/runtime';
 import type { ToastProps } from '../model/types';
 import { Icon } from '@uikit/icon';
 import styles from './ToastView.module.scss';
@@ -15,7 +16,7 @@ export function ToastView({ toast, onDismiss }: ToastProps) {
   return (
     <div className={`${styles.toast} ${styles[toast.type]}`}>
       <span className={styles.message}>{toast.message}</span>
-      <button className={styles.closeBtn} onClick={() => onDismiss(toast.id)}>
+      <button className={styles.closeBtn} onClick={() => onDismiss(toast.id)} aria-label={translate('common.close')}>
         <Icon name="close" size={14} />
       </button>
     </div>

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { FileEntry } from '@api/note/types';
+import { useI18n } from '@app/providers/I18nProvider';
 import {
   getDropParentPath,
   getDropPositionForPointer,
@@ -28,6 +29,7 @@ export function FileTreeItem({
   entry,
   depth,
 }: FileTreeItemProps) {
+  const { t } = useI18n();
   const expandedPaths = useFileTreeStore((state) => state.expandedPaths[voltId] ?? EMPTY_PATHS);
   const selectedPath = useFileTreeStore((state) => state.selectedPath[voltId] ?? null);
   const pendingCreate = useFileTreeStore((state) => state.pendingCreate[voltId] ?? null);
@@ -127,7 +129,7 @@ export function FileTreeItem({
           depth={depth}
           iconName={iconName}
           value={editingItem.value}
-          placeholder={entry.isDir ? 'Folder name' : 'File name'}
+          placeholder={entry.isDir ? t('fileTree.placeholder.folder') : t('fileTree.placeholder.file')}
           onChange={(value) => updateEditingValue(voltId, value)}
           onSubmit={async () => {
             await commitInlineEdit(voltId, voltPath);
@@ -206,13 +208,13 @@ export function FileTreeItem({
                   className={styles.menuItem}
                   onClick={() => handleMenuAction(() => startCreate(voltId, entry.path, false))}
                 >
-                  New File
+                  {t('fileTree.context.newFile')}
                 </button>
                 <button
                   className={styles.menuItem}
                   onClick={() => handleMenuAction(() => startCreate(voltId, entry.path, true))}
                 >
-                  New Folder
+                  {t('fileTree.context.newFolder')}
                 </button>
                 <div className={styles.menuDivider} />
               </>
@@ -221,13 +223,13 @@ export function FileTreeItem({
               className={styles.menuItem}
               onClick={() => handleMenuAction(() => startRename(voltId, entry.path))}
             >
-              Rename
+              {t('fileTree.context.rename')}
             </button>
             <button
               className={`${styles.menuItem} ${styles.menuItemDanger}`}
               onClick={() => handleMenuAction(() => requestDelete(voltId, entry.path))}
             >
-              Delete
+              {t('fileTree.context.delete')}
             </button>
           </div>
         </>
@@ -240,7 +242,7 @@ export function FileTreeItem({
               depth={depth + 1}
               iconName={pendingCreate.isDir ? 'folder' : 'fileText'}
               value={pendingCreate.value}
-              placeholder={pendingCreate.isDir ? 'Folder name' : 'Note name'}
+              placeholder={pendingCreate.isDir ? t('fileTree.placeholder.folder') : t('fileTree.placeholder.note')}
               onChange={(value) => updatePendingCreateValue(voltId, value)}
               onSubmit={async () => {
                 await commitInlineEdit(voltId, voltPath);

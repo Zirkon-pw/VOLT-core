@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
+import { translate } from '@app/i18n/runtime';
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -45,10 +46,10 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
           }}
         >
           <h1 style={{ fontSize: '1.5rem', marginBottom: '0.75rem', color: '#ffffff' }}>
-            Something went wrong
+            {translate('errorBoundary.title')}
           </h1>
           <p style={{ fontSize: '0.875rem', color: '#999', marginBottom: '1.5rem', maxWidth: '480px' }}>
-            {this.state.error?.message ?? 'An unexpected error occurred.'}
+            {this.state.error?.message ?? translate('errorBoundary.description')}
           </p>
           <button
             onClick={this.handleReload}
@@ -62,7 +63,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
               cursor: 'pointer',
             }}
           >
-            Reload
+            {translate('common.reload')}
           </button>
         </div>
       );

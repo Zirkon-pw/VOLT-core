@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { searchFiles } from '@api/search';
 import type { SearchResult } from '@api/search';
+import { useI18n } from '@app/providers/I18nProvider';
 import { useTabStore } from '@app/stores/tabStore';
 import { Icon } from '@uikit/icon';
 import styles from './SearchPopup.module.scss';
@@ -13,6 +14,7 @@ interface SearchPopupProps {
 }
 
 export function SearchPopup({ isOpen, onClose, voltId, voltPath }: SearchPopupProps) {
+  const { t } = useI18n();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -124,14 +126,14 @@ export function SearchPopup({ isOpen, onClose, voltId, voltPath }: SearchPopupPr
             ref={inputRef}
             className={styles.input}
             type="text"
-            placeholder="Search files..."
+            placeholder={t('search.placeholder')}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
         </div>
         <div className={styles.results} ref={resultsRef}>
           {query.trim() && highlightedResults.length === 0 && (
-            <div className={styles.empty}>No results found</div>
+            <div className={styles.empty}>{t('search.empty')}</div>
           )}
           {highlightedResults.map((result, i) => (
             <div

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useI18n } from '@app/providers/I18nProvider';
 import { useFileTreeStore } from '@app/stores/fileTreeStore';
 import { useTabStore } from '@app/stores/tabStore';
 import { FileTree } from '@widgets/file-tree/FileTree';
@@ -27,6 +28,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ voltId, voltPath, onSearchClick, collapsed, onToggleCollapse }: SidebarProps) {
+  const { t } = useI18n();
   const openGraphTab = useTabStore((s) => s.openGraphTab);
   const startCreate = useFileTreeStore((state) => state.startCreate);
   const notifyFsMutation = useFileTreeStore((state) => state.notifyFsMutation);
@@ -69,28 +71,28 @@ export function Sidebar({ voltId, voltPath, onSearchClick, collapsed, onToggleCo
   return (
     <aside className={collapsed ? styles.collapsed : styles.sidebar} style={!collapsed ? { width, minWidth: width } : undefined}>
       <div className={styles.topBar}>
-        <button className={styles.iconButton} onClick={onSearchClick} title="Search">
+        <button className={styles.iconButton} onClick={onSearchClick} title={t('sidebar.search')}>
           <Icon name="search" size={18} />
         </button>
         {collapsed ? (
-          <button className={styles.iconButton} onClick={() => openGraphTab(voltId)} title="Graph">
+          <button className={styles.iconButton} onClick={() => openGraphTab(voltId)} title={t('sidebar.graph')}>
             <Icon name="graph" size={18} />
           </button>
         ) : (
           <>
-            <button className={styles.iconButton} onClick={() => startCreate(voltId, '', false)} title="New note">
+            <button className={styles.iconButton} onClick={() => startCreate(voltId, '', false)} title={t('sidebar.newNote')}>
               <Icon name="plus" size={18} />
             </button>
-            <button className={styles.iconButton} onClick={() => startCreate(voltId, '', true)} title="New folder">
+            <button className={styles.iconButton} onClick={() => startCreate(voltId, '', true)} title={t('sidebar.newFolder')}>
               <Icon name="folder" size={18} />
             </button>
-            <button className={styles.iconButton} onClick={() => void notifyFsMutation(voltId, voltPath)} title="Refresh files">
+            <button className={styles.iconButton} onClick={() => void notifyFsMutation(voltId, voltPath)} title={t('sidebar.refreshFiles')}>
               <Icon name="refreshCw" size={18} />
             </button>
             <div className={styles.spacer} />
           </>
         )}
-        <button className={styles.iconButton} onClick={onToggleCollapse} title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}>
+        <button className={styles.iconButton} onClick={onToggleCollapse} title={collapsed ? t('sidebar.expand') : t('sidebar.collapse')}>
           <Icon name="panelLeft" size={18} />
         </button>
       </div>
@@ -101,7 +103,7 @@ export function Sidebar({ voltId, voltPath, onSearchClick, collapsed, onToggleCo
           </div>
           <div className={styles.bottom}>
             <button className={styles.themeToggle} onClick={() => openGraphTab(voltId)}>
-              <Icon name="graph" size={16} /> Graph
+              <Icon name="graph" size={16} /> {t('sidebar.graph')}
             </button>
           </div>
           <div className={styles.resizeHandle} onMouseDown={onMouseDown} />

@@ -27,6 +27,7 @@ import {
   validateMoveTarget,
   validateInlineName,
 } from '@app/lib/fileTree';
+import { translate } from '@app/i18n/runtime';
 import { useToastStore } from './toastStore';
 import { useTabStore } from './tabStore';
 
@@ -338,14 +339,14 @@ export const useFileTreeStore = create<FileTreeState>((set, get) => ({
         : ensureMarkdownFileName(trimmedValue);
       const nextPath = joinRelativePath(pendingCreate.parentPath, normalizedName);
 
-      try {
+        try {
         if (pendingCreate.isDir) {
           await createDirectory(voltPath, nextPath);
-          showSuccess(`Folder "${normalizedName}" created`);
+          showSuccess(translate('fileTree.toast.folderCreated', { name: normalizedName }));
         } else {
           await createNote(voltPath, nextPath);
           useTabStore.getState().openTab(voltId, nextPath, getEntryDisplayName(normalizedName, false));
-          showSuccess(`File "${getEntryDisplayName(normalizedName, false)}" created`);
+          showSuccess(translate('fileTree.toast.fileCreated', { name: getEntryDisplayName(normalizedName, false) }));
         }
 
         set((state) => ({
@@ -412,7 +413,9 @@ export const useFileTreeStore = create<FileTreeState>((set, get) => ({
         },
       }));
 
-      showSuccess(`Renamed to "${getEntryDisplayName(getPathBasename(nextPath), editingItem.isDir)}"`);
+      showSuccess(translate('fileTree.toast.renamed', {
+        name: getEntryDisplayName(getPathBasename(nextPath), editingItem.isDir),
+      }));
       await get().refreshTree(voltId, voltPath);
       return nextPath;
     } catch (err) {
@@ -493,7 +496,10 @@ export const useFileTreeStore = create<FileTreeState>((set, get) => ({
         },
       }));
 
-      showSuccess(`${target.isDir ? 'Folder' : 'File'} "${target.name}" deleted`);
+      showSuccess(translate(
+        target.isDir ? 'fileTree.toast.folderDeleted' : 'fileTree.toast.fileDeleted',
+        { name: target.name },
+      ));
       await get().refreshTree(voltId, voltPath);
     } catch (err) {
       showError((err as Error).message);
@@ -625,7 +631,7 @@ export const useFileTreeStore = create<FileTreeState>((set, get) => ({
     }
 
     if (draggingIsDir && isFolderMoveIntoOwnSubtree(draggingPath, dropTargetParentPath)) {
-      showError('Cannot move a folder into itself');
+      showError(translate('fileTree.validation.cannotMoveFolderIntoItself'));
       get().endDrag(voltId);
       return null;
     }
@@ -660,7 +666,9 @@ export const useFileTreeStore = create<FileTreeState>((set, get) => ({
         },
       }));
 
-      showSuccess(`Moved "${getEntryDisplayName(getPathBasename(nextPath), draggingIsDir)}"`);
+      showSuccess(translate('fileTree.toast.moved', {
+        name: getEntryDisplayName(getPathBasename(nextPath), draggingIsDir),
+      }));
       await get().refreshTree(voltId, voltPath);
       return nextPath;
     } catch (err) {

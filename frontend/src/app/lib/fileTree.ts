@@ -1,4 +1,5 @@
 import type { FileEntry } from '@api/note/types';
+import { translate } from '@app/i18n/runtime';
 
 const MARKDOWN_EXTENSION = '.md';
 
@@ -62,15 +63,15 @@ export function validateInlineName(name: string): string | null {
   const trimmed = name.trim();
 
   if (!trimmed) {
-    return 'Name cannot be empty';
+    return translate('fileTree.validation.emptyName');
   }
 
   if (trimmed === '.' || trimmed === '..') {
-    return 'Name is not valid';
+    return translate('fileTree.validation.invalidName');
   }
 
   if (trimmed.includes('/') || trimmed.includes('\\')) {
-    return 'Use a single name, not a path';
+    return translate('fileTree.validation.singleName');
   }
 
   return null;
@@ -143,11 +144,11 @@ export function validateMoveTarget(
   const nextPath = buildMovedPath(sourcePath, destinationParentPath);
 
   if (nextPath === sourcePath) {
-    return 'Item is already in this folder';
+    return translate('fileTree.validation.itemAlreadyInFolder');
   }
 
   if (isDir && isFolderMoveIntoOwnSubtree(sourcePath, destinationParentPath)) {
-    return 'Cannot move a folder into itself';
+    return translate('fileTree.validation.cannotMoveFolderIntoItself');
   }
 
   return null;

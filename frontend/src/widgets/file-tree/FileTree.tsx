@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { findEntryByPath } from '@app/lib/fileTree';
+import { useI18n } from '@app/providers/I18nProvider';
 import { useFileTreeStore } from '@app/stores/fileTreeStore';
 import { Button } from '@uikit/button';
 import { Modal } from '@uikit/modal';
@@ -15,6 +16,7 @@ interface FileTreeProps {
 }
 
 export function FileTree({ voltId, voltPath }: FileTreeProps) {
+  const { t } = useI18n();
   const tree = useFileTreeStore((state) => state.trees[voltId] ?? EMPTY_TREE);
   const loading = useFileTreeStore((state) => state.loading[voltId] ?? false);
   const error = useFileTreeStore((state) => state.error[voltId] ?? null);
@@ -78,7 +80,7 @@ export function FileTree({ voltId, voltPath }: FileTreeProps) {
     <>
       <div className={styles.tree}>
         {loading && tree.length === 0 && !showRootCreate ? (
-          <div className={styles.empty}>Loading...</div>
+          <div className={styles.empty}>{t('common.loading')}</div>
         ) : null}
 
         {error ? (
@@ -86,7 +88,7 @@ export function FileTree({ voltId, voltPath }: FileTreeProps) {
         ) : null}
 
         {!error && tree.length === 0 && !showRootCreate && !loading ? (
-          <div className={styles.empty}>No files yet</div>
+          <div className={styles.empty}>{t('fileTree.empty')}</div>
         ) : null}
 
         {(tree.length > 0 || showRootCreate) && !error ? (
@@ -113,7 +115,7 @@ export function FileTree({ voltId, voltPath }: FileTreeProps) {
                 depth={0}
                 iconName={pendingCreate.isDir ? 'folder' : 'fileText'}
                 value={pendingCreate.value}
-                placeholder={pendingCreate.isDir ? 'Folder name' : 'Note name'}
+                placeholder={pendingCreate.isDir ? t('fileTree.placeholder.folder') : t('fileTree.placeholder.note')}
                 onChange={(value) => updatePendingCreateValue(voltId, value)}
                 onSubmit={async () => {
                   await commitInlineEdit(voltId, voltPath);
@@ -155,14 +157,14 @@ export function FileTree({ voltId, voltPath }: FileTreeProps) {
       <Modal
         isOpen={Boolean(pendingDelete)}
         onClose={() => cancelDelete(voltId)}
-        title={pendingDelete?.isDir ? 'Delete folder' : 'Delete file'}
+        title={pendingDelete?.isDir ? t('fileTree.delete.titleFolder') : t('fileTree.delete.titleFile')}
       >
         <p className={styles.deleteMessage}>
-          Delete "{pendingDelete?.name}"? This action cannot be undone.
+          {t('fileTree.delete.message', { name: pendingDelete?.name ?? '' })}
         </p>
         <div className={styles.modalActions}>
           <Button variant="ghost" size="md" onClick={() => cancelDelete(voltId)}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button
             variant="danger"
@@ -171,7 +173,7 @@ export function FileTree({ voltId, voltPath }: FileTreeProps) {
               void confirmDelete(voltId, voltPath);
             }}
           >
-            Delete
+            {t('common.delete')}
           </Button>
         </div>
       </Modal>

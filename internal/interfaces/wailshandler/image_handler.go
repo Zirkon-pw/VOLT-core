@@ -11,15 +11,20 @@ import (
 	"strings"
 	"time"
 
+	appsettings "volt/internal/application/settings"
+
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 type ImageHandler struct {
-	ctx context.Context
+	ctx          context.Context
+	localization *appsettings.LocalizationService
 }
 
-func NewImageHandler() *ImageHandler {
-	return &ImageHandler{}
+func NewImageHandler(localization *appsettings.LocalizationService) *ImageHandler {
+	return &ImageHandler{
+		localization: localization,
+	}
 }
 
 func (h *ImageHandler) SetContext(ctx context.Context) {
@@ -35,7 +40,7 @@ func (h *ImageHandler) CopyImage(voltPath, sourcePath, imageDir string) (string,
 
 	destDir := filepath.Join(voltPath, imageDir)
 	if err := os.MkdirAll(destDir, 0755); err != nil {
-		return "", fmt.Errorf("failed to create image directory: %w", err)
+		return "", localizedImageError(h.localization, "backend.action.createImageDirectory", nil, err)
 	}
 
 	ext := filepath.Ext(sourcePath)
@@ -51,18 +56,18 @@ func (h *ImageHandler) CopyImage(voltPath, sourcePath, imageDir string) (string,
 
 	src, err := os.Open(sourcePath)
 	if err != nil {
-		return "", fmt.Errorf("failed to open source image: %w", err)
+		return "", localizedImageError(h.localization, "backend.action.openSourceImage", nil, err)
 	}
 	defer src.Close()
 
 	dst, err := os.Create(destPath)
 	if err != nil {
-		return "", fmt.Errorf("failed to create destination file: %w", err)
+		return "", localizedImageError(h.localization, "backend.action.createImageDestination", nil, err)
 	}
 	defer dst.Close()
 
 	if _, err := io.Copy(dst, src); err != nil {
-		return "", fmt.Errorf("failed to copy image: %w", err)
+		return "", localizedImageError(h.localization, "backend.action.copyImage", nil, err)
 	}
 
 	relPath := filepath.Join(imageDir, destName)
@@ -79,12 +84,12 @@ func (h *ImageHandler) SaveImageBase64(voltPath, fileName, imageDir, b64Data str
 
 	destDir := filepath.Join(voltPath, imageDir)
 	if err := os.MkdirAll(destDir, 0755); err != nil {
-		return "", fmt.Errorf("failed to create image directory: %w", err)
+		return "", localizedImageError(h.localization, "backend.action.createImageDirectory", nil, err)
 	}
 
 	data, err := base64.StdEncoding.DecodeString(b64Data)
 	if err != nil {
-		return "", fmt.Errorf("failed to decode base64 data: %w", err)
+		return "", localizedImageError(h.localization, "backend.action.decodeBase64Image", nil, err)
 	}
 
 	ext := filepath.Ext(fileName)
@@ -101,7 +106,7 @@ func (h *ImageHandler) SaveImageBase64(voltPath, fileName, imageDir, b64Data str
 	}
 
 	if err := os.WriteFile(destPath, data, 0644); err != nil {
-		return "", fmt.Errorf("failed to write image file: %w", err)
+		return "", localizedImageError(h.localization, "backend.action.writeImageFile", nil, err)
 	}
 
 	relPath := filepath.Join(imageDir, destName)
@@ -112,16 +117,16 @@ func (h *ImageHandler) SaveImageBase64(voltPath, fileName, imageDir, b64Data str
 // Returns empty string if cancelled.
 func (h *ImageHandler) PickImage() (string, error) {
 	selection, err := runtime.OpenFileDialog(h.ctx, runtime.OpenDialogOptions{
-		Title: "Select Image",
+		Title: translate(h.localization, "dialog.selectImage", nil),
 		Filters: []runtime.FileFilter{
 			{
-				DisplayName: "Images (*.png, *.jpg, *.jpeg, *.gif, *.webp, *.svg)",
+				DisplayName: translate(h.localization, "dialog.imagesFilter", nil),
 				Pattern:     "*.png;*.jpg;*.jpeg;*.gif;*.webp;*.svg",
 			},
 		},
 	})
 	if err != nil {
-		return "", fmt.Errorf("file dialog failed: %w", err)
+		return "", localizedImageError(h.localization, "backend.action.openImageDialog", nil, err)
 	}
 	return selection, nil
 }
@@ -131,26 +136,26 @@ func (h *ImageHandler) PickImage() (string, error) {
 func (h *ImageHandler) ReadImageBase64(voltPath, relPath string) (string, error) {
 	clean := filepath.Clean(relPath)
 	if strings.Contains(clean, "..") {
-		return "", fmt.Errorf("invalid path: contains '..'")
+		return "", fmt.Errorf("%s", translate(h.localization, "backend.error.image.invalidPath", nil))
 	}
 
 	fullPath := filepath.Join(voltPath, clean)
 
 	absVault, err := filepath.Abs(voltPath)
 	if err != nil {
-		return "", fmt.Errorf("failed to resolve vault path: %w", err)
+		return "", localizedImageError(h.localization, "backend.action.resolveVoltPath", nil, err)
 	}
 	absFile, err := filepath.Abs(fullPath)
 	if err != nil {
-		return "", fmt.Errorf("failed to resolve file path: %w", err)
+		return "", localizedImageError(h.localization, "backend.action.resolveFilePath", nil, err)
 	}
 	if !strings.HasPrefix(absFile, absVault) {
-		return "", fmt.Errorf("path traversal detected")
+		return "", fmt.Errorf("%s", translate(h.localization, "backend.error.image.pathTraversalDetected", nil))
 	}
 
 	data, err := os.ReadFile(fullPath)
 	if err != nil {
-		return "", fmt.Errorf("failed to read file: %w", err)
+		return "", localizedImageError(h.localization, "backend.action.readImageFile", nil, err)
 	}
 
 	ct := mime.TypeByExtension(filepath.Ext(fullPath))

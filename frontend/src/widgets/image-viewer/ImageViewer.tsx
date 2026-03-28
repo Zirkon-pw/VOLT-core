@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { readImageBase64, dataUrlToBlobUrl } from '@api/image/imageApi';
+import { useI18n } from '@app/providers/I18nProvider';
 import { Icon } from '@uikit/icon/Icon';
 import styles from './ImageViewer.module.scss';
 
@@ -13,6 +14,7 @@ const ZOOM_MIN = 0.1;
 const ZOOM_MAX = 10;
 
 export function ImageViewer({ voltPath, filePath }: ImageViewerProps) {
+  const { t } = useI18n();
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
   const [zoom, setZoom] = useState(1);
   const [dimensions, setDimensions] = useState<{ w: number; h: number } | null>(null);
@@ -151,18 +153,18 @@ export function ImageViewer({ voltPath, filePath }: ImageViewerProps) {
           </>
         )}
         <div className={styles.separator} />
-        <button className={styles.toolbarBtn} onClick={zoomOut} title="Zoom out">
+        <button className={styles.toolbarBtn} onClick={zoomOut} title={t('image.zoomOut')}>
           <Icon name="zoomOut" size={16} />
         </button>
         <span className={styles.zoomLabel}>{zoomPercent}%</span>
-        <button className={styles.toolbarBtn} onClick={zoomIn} title="Zoom in">
+        <button className={styles.toolbarBtn} onClick={zoomIn} title={t('image.zoomIn')}>
           <Icon name="zoomIn" size={16} />
         </button>
         <div className={styles.separator} />
-        <button className={styles.toolbarBtn} onClick={zoomFit} title="Fit to view">
+        <button className={styles.toolbarBtn} onClick={zoomFit} title={t('image.fit')}>
           <Icon name="maximize" size={16} />
         </button>
-        <button className={styles.toolbarBtn} onClick={zoomActual} title="Actual size (100%)">
+        <button className={styles.toolbarBtn} onClick={zoomActual} title={t('image.actualSize')}>
           1:1
         </button>
       </div>

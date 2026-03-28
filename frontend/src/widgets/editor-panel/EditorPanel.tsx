@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import { EditorContent } from '@tiptap/react';
 import { readNote } from '@api/note/noteApi';
 import { copyImage, pickImage, saveImageBase64, base64ToBlobUrl } from '@api/image/imageApi';
+import { useI18n } from '@app/providers/I18nProvider';
 import { useFileTreeStore } from '@app/stores/fileTreeStore';
 import { useTabStore } from '@app/stores/tabStore';
 import { useEditorSetup } from './hooks/useEditorSetup';
@@ -24,7 +25,8 @@ interface EditorPanelProps {
 }
 
 export function EditorPanel({ voltId, voltPath, filePath }: EditorPanelProps) {
-  const editor = useEditorSetup();
+  const { t } = useI18n();
+  const editor = useEditorSetup({ placeholder: t('editor.placeholder') });
   const loadedPathRef = useRef<string | null>(null);
   const { resolve, register, unresolveAll, resolveAll, clear } = useImageResolver(voltPath);
   const notifyFsMutation = useFileTreeStore((state) => state.notifyFsMutation);
@@ -206,7 +208,7 @@ export function EditorPanel({ voltId, voltPath, filePath }: EditorPanelProps) {
   if (!filePath) {
     return (
       <div className={styles.empty}>
-        <span className={styles.emptyText}>Select a file to start editing</span>
+        <span className={styles.emptyText}>{t('editor.empty')}</span>
       </div>
     );
   }
