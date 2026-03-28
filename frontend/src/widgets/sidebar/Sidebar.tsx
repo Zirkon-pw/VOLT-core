@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useI18n } from '@app/providers/I18nProvider';
 import { useFileTreeStore } from '@app/stores/fileTreeStore';
-import { useTabStore } from '@app/stores/tabStore';
 import { usePluginRegistryStore, type RegisteredSidebarPanel } from '@app/plugins/pluginRegistry';
 import { safeExecute } from '@app/plugins/safeExecute';
 import { FileTree } from '@widgets/file-tree/FileTree';
@@ -53,7 +52,6 @@ interface SidebarProps {
 
 export function Sidebar({ voltId, voltPath, onSearchClick, collapsed, onToggleCollapse }: SidebarProps) {
   const { t } = useI18n();
-  const openGraphTab = useTabStore((s) => s.openGraphTab);
   const startCreate = useFileTreeStore((state) => state.startCreate);
   const notifyFsMutation = useFileTreeStore((state) => state.notifyFsMutation);
   const sidebarPanels = usePluginRegistryStore((s) => s.sidebarPanels);
@@ -113,9 +111,6 @@ export function Sidebar({ voltId, voltPath, onSearchClick, collapsed, onToggleCo
                 <Icon name={button.icon} size={18} />
               </button>
             ))}
-            <button className={styles.iconButton} onClick={() => openGraphTab(voltId)} title={t('sidebar.graph')}>
-              <Icon name="graph" size={18} />
-            </button>
           </>
         ) : (
           <>
@@ -158,11 +153,6 @@ export function Sidebar({ voltId, voltPath, onSearchClick, collapsed, onToggleCo
               ))}
             </div>
           )}
-          <div className={styles.bottom}>
-            <button className={styles.themeToggle} onClick={() => openGraphTab(voltId)}>
-              <Icon name="graph" size={16} /> {t('sidebar.graph')}
-            </button>
-          </div>
           <div className={styles.resizeHandle} onMouseDown={onMouseDown} />
         </>
       )}

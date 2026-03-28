@@ -7,12 +7,30 @@ import { usePluginLogStore } from './pluginLogStore';
 import { reportPluginError, safeExecute } from './safeExecute';
 import { useTabStore } from '@app/stores/tabStore';
 
-export async function loadPlugin(pluginInfo: PluginInfo, voltPath: string): Promise<void> {
+let activeLoadAllSession = 0;
+
+function isStaleLoadAllSession(sessionId?: number): boolean {
+  return sessionId != null && sessionId !== activeLoadAllSession;
+}
+
+export async function loadPlugin(
+  pluginInfo: PluginInfo,
+  voltPath: string,
+  sessionId?: number,
+): Promise<void> {
   const pluginId = pluginInfo.manifest.id;
   try {
     const source = await loadPluginSource(pluginId);
+    if (isStaleLoadAllSession(sessionId)) {
+      return;
+    }
+
     const pluginFn = new Function('api', source);
     const api = createPluginAPI(pluginId, voltPath, pluginInfo.manifest.permissions ?? []);
+    if (isStaleLoadAllSession(sessionId)) {
+      return;
+    }
+
     safeExecute(pluginId, 'init', () => pluginFn(api));
   } catch (err) {
     reportPluginError(pluginId, 'load', err);
@@ -20,12 +38,24 @@ export async function loadPlugin(pluginInfo: PluginInfo, voltPath: string): Prom
 }
 
 export async function loadAllPlugins(voltPath: string): Promise<void> {
+  const sessionId = ++activeLoadAllSession;
+  clearAll();
+  clearAllListeners();
+
   try {
     const plugins = await listPlugins();
+    if (isStaleLoadAllSession(sessionId)) {
+      return;
+    }
+
     const enabled = plugins.filter((p) => p.enabled);
 
     for (const p of enabled) {
-      await loadPlugin(p, voltPath);
+      if (isStaleLoadAllSession(sessionId)) {
+        return;
+      }
+
+      await loadPlugin(p, voltPath, sessionId);
     }
   } catch (err) {
     usePluginLogStore.getState().addEntry('system', 'error', `loadAll: ${err instanceof Error ? err.message : String(err)}`);
@@ -52,6 +82,7 @@ export function unloadSinglePlugin(pluginId: string): void {
 }
 
 export function unloadAllPlugins(): void {
+  activeLoadAllSession += 1;
   clearAll();
   clearAllListeners();
 }

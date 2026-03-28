@@ -30,7 +30,7 @@ export function FileTabs({ voltId }: FileTabsProps) {
   return (
     <div className={styles.bar}>
       {voltTabs.map((tab, index) => {
-        const tabLabel = tab.type === 'graph' ? t('sidebar.graph') : tab.fileName;
+        const tabLabel = tab.fileName;
 
         return (
           <div

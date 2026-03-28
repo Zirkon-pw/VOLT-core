@@ -42,7 +42,6 @@ export function SearchPopup({
   const resultsRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const openTab = useTabStore((s) => s.openTab);
-  const openGraphTab = useTabStore((s) => s.openGraphTab);
   const startCreate = useFileTreeStore((state) => state.startCreate);
   const pluginCommands = usePluginRegistryStore((state) => state.commands);
   const isCommandMode = query.startsWith('>');
@@ -122,18 +121,12 @@ export function SearchPopup({
       callback: onToggleSidebar,
     },
     {
-      id: 'builtin:open-graph',
-      title: t('search.command.openGraph'),
-      icon: 'graph',
-      callback: () => openGraphTab(voltId),
-    },
-    {
       id: 'builtin:settings',
       title: t('search.command.settings'),
       icon: 'settings',
       callback: () => navigate('/settings'),
     },
-  ], [navigate, onToggleSidebar, openGraphTab, startCreate, t, voltId]);
+  ], [navigate, onToggleSidebar, startCreate, t, voltId]);
 
   const commandResults = useMemo<CommandPaletteItem[]>(() => {
     if (!isCommandMode) {

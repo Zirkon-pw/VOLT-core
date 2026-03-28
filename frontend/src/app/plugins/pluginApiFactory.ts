@@ -190,6 +190,19 @@ export function createPluginAPI(
           detail: { voltId, pageId: page.id },
         }));
       },
+      openFile(path: string) {
+        const voltId = useWorkspaceStore.getState().activeWorkspaceId;
+        if (!voltId) {
+          throw reportPluginError(pluginId, `openFile:${path}`, new Error('No active workspace'));
+        }
+
+        const normalizedPath = path.trim();
+        if (!normalizedPath) {
+          throw reportPluginError(pluginId, 'openFile', new Error('File path is required'));
+        }
+
+        useTabStore.getState().openTab(voltId, normalizedPath, normalizedPath);
+      },
       showNotice(message: string, durationMs?: number) {
         useToastStore.getState().addToast(message, 'info', durationMs ?? 4000);
       },

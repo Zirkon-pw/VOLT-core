@@ -51,6 +51,7 @@ export interface VoltPluginAPI {
       callback: () => void | Promise<void>;
     }): void;
     openPluginPage(pageId: string): void;
+    openFile(path: string): void;
     showNotice(message: string, durationMs?: number): void;
   };
   editor: {

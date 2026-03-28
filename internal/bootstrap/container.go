@@ -4,7 +4,6 @@ import (
 	"log"
 	"path/filepath"
 
-	appgraph "volt/internal/application/graph"
 	appnote "volt/internal/application/note"
 	appplugin "volt/internal/application/plugin"
 	appsearch "volt/internal/application/search"
@@ -20,7 +19,6 @@ type Container struct {
 	voltHandler     *wailshandler.VoltHandler
 	noteHandler     *wailshandler.NoteHandler
 	searchHandler   *wailshandler.SearchHandler
-	graphHandler    *wailshandler.GraphHandler
 	pluginHandler   *wailshandler.PluginHandler
 	imageHandler    *wailshandler.ImageHandler
 	settingsHandler *wailshandler.SettingsHandler
@@ -62,9 +60,6 @@ func NewContainer() *Container {
 	// Use cases — search
 	searchFiles := appsearch.NewSearchFilesUseCase()
 
-	// Use cases — graph
-	buildGraph := appgraph.NewBuildGraphUseCase()
-
 	// Plugin store
 	pluginStore, err := filesystem.NewPluginStore()
 	if err != nil {
@@ -82,18 +77,16 @@ func NewContainer() *Container {
 	voltHandler := wailshandler.NewVoltHandler(listVolts, createVolt, deleteVolt, localization)
 	noteHandler := wailshandler.NewNoteHandler(readNote, saveNote, listTree, createNote, createDir, deleteNote, renameNote, localization)
 	searchHandler := wailshandler.NewSearchHandler(searchFiles, localization)
-	graphHandler := wailshandler.NewGraphHandler(buildGraph, localization)
 	pluginHandler := wailshandler.NewPluginHandler(listPlugins, loadPlugin, togglePlugin, getPluginData, setPluginData, localization)
 	imageHandler := wailshandler.NewImageHandler(localization)
 	settingsHandler := wailshandler.NewSettingsHandler(localization)
-	appHandler := wailshandler.NewAppHandler(voltHandler, noteHandler, searchHandler, graphHandler, pluginHandler, imageHandler)
+	appHandler := wailshandler.NewAppHandler(voltHandler, noteHandler, searchHandler, pluginHandler, imageHandler)
 
 	return &Container{
 		App:             appHandler,
 		voltHandler:     voltHandler,
 		noteHandler:     noteHandler,
 		searchHandler:   searchHandler,
-		graphHandler:    graphHandler,
 		pluginHandler:   pluginHandler,
 		imageHandler:    imageHandler,
 		settingsHandler: settingsHandler,
@@ -106,7 +99,6 @@ func (c *Container) Bindings() []interface{} {
 		c.voltHandler,
 		c.noteHandler,
 		c.searchHandler,
-		c.graphHandler,
 		c.pluginHandler,
 		c.imageHandler,
 		c.settingsHandler,

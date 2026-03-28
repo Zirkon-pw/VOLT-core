@@ -4,9 +4,8 @@ import {
   hasPathPrefix,
   replacePathPrefix,
 } from '@app/lib/fileTree';
-import { translate } from '@app/i18n/runtime';
 
-export type TabType = 'file' | 'graph' | 'plugin';
+export type TabType = 'file' | 'plugin';
 
 export interface FileTab {
   id: string;
@@ -27,7 +26,6 @@ interface TabState {
   activeTabs: Record<string, string | null>;
   pendingRenames: Record<string, PendingRename | null>;
   openTab: (voltId: string, filePath: string, fileName: string) => void;
-  openGraphTab: (voltId: string) => void;
   openPluginTab: (voltId: string, pluginPageId: string, title: string) => void;
   closeTab: (voltId: string, tabId: string) => void;
   setActiveTab: (voltId: string, tabId: string) => void;
@@ -67,29 +65,6 @@ export const useTabStore = create<TabState>((set, get) => ({
       set({
         tabs: { ...tabs, [voltId]: [...voltTabs, newTab] },
         activeTabs: { ...activeTabs, [voltId]: filePath },
-      });
-    }
-  },
-
-  openGraphTab: (voltId) => {
-    const GRAPH_TAB_ID = '__graph__';
-    const { tabs, activeTabs } = get();
-    const voltTabs = tabs[voltId] ?? [];
-    const exists = voltTabs.find((t) => t.id === GRAPH_TAB_ID);
-
-    if (exists) {
-      set({ activeTabs: { ...activeTabs, [voltId]: GRAPH_TAB_ID } });
-    } else {
-      const newTab: FileTab = {
-        id: GRAPH_TAB_ID,
-        type: 'graph',
-        filePath: '',
-        fileName: translate('sidebar.graph'),
-        isDirty: false,
-      };
-      set({
-        tabs: { ...tabs, [voltId]: [...voltTabs, newTab] },
-        activeTabs: { ...activeTabs, [voltId]: GRAPH_TAB_ID },
       });
     }
   },
