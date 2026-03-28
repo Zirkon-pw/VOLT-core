@@ -4,7 +4,7 @@ import { useFileTreeStore } from '@app/stores/fileTreeStore';
 import { usePluginRegistryStore, type RegisteredSidebarPanel } from '@app/plugins/pluginRegistry';
 import { safeExecute } from '@app/plugins/safeExecute';
 import { FileTree } from '@widgets/file-tree/FileTree';
-import { Icon } from '@uikit/icon';
+import { Icon, type IconName } from '@uikit/icon';
 import styles from './Sidebar.module.scss';
 
 function PluginPanelSlot({ panel }: { panel: RegisteredSidebarPanel }) {
@@ -59,6 +59,38 @@ export function Sidebar({ voltId, voltPath, onSearchClick, collapsed, onToggleCo
   const [width, setWidth] = useState(getInitialWidth);
   const dragging = useRef(false);
 
+  const builtInButtons: Array<{
+    id: string;
+    icon: IconName;
+    title: string;
+    onClick: () => void | Promise<void>;
+  }> = [
+    {
+      id: 'search',
+      icon: 'search',
+      title: t('sidebar.search'),
+      onClick: onSearchClick,
+    },
+    {
+      id: 'new-note',
+      icon: 'plus',
+      title: t('sidebar.newNote'),
+      onClick: () => startCreate(voltId, '', false),
+    },
+    {
+      id: 'new-folder',
+      icon: 'folder',
+      title: t('sidebar.newFolder'),
+      onClick: () => startCreate(voltId, '', true),
+    },
+    {
+      id: 'refresh-files',
+      icon: 'refreshCw',
+      title: t('sidebar.refreshFiles'),
+      onClick: () => void notifyFsMutation(voltId, voltPath),
+    },
+  ];
+
   const onMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     dragging.current = true;
@@ -93,56 +125,35 @@ export function Sidebar({ voltId, voltPath, onSearchClick, collapsed, onToggleCo
   }, [width]);
 
   return (
-    <aside className={collapsed ? styles.collapsed : styles.sidebar} style={!collapsed ? { width, minWidth: width } : undefined}>
-      <div className={styles.topBar}>
-        <button className={styles.iconButton} onClick={onSearchClick} title={t('sidebar.search')}>
-          <Icon name="search" size={18} />
-        </button>
-        {collapsed ? (
-          <>
-            {sidebarButtons.map((button) => (
-              <button
-                key={button.id}
-                className={styles.iconButton}
-                onClick={button.callback}
-                title={button.label}
-                aria-label={button.label}
-              >
-                <Icon name={button.icon} size={18} />
-              </button>
-            ))}
-          </>
-        ) : (
-          <>
-            <button className={styles.iconButton} onClick={() => startCreate(voltId, '', false)} title={t('sidebar.newNote')}>
-              <Icon name="plus" size={18} />
+    <aside className={`${styles.sidebar} ${collapsed ? styles.collapsed : ''}`}>
+      <div className={styles.rail}>
+        <div className={styles.railActions}>
+          {builtInButtons.map((button) => (
+            <button
+              key={button.id}
+              className={styles.iconButton}
+              onClick={button.onClick}
+              title={button.title}
+              aria-label={button.title}
+            >
+              <Icon name={button.icon} size={18} />
             </button>
-            <button className={styles.iconButton} onClick={() => startCreate(voltId, '', true)} title={t('sidebar.newFolder')}>
-              <Icon name="folder" size={18} />
+          ))}
+          {sidebarButtons.map((button) => (
+            <button
+              key={button.id}
+              className={styles.iconButton}
+              onClick={button.callback}
+              title={button.label}
+              aria-label={button.label}
+            >
+              <Icon name={button.icon} size={18} />
             </button>
-            <button className={styles.iconButton} onClick={() => void notifyFsMutation(voltId, voltPath)} title={t('sidebar.refreshFiles')}>
-              <Icon name="refreshCw" size={18} />
-            </button>
-            {sidebarButtons.map((button) => (
-              <button
-                key={button.id}
-                className={styles.iconButton}
-                onClick={button.callback}
-                title={button.label}
-                aria-label={button.label}
-              >
-                <Icon name={button.icon} size={18} />
-              </button>
-            ))}
-            <div className={styles.spacer} />
-          </>
-        )}
-        <button className={styles.iconButton} onClick={onToggleCollapse} title={collapsed ? t('sidebar.expand') : t('sidebar.collapse')}>
-          <Icon name="panelLeft" size={18} />
-        </button>
+          ))}
+        </div>
       </div>
       {!collapsed && (
-        <>
+        <div className={styles.pane} style={{ width, minWidth: width }}>
           <div className={styles.treeContainer}>
             <FileTree voltId={voltId} voltPath={voltPath} />
           </div>
@@ -154,8 +165,20 @@ export function Sidebar({ voltId, voltPath, onSearchClick, collapsed, onToggleCo
             </div>
           )}
           <div className={styles.resizeHandle} onMouseDown={onMouseDown} />
-        </>
+        </div>
       )}
+      <button
+        className={styles.toggleButton}
+        onClick={onToggleCollapse}
+        title={collapsed ? t('sidebar.expand') : t('sidebar.collapse')}
+        aria-label={collapsed ? t('sidebar.expand') : t('sidebar.collapse')}
+      >
+        <Icon
+          name="chevronRight"
+          size={16}
+          className={collapsed ? styles.toggleIconCollapsed : styles.toggleIconExpanded}
+        />
+      </button>
     </aside>
   );
 }
