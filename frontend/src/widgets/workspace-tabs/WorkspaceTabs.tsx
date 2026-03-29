@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useI18n } from '@app/providers/I18nProvider';
-import { useWorkspaceStore } from '@app/stores/workspaceStore';
-import { Icon } from '@uikit/icon';
+import { useWorkspaceStore } from '@entities/workspace';
+import { Icon } from '@shared/ui/icon';
 import styles from './WorkspaceTabs.module.scss';
 
 export function WorkspaceTabs() {

@@ -8,10 +8,10 @@ export default defineConfig({
     alias: {
       '@app': path.resolve(__dirname, 'src/app'),
       '@pages': path.resolve(__dirname, 'src/pages'),
+      '@entities': path.resolve(__dirname, 'src/entities'),
+      '@features': path.resolve(__dirname, 'src/features'),
       '@widgets': path.resolve(__dirname, 'src/widgets'),
-      '@components': path.resolve(__dirname, 'src/components'),
-      '@uikit': path.resolve(__dirname, 'src/uikit'),
-      '@api': path.resolve(__dirname, 'src/api'),
+      '@shared': path.resolve(__dirname, 'src/shared'),
     },
   },
   css: {

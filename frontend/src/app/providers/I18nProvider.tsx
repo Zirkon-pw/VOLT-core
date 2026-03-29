@@ -1,50 +1,27 @@
 import {
   createContext,
-  useCallback,
   useContext,
   useEffect,
   useState,
   type ReactNode,
 } from 'react';
-import { getLocalization, setLocale as persistLocale } from '@api/settings';
-import type { LocalizationPayload } from '@api/settings';
-import { setLocalizationRuntime, translate, type TranslationParams } from '@app/i18n/runtime';
+import type { LocalizationPayload } from '@shared/api/settings';
+import { useAppSettingsStore } from '@entities/app-settings';
+import { translate, type TranslationParams } from '@shared/i18n';
 
 interface I18nContextValue extends LocalizationPayload {
   t: (key: string, params?: TranslationParams) => string;
-  setLocale: (locale: string) => Promise<void>;
-  refreshLocalization: () => Promise<void>;
+  setLocale: (locale: string) => Promise<LocalizationPayload>;
+  refreshLocalization: () => Promise<LocalizationPayload>;
 }
 
 const I18nContext = createContext<I18nContextValue | null>(null);
 
-function getPreferredLocales(): string[] {
-  if (typeof navigator === 'undefined') {
-    return [];
-  }
-
-  const locales = [...(navigator.languages ?? []), navigator.language].filter(Boolean);
-  return Array.from(new Set(locales));
-}
-
 export function I18nProvider({ children }: { children: ReactNode }) {
-  const [localization, setLocalization] = useState<LocalizationPayload | null>(null);
+  const localization = useAppSettingsStore((state) => state.localization);
+  const refreshLocalization = useAppSettingsStore((state) => state.refreshLocalization);
+  const setLocale = useAppSettingsStore((state) => state.setLocale);
   const [error, setError] = useState<Error | null>(null);
-
-  const applyLocalization = useCallback((payload: LocalizationPayload) => {
-    setLocalizationRuntime(payload);
-    setLocalization(payload);
-  }, []);
-
-  const refreshLocalization = useCallback(async () => {
-    const payload = await getLocalization(getPreferredLocales());
-    applyLocalization(payload);
-  }, [applyLocalization]);
-
-  const setLocale = useCallback(async (locale: string) => {
-    const payload = await persistLocale(locale, getPreferredLocales());
-    applyLocalization(payload);
-  }, [applyLocalization]);
 
   useEffect(() => {
     let cancelled = false;

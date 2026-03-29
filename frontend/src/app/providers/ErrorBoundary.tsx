@@ -1,5 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
-import { translate } from '@app/i18n/runtime';
+import { translate } from '@shared/i18n';
 
 interface ErrorBoundaryProps {
   children: ReactNode;

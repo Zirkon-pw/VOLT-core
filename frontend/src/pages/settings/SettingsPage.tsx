@@ -1,26 +1,24 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
-import { listPlugins, setPluginEnabled } from '@api/plugin';
-import type { PluginInfo, PluginSettingField, PluginSettingsSection } from '@api/plugin';
+import { useAppSettingsStore } from '@entities/app-settings';
+import { usePluginLogStore, ensurePluginSettingsLoaded, getMergedPluginSettings, setPluginSettingValue, usePluginSettingsStore } from '@entities/plugin';
+import { useWorkspaceStore } from '@entities/workspace';
+import { ShortcutSettingsSection } from '@features/shortcut-settings';
+import { deletePlugin, importPluginArchive, listPlugins, pickPluginArchive, setPluginEnabled } from '@shared/api/plugin';
+import type { PluginInfo, PluginSettingField, PluginSettingsSection } from '@shared/api/plugin';
+import { loadSinglePlugin, unloadSinglePlugin } from '@shared/lib/plugin-runtime';
 import { useI18n } from '@app/providers/I18nProvider';
 import { useTheme } from '@app/providers/ThemeProvider';
-import { usePluginLogStore } from '@app/plugins/pluginLogStore';
-import {
-  ensurePluginSettingsLoaded,
-  getMergedPluginSettings,
-  setPluginSettingValue,
-  usePluginSettingsStore,
-} from '@app/plugins/pluginSettingsStore';
-import { loadSinglePlugin, unloadSinglePlugin } from '@app/plugins/pluginLoader';
-import { useWorkspaceStore } from '@app/stores/workspaceStore';
-import { PermissionDialog } from '@widgets/permission-dialog/PermissionDialog';
-import { Icon } from '@uikit/icon';
+import { PermissionDialog } from '@features/plugin-permission';
+import { Button } from '@shared/ui/button';
+import { Icon } from '@shared/ui/icon';
+import { Modal } from '@shared/ui/modal';
+import { useToastStore } from '@shared/ui/toast';
 import styles from './SettingsPage.module.scss';
 
-const IMAGE_DIR_KEY = 'volt-image-dir';
 const EMPTY_PLUGIN_SETTINGS: Record<string, unknown> = {};
 
-export type SettingsSection = 'general' | 'plugins' | 'about' | 'plugin';
+export type SettingsSection = 'general' | 'shortcuts' | 'plugins' | 'about' | 'plugin';
 
 interface SettingsPageProps {
   section?: SettingsSection;
@@ -29,6 +27,25 @@ interface SettingsPageProps {
 
 interface PluginSettingsViewProps {
   plugin: PluginInfo;
+}
+
+function sortPlugins(plugins: PluginInfo[]): PluginInfo[] {
+  return [...plugins].sort((left, right) => left.manifest.name.localeCompare(right.manifest.name));
+}
+
+function upsertPlugin(currentPlugins: PluginInfo[], nextPlugin: PluginInfo): PluginInfo[] {
+  const existingIndex = currentPlugins.findIndex((plugin) => plugin.manifest.id === nextPlugin.manifest.id);
+  if (existingIndex === -1) {
+    return sortPlugins([...currentPlugins, nextPlugin]);
+  }
+
+  const nextPlugins = [...currentPlugins];
+  nextPlugins[existingIndex] = nextPlugin;
+  return sortPlugins(nextPlugins);
+}
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
 }
 
 function formatNumberInputValue(value: unknown): string {
@@ -215,54 +232,65 @@ export function SettingsPage({
   pluginId,
 }: SettingsPageProps) {
   const navigate = useNavigate();
-  const { t, selectedLocale, availableLocales, setLocale, refreshLocalization } = useI18n();
+  const { t, selectedLocale, availableLocales, setLocale } = useI18n();
   const { theme, setTheme } = useTheme();
   const { workspaces, activeWorkspaceId } = useWorkspaceStore();
+  const imageDir = useAppSettingsStore((state) => state.settings.imageDir);
+  const setImageDir = useAppSettingsStore((state) => state.setImageDir);
+  const clearPluginShortcutOverrides = useAppSettingsStore((state) => state.clearPluginShortcutOverrides);
+  const addToast = useToastStore((state) => state.addToast);
   const [plugins, setPlugins] = useState<PluginInfo[]>([]);
   const [pluginsLoaded, setPluginsLoaded] = useState(false);
   const [confirmPlugin, setConfirmPlugin] = useState<PluginInfo | null>(null);
-  const [imageDir, setImageDir] = useState(() => localStorage.getItem(IMAGE_DIR_KEY) || 'attachments');
+  const [pluginPendingDeletion, setPluginPendingDeletion] = useState<PluginInfo | null>(null);
+  const [importingPlugin, setImportingPlugin] = useState(false);
+  const [busyPluginId, setBusyPluginId] = useState<string | null>(null);
+  const [deletingPluginId, setDeletingPluginId] = useState<string | null>(null);
   const activeWorkspace = workspaces.find((workspace) => workspace.voltId === activeWorkspaceId) ?? null;
 
   const fetchPlugins = useCallback(async () => {
     try {
       const list = await listPlugins();
-      setPlugins(list);
+      setPlugins(sortPlugins(list));
     } catch (err) {
       console.error('Failed to load plugins:', err);
+      addToast(getErrorMessage(err), 'error');
     } finally {
       setPluginsLoaded(true);
     }
-  }, []);
+  }, [addToast]);
 
   useEffect(() => {
     void fetchPlugins();
   }, [fetchPlugins]);
 
-  useEffect(() => {
-    void refreshLocalization().catch(() => undefined);
-  }, [refreshLocalization]);
-
   const applyPluginToggle = useCallback(async (plugin: PluginInfo, nextEnabled: boolean) => {
+    const pluginId = plugin.manifest.id;
+    setBusyPluginId(pluginId);
+
     try {
-      await setPluginEnabled(plugin.manifest.id, nextEnabled);
+      await setPluginEnabled(pluginId, nextEnabled);
       setPlugins((prev) =>
         prev.map((current) =>
-          current.manifest.id === plugin.manifest.id ? { ...current, enabled: nextEnabled } : current,
+          current.manifest.id === pluginId ? { ...current, enabled: nextEnabled } : current,
         ),
       );
 
       if (nextEnabled) {
         if (activeWorkspace?.voltPath) {
-          await loadSinglePlugin(plugin.manifest.id, activeWorkspace.voltPath);
+          await loadSinglePlugin(pluginId, activeWorkspace.voltPath);
         }
       } else {
-        unloadSinglePlugin(plugin.manifest.id);
+        unloadSinglePlugin(pluginId);
       }
     } catch (err) {
       console.error('Failed to toggle plugin:', err);
+      addToast(getErrorMessage(err), 'error');
+      throw err;
+    } finally {
+      setBusyPluginId((current) => (current === pluginId ? null : current));
     }
-  }, [activeWorkspace?.voltPath]);
+  }, [activeWorkspace?.voltPath, addToast]);
 
   const handleTogglePlugin = useCallback(async (plugin: PluginInfo) => {
     if (!plugin.enabled && plugin.manifest.permissions.length > 0) {
@@ -270,8 +298,86 @@ export function SettingsPage({
       return;
     }
 
-    await applyPluginToggle(plugin, !plugin.enabled);
+    try {
+      await applyPluginToggle(plugin, !plugin.enabled);
+    } catch {
+      return;
+    }
   }, [applyPluginToggle]);
+
+  const handleImportPlugin = useCallback(async () => {
+    setImportingPlugin(true);
+
+    try {
+      let archivePath: string;
+      try {
+        archivePath = await pickPluginArchive();
+      } catch (err) {
+        console.error('Failed to open plugin archive dialog:', err);
+        addToast(getErrorMessage(err), 'error');
+        return;
+      }
+
+      if (!archivePath) {
+        return;
+      }
+
+      let importedPlugin: PluginInfo;
+      try {
+        importedPlugin = await importPluginArchive(archivePath);
+      } catch (err) {
+        console.error('Failed to import plugin:', err);
+        addToast(getErrorMessage(err), 'error');
+        return;
+      }
+
+      setPlugins((prev) => upsertPlugin(prev, importedPlugin));
+
+      if (importedPlugin.manifest.permissions.length > 0) {
+        setConfirmPlugin(importedPlugin);
+        addToast(t('settings.plugins.importSuccess', { name: importedPlugin.manifest.name }), 'info');
+        return;
+      }
+
+      try {
+        await applyPluginToggle(importedPlugin, true);
+      } catch {
+        return;
+      }
+
+      addToast(t('settings.plugins.importEnabledSuccess', { name: importedPlugin.manifest.name }), 'success');
+    } finally {
+      setImportingPlugin(false);
+    }
+  }, [addToast, applyPluginToggle, t]);
+
+  const handleConfirmDeletePlugin = useCallback(async () => {
+    const plugin = pluginPendingDeletion;
+    if (!plugin) {
+      return;
+    }
+
+    const pluginId = plugin.manifest.id;
+    setDeletingPluginId(pluginId);
+
+    try {
+      await deletePlugin(pluginId);
+      unloadSinglePlugin(pluginId);
+      usePluginLogStore.getState().clearByPlugin(pluginId);
+      usePluginSettingsStore.getState().clearPluginValues(pluginId);
+      clearPluginShortcutOverrides(pluginId);
+
+      setPlugins((prev) => prev.filter((current) => current.manifest.id !== pluginId));
+      setConfirmPlugin((current) => (current?.manifest.id === pluginId ? null : current));
+      setPluginPendingDeletion(null);
+      addToast(t('settings.plugins.deleteSuccess', { name: plugin.manifest.name }), 'success');
+    } catch (err) {
+      console.error('Failed to delete plugin:', err);
+      addToast(getErrorMessage(err), 'error');
+    } finally {
+      setDeletingPluginId((current) => (current === pluginId ? null : current));
+    }
+  }, [addToast, clearPluginShortcutOverrides, pluginPendingDeletion, t]);
 
   const settingsPlugins = useMemo(
     () => [...plugins]
@@ -291,6 +397,7 @@ export function SettingsPage({
   const navItems = useMemo(() => {
     const items = [
       { key: 'general', label: t('settings.tab.general'), path: '/settings' },
+      { key: 'shortcuts', label: t('settings.tab.shortcuts'), path: '/settings/shortcuts' },
       { key: 'plugins', label: t('settings.tab.plugins'), path: '/settings/plugins' },
       ...settingsPlugins.map((plugin) => ({
         key: `plugin:${plugin.manifest.id}`,
@@ -370,9 +477,7 @@ export function SettingsPage({
                   type="text"
                   value={imageDir}
                   onChange={(event) => {
-                    const value = event.target.value;
-                    setImageDir(value);
-                    localStorage.setItem(IMAGE_DIR_KEY, value);
+                    setImageDir(event.target.value);
                   }}
                   placeholder="attachments"
                   className={styles.textInput}
@@ -382,10 +487,28 @@ export function SettingsPage({
             </div>
           )}
 
+          {section === 'shortcuts' && (
+            <ShortcutSettingsSection />
+          )}
+
           {section === 'plugins' && (
             <div className={styles.section}>
-              <h2>{t('settings.plugins.title')}</h2>
-              <p className={styles.sectionDescription}>{t('settings.plugins.description')}</p>
+              <div className={styles.pluginToolbar}>
+                <div>
+                  <h2>{t('settings.plugins.title')}</h2>
+                  <p className={styles.sectionDescription}>{t('settings.plugins.description')}</p>
+                </div>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => {
+                    void handleImportPlugin();
+                  }}
+                  disabled={importingPlugin}
+                >
+                  {importingPlugin ? t('settings.plugins.importing') : t('settings.plugins.importButton')}
+                </Button>
+              </div>
               {plugins.length === 0 ? (
                 <p className={styles.emptyMessage}>{t('settings.plugins.empty')}</p>
               ) : (
@@ -402,13 +525,24 @@ export function SettingsPage({
                             <div className={styles.pluginDescription}>{plugin.manifest.description}</div>
                           )}
                         </div>
-                        <button
-                          type="button"
-                          className={`${styles.toggle} ${plugin.enabled ? styles.toggleOn : ''}`}
-                          onClick={() => {
-                            void handleTogglePlugin(plugin);
-                          }}
-                        />
+                        <div className={styles.pluginActions}>
+                          <button
+                            type="button"
+                            className={`${styles.toggle} ${plugin.enabled ? styles.toggleOn : ''}`}
+                            onClick={() => {
+                              void handleTogglePlugin(plugin);
+                            }}
+                            disabled={busyPluginId === plugin.manifest.id || deletingPluginId === plugin.manifest.id}
+                          />
+                          <Button
+                            variant="danger"
+                            size="sm"
+                            onClick={() => setPluginPendingDeletion(plugin)}
+                            disabled={busyPluginId === plugin.manifest.id || deletingPluginId === plugin.manifest.id}
+                          >
+                            {deletingPluginId === plugin.manifest.id ? t('settings.plugins.deleting') : t('common.delete')}
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -439,10 +573,48 @@ export function SettingsPage({
           const plugin = confirmPlugin;
           setConfirmPlugin(null);
           if (plugin) {
-            void applyPluginToggle(plugin, true);
+            void applyPluginToggle(plugin, true).catch(() => undefined);
           }
         }}
       />
+
+      <Modal
+        isOpen={pluginPendingDeletion != null}
+        onClose={() => {
+          if (deletingPluginId == null) {
+            setPluginPendingDeletion(null);
+          }
+        }}
+        title={t('settings.plugins.delete.title')}
+      >
+        <div className={styles.dialogBody}>
+          <p className={styles.dialogDescription}>
+            {pluginPendingDeletion
+              ? t('settings.plugins.delete.description', { name: pluginPendingDeletion.manifest.name })
+              : ''}
+          </p>
+          <div className={styles.dialogActions}>
+            <Button
+              variant="ghost"
+              size="md"
+              onClick={() => setPluginPendingDeletion(null)}
+              disabled={deletingPluginId != null}
+            >
+              {t('common.cancel')}
+            </Button>
+            <Button
+              variant="danger"
+              size="md"
+              onClick={() => {
+                void handleConfirmDeletePlugin();
+              }}
+              disabled={pluginPendingDeletion == null || deletingPluginId != null}
+            >
+              {deletingPluginId != null ? t('settings.plugins.deleting') : t('common.delete')}
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

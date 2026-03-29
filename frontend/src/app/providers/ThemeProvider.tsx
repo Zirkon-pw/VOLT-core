@@ -1,36 +1,31 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
-
-type Theme = 'light' | 'dark';
+import { createContext, useContext, useEffect, useMemo, type ReactNode } from 'react';
+import { useAppSettingsStore, type AppTheme } from '@entities/app-settings';
+import { applyThemeTokens, getBuiltinThemeByMode } from '@shared/config/theme';
 
 interface ThemeContextValue {
-  theme: Theme;
+  theme: AppTheme;
   toggleTheme: () => void;
-  setTheme: (theme: Theme) => void;
+  setTheme: (theme: AppTheme) => void;
 }
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
-const STORAGE_KEY = 'volt-theme';
-
-function getInitialTheme(): Theme {
-  const stored = localStorage.getItem(STORAGE_KEY);
-  if (stored === 'light' || stored === 'dark') return stored;
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-}
-
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>(getInitialTheme);
+  const theme = useAppSettingsStore((state) => state.settings.theme);
+  const setTheme = useAppSettingsStore((state) => state.setTheme);
+  const value = useMemo<ThemeContextValue>(() => ({
+    theme,
+    setTheme,
+    toggleTheme: () => setTheme(theme === 'light' ? 'dark' : 'light'),
+  }), [setTheme, theme]);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem(STORAGE_KEY, theme);
+    applyThemeTokens(document.documentElement, getBuiltinThemeByMode(theme).tokens);
   }, [theme]);
 
-  const setTheme = (t: Theme) => setThemeState(t);
-  const toggleTheme = () => setThemeState((prev) => (prev === 'light' ? 'dark' : 'light'));
-
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme, setTheme }}>
+    <ThemeContext.Provider value={value}>
       {children}
     </ThemeContext.Provider>
   );

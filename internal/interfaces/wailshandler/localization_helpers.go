@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	corenote "volt/core/note"
+	coreplugin "volt/core/plugin"
 	corevolt "volt/core/volt"
 	appsettings "volt/internal/application/settings"
 )
@@ -53,6 +54,31 @@ func localizedNoteError(localization *appsettings.LocalizationService, actionKey
 
 func localizedImageError(localization *appsettings.LocalizationService, actionKey string, params map[string]any, err error) error {
 	return localizedUnexpectedError(localization, actionKey, params, err)
+}
+
+func localizedPluginError(localization *appsettings.LocalizationService, actionKey string, params map[string]any, err error) error {
+	var alreadyExistsErr *coreplugin.ErrAlreadyExists
+
+	switch {
+	case errors.Is(err, coreplugin.ErrNotFound):
+		return errors.New(translate(localization, "backend.error.plugin.notFound", nil))
+	case errors.As(err, &alreadyExistsErr):
+		return errors.New(translate(localization, "backend.error.plugin.alreadyExists", map[string]any{
+			"pluginId": alreadyExistsErr.PluginID,
+		}))
+	case errors.Is(err, coreplugin.ErrManifestNotFound):
+		return errors.New(translate(localization, "backend.error.plugin.manifestNotFound", nil))
+	case errors.Is(err, coreplugin.ErrMultiplePluginRoots):
+		return errors.New(translate(localization, "backend.error.plugin.multiplePayloads", nil))
+	case errors.Is(err, coreplugin.ErrInvalidManifest):
+		return errors.New(translate(localization, "backend.error.plugin.invalidManifest", nil))
+	case errors.Is(err, coreplugin.ErrMainEntryMissing):
+		return errors.New(translate(localization, "backend.error.plugin.mainEntryMissing", nil))
+	case errors.Is(err, coreplugin.ErrInvalidArchivePath):
+		return errors.New(translate(localization, "backend.error.plugin.invalidArchivePath", nil))
+	default:
+		return localizedUnexpectedError(localization, actionKey, params, err)
+	}
 }
 
 func quotedPathParam(path string) map[string]any {

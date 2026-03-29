@@ -4,8 +4,8 @@ import {
   markPluginPageRendered,
   runPluginPageCleanup,
   usePluginRegistryStore,
-} from '@app/plugins/pluginRegistry';
-import { safeExecute } from '@app/plugins/safeExecute';
+} from '@entities/plugin';
+import { safeExecute } from '@shared/lib/plugin-runtime';
 
 interface PluginPageHostProps {
   pageId: string;

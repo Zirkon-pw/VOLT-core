@@ -71,6 +71,8 @@ func NewContainer() *Container {
 	listPlugins := appplugin.NewListPluginsUseCase(pluginStore)
 	loadPlugin := appplugin.NewLoadPluginUseCase(pluginStore)
 	togglePlugin := appplugin.NewTogglePluginUseCase(pluginStore)
+	importPlugin := appplugin.NewImportPluginUseCase(pluginStore)
+	deletePlugin := appplugin.NewDeletePluginUseCase(pluginStore)
 	getPluginData := appplugin.NewGetPluginDataUseCase(pluginStore)
 	setPluginData := appplugin.NewSetPluginDataUseCase(pluginStore)
 
@@ -78,7 +80,16 @@ func NewContainer() *Container {
 	voltHandler := wailshandler.NewVoltHandler(listVolts, createVolt, deleteVolt, localization)
 	noteHandler := wailshandler.NewNoteHandler(readNote, saveNote, listTree, createNote, createFile, createDir, deleteNote, renameNote, localization)
 	searchHandler := wailshandler.NewSearchHandler(searchFiles, localization)
-	pluginHandler := wailshandler.NewPluginHandler(listPlugins, loadPlugin, togglePlugin, getPluginData, setPluginData, localization)
+	pluginHandler := wailshandler.NewPluginHandler(
+		listPlugins,
+		loadPlugin,
+		togglePlugin,
+		importPlugin,
+		deletePlugin,
+		getPluginData,
+		setPluginData,
+		localization,
+	)
 	imageHandler := wailshandler.NewImageHandler(localization)
 	settingsHandler := wailshandler.NewSettingsHandler(localization)
 	appHandler := wailshandler.NewAppHandler(voltHandler, noteHandler, searchHandler, pluginHandler, imageHandler)

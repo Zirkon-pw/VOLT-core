@@ -5,11 +5,17 @@ import {context} from '../models';
 
 export function CancelPluginProcess(arg1:string):Promise<void>;
 
+export function DeletePlugin(arg1:string):Promise<void>;
+
 export function GetPluginData(arg1:string,arg2:string):Promise<string>;
+
+export function ImportPluginArchive(arg1:string):Promise<plugin.Plugin>;
 
 export function ListPlugins():Promise<Array<plugin.Plugin>>;
 
 export function LoadPluginSource(arg1:string):Promise<string>;
+
+export function PickPluginArchive():Promise<string>;
 
 export function SetContext(arg1:context.Context):Promise<void>;
 

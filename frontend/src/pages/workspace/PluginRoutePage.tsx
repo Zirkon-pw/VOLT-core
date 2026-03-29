@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useWorkspaceStore } from '@app/stores/workspaceStore';
-import { loadAllPlugins, unloadAllPlugins } from '@app/plugins/pluginLoader';
-import { PluginPageHost } from '@widgets/plugin-page/PluginPageHost';
+import { useWorkspaceStore } from '@entities/workspace';
+import { loadAllPlugins, unloadAllPlugins } from '@shared/lib/plugin-runtime';
+import { PluginPageHost } from '@widgets/plugin-page';
 
 export function PluginRoutePage() {
   const { voltId, pageId: rawPageId } = useParams<{ voltId: string; pageId: string }>();

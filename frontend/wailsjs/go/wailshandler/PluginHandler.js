@@ -6,8 +6,16 @@ export function CancelPluginProcess(arg1) {
   return window['go']['wailshandler']['PluginHandler']['CancelPluginProcess'](arg1);
 }
 
+export function DeletePlugin(arg1) {
+  return window['go']['wailshandler']['PluginHandler']['DeletePlugin'](arg1);
+}
+
 export function GetPluginData(arg1, arg2) {
   return window['go']['wailshandler']['PluginHandler']['GetPluginData'](arg1, arg2);
+}
+
+export function ImportPluginArchive(arg1) {
+  return window['go']['wailshandler']['PluginHandler']['ImportPluginArchive'](arg1);
 }
 
 export function ListPlugins() {
@@ -16,6 +24,10 @@ export function ListPlugins() {
 
 export function LoadPluginSource(arg1) {
   return window['go']['wailshandler']['PluginHandler']['LoadPluginSource'](arg1);
+}
+
+export function PickPluginArchive() {
+  return window['go']['wailshandler']['PluginHandler']['PickPluginArchive']();
 }
 
 export function SetContext(arg1) {

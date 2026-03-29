@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useVoltStore } from '@app/stores/voltStore';
-import { useWorkspaceStore } from '@app/stores/workspaceStore';
-import { Button } from '@uikit/button';
-import { TextInput } from '@uikit/text-input';
-import { Modal } from '@uikit/modal';
+import { useVoltStore } from '@entities/volt';
+import { useWorkspaceStore } from '@entities/workspace';
+import { Button } from '@shared/ui/button';
+import { TextInput } from '@shared/ui/text-input';
+import { Modal } from '@shared/ui/modal';
 import { useI18n } from '@app/providers/I18nProvider';
-import { VoltCard } from '@widgets/volt-card/VoltCard';
-import { selectDirectory } from '@api/volt/voltApi';
-import voltLogo from '@app/assets/volt-logo.svg';
+import { VoltCard } from '@shared/ui/volt-card';
+import { selectDirectory } from '@shared/api/volt';
+import voltLogo from '@shared/assets/volt-logo.svg';
 import styles from './HomePage.module.scss';
 
 export function HomePage() {
