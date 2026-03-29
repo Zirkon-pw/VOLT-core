@@ -6,20 +6,27 @@
 - `core/note` - сущности и ошибки для работы с файлами заметок
 - `core/search` - структура результатов поиска
 - `core/plugin` - manifest и metadata плагинов
+- `core/settings` - настройки приложения и доменный сервис локализации
+- `core/boardjson` - чистые helper-функции для `.board` payload
 
-## Use case-слой
+## Command-слой
 
-В `internal/application/` лежат отдельные операции:
+В `commands/` лежат отдельные команды:
 
 - `volt/` - создание, удаление и получение списка volt
 - `note/` - чтение, сохранение, создание файлов и каталогов, удаление и переименование
 - `search/` - полнотекстовый поиск по markdown-файлам
+- `plugin/` - управление плагинами и их данными
+- `settings/` - получение и изменение локализации
+- `system/` - диалоги, изображения и desktop process runtime
 
-Такой формат упрощает развитие логики без сильной связности между слоями.
+Команды регистрируются в общем `commands.Manager` и вызываются из Wails-адаптеров по имени.
 
 ## Wails handlers
 
-Каталог `internal/interfaces/wailshandler/` это внешний API backend для frontend.
+Каталог `interfaces/wailshandler/` это внешний API backend для frontend.
+
+Имя пакета `wailshandler` сохранено намеренно, чтобы не менять Wails-namespace и текущие frontend imports из `frontend/wailsjs/go/wailshandler/*`.
 
 Handlers группируются по зонам ответственности:
 
@@ -27,13 +34,14 @@ Handlers группируются по зонам ответственности
 - `NoteHandler`
 - `SearchHandler`
 - `PluginHandler`
-- `AppHandler`
+- `ImageHandler`
+- `SettingsHandler`
 
-`AppHandler` на старте передает `context.Context` во вложенные handlers.
+Startup lifecycle вынесен в отдельный `Lifecycle`, который сохраняет `context.Context` во внутренний Wails runtime bridge, но не публикуется во frontend через `Bind`.
 
 ## Работа с заметками
 
-Реализация [`internal/infrastructure/filesystem/note_repository.go`](../internal/infrastructure/filesystem/note_repository.go) выполняет всю файловую работу.
+Реализация [`infrastructure/filesystem/note_repository.go`](../infrastructure/filesystem/note_repository.go) выполняет всю файловую работу.
 
 Особенности:
 
@@ -44,7 +52,7 @@ Handlers группируются по зонам ответственности
 
 ## Хранение списка volt
 
-Реализация [`internal/infrastructure/persistence/local/volt_store.go`](../internal/infrastructure/persistence/local/volt_store.go) хранит список подключенных volt в JSON-файле в домашнем каталоге пользователя.
+Реализация [`infrastructure/persistence/local/volt_store.go`](../infrastructure/persistence/local/volt_store.go) хранит список подключенных volt в JSON-файле в домашнем каталоге пользователя.
 
 Особенности:
 
@@ -54,13 +62,13 @@ Handlers группируются по зонам ответственности
 
 ## Поиск
 
-Поиск реализован в [`internal/application/search/search_files.go`](../internal/application/search/search_files.go).
+Поиск реализован в [`commands/search/search_files.go`](../commands/search/search_files.go).
 
 Правила:
 
-- поиск выполняется только по файлам `.md`
+- поиск выполняется по файлам `.md` и `.board`
 - сначала возвращаются совпадения по имени файла
-- затем совпадения по содержимому
+- затем совпадения по содержимому markdown или извлеченному тексту board payload
 - максимум `50` результатов на запрос
 - максимум `5` совпадений по содержимому на один файл
 
@@ -96,7 +104,11 @@ Backend не исполняет plugin JS и не хранит plugin registry. 
 
 ### Desktop process broker
 
-Текущий backend bridge для процессов реализован в [`internal/interfaces/wailshandler/plugin_process.go`](../internal/interfaces/wailshandler/plugin_process.go).
+Текущий backend bridge для процессов собран из:
+
+- [`commands/system/plugin_process.go`](../commands/system/plugin_process.go)
+- [`interfaces/wailshandler/plugin_process.go`](../interfaces/wailshandler/plugin_process.go)
+- [`infrastructure/runtime/wails/runtime.go`](../infrastructure/runtime/wails/runtime.go)
 
 Он:
 

@@ -30,10 +30,6 @@ export function PickPluginArchive() {
   return window['go']['wailshandler']['PluginHandler']['PickPluginArchive']();
 }
 
-export function SetContext(arg1) {
-  return window['go']['wailshandler']['PluginHandler']['SetContext'](arg1);
-}
-
 export function SetPluginData(arg1, arg2, arg3) {
   return window['go']['wailshandler']['PluginHandler']['SetPluginData'](arg1, arg2, arg3);
 }

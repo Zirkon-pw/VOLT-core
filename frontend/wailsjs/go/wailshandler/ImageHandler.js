@@ -17,7 +17,3 @@ export function ReadImageBase64(arg1, arg2) {
 export function SaveImageBase64(arg1, arg2, arg3, arg4) {
   return window['go']['wailshandler']['ImageHandler']['SaveImageBase64'](arg1, arg2, arg3, arg4);
 }
-
-export function SetContext(arg1) {
-  return window['go']['wailshandler']['ImageHandler']['SetContext'](arg1);
-}

@@ -33,7 +33,3 @@ export function RenameNote(arg1, arg2, arg3) {
 export function SaveNote(arg1, arg2, arg3) {
   return window['go']['wailshandler']['NoteHandler']['SaveNote'](arg1, arg2, arg3);
 }
-
-export function SetContext(arg1) {
-  return window['go']['wailshandler']['NoteHandler']['SetContext'](arg1);
-}

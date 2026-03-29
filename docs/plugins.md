@@ -749,14 +749,15 @@ async function runWorkspaceProcess() {
 
 Основные runtime-узлы:
 
-- [`frontend/src/app/plugins/pluginLoader.ts`](../frontend/src/app/plugins/pluginLoader.ts)
-- [`frontend/src/app/plugins/pluginApiFactory.ts`](../frontend/src/app/plugins/pluginApiFactory.ts)
-- [`frontend/src/app/plugins/pluginRegistry.ts`](../frontend/src/app/plugins/pluginRegistry.ts)
-- [`frontend/src/app/plugins/pluginEventBus.ts`](../frontend/src/app/plugins/pluginEventBus.ts)
-- [`frontend/src/app/plugins/pluginSettingsStore.ts`](../frontend/src/app/plugins/pluginSettingsStore.ts)
-- [`frontend/src/app/plugins/editorSessionManager.ts`](../frontend/src/app/plugins/editorSessionManager.ts)
-- [`frontend/src/app/plugins/pluginProcessManager.ts`](../frontend/src/app/plugins/pluginProcessManager.ts)
-- [`internal/interfaces/wailshandler/plugin_process.go`](../internal/interfaces/wailshandler/plugin_process.go)
+- [`frontend/src/shared/lib/plugin-runtime/pluginLoader.ts`](../frontend/src/shared/lib/plugin-runtime/pluginLoader.ts)
+- [`frontend/src/shared/lib/plugin-runtime/pluginApiFactory.ts`](../frontend/src/shared/lib/plugin-runtime/pluginApiFactory.ts)
+- [`frontend/src/entities/plugin/model/pluginRegistry.ts`](../frontend/src/entities/plugin/model/pluginRegistry.ts)
+- [`frontend/src/shared/lib/plugin-runtime/pluginEventBus.ts`](../frontend/src/shared/lib/plugin-runtime/pluginEventBus.ts)
+- [`frontend/src/entities/plugin/model/pluginSettingsStore.ts`](../frontend/src/entities/plugin/model/pluginSettingsStore.ts)
+- [`frontend/src/shared/lib/plugin-runtime/editorSessionManager.ts`](../frontend/src/shared/lib/plugin-runtime/editorSessionManager.ts)
+- [`frontend/src/shared/lib/plugin-runtime/pluginProcessManager.ts`](../frontend/src/shared/lib/plugin-runtime/pluginProcessManager.ts)
+- [`commands/system/plugin_process.go`](../commands/system/plugin_process.go)
+- [`interfaces/wailshandler/plugin_process.go`](../interfaces/wailshandler/plugin_process.go)
 
 Реальные примеры runtime plugins:
 

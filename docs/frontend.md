@@ -30,7 +30,7 @@ Frontend не только рендерит core UI, но и выступает 
 - `voltStore` - список volt и операции загрузки, создания, удаления
 - `workspaceStore` - открытые рабочие пространства
 - `tabStore` - вкладки файлов и plugin pages, активные элементы и dirty-флаги
-- `pluginRegistryStore` - команды, pages, slash-команды, toolbar/sidebar/context menu registrations
+- `pluginRegistry` - команды, pages, slash-команды, toolbar/sidebar/context menu registrations
 - `pluginLogStore` - лог ошибок plugin runtime
 - `pluginPromptStore` - host-side prompt modal для плагинов
 - `pluginSettingsStore` - cached plugin settings values и live change dispatch для `api.settings`
@@ -74,14 +74,14 @@ Frontend не только рендерит core UI, но и выступает 
 
 Основные runtime-узлы:
 
-- [`frontend/src/app/plugins/pluginLoader.ts`](../frontend/src/app/plugins/pluginLoader.ts) - загрузка/выгрузка плагинов
-- [`frontend/src/app/plugins/pluginApiFactory.ts`](../frontend/src/app/plugins/pluginApiFactory.ts) - создание ограниченного API с permission guards
-- [`frontend/src/app/plugins/pluginRegistry.ts`](../frontend/src/app/plugins/pluginRegistry.ts) - реестр UI registration-ов
-- [`frontend/src/app/plugins/pluginSettingsStore.ts`](../frontend/src/app/plugins/pluginSettingsStore.ts) - reserved settings storage, merge с default values и `settings.onChange`
-- [`frontend/src/app/plugins/pluginEventBus.ts`](../frontend/src/app/plugins/pluginEventBus.ts) - plugin-local события и tracked unsubscribe
-- [`frontend/src/app/plugins/editorSessionManager.ts`](../frontend/src/app/plugins/editorSessionManager.ts) - note sessions, detached buffers и anchor mapping
-- [`frontend/src/app/plugins/pluginProcessManager.ts`](../frontend/src/app/plugins/pluginProcessManager.ts) - frontend bridge для desktop process runs
-- [`frontend/src/app/plugins/pluginTaskStatusStore.ts`](../frontend/src/app/plugins/pluginTaskStatusStore.ts) - host-managed task statuses, surface routing и cleanup lifecycle
+- [`frontend/src/shared/lib/plugin-runtime/pluginLoader.ts`](../frontend/src/shared/lib/plugin-runtime/pluginLoader.ts) - загрузка/выгрузка плагинов
+- [`frontend/src/shared/lib/plugin-runtime/pluginApiFactory.ts`](../frontend/src/shared/lib/plugin-runtime/pluginApiFactory.ts) - создание ограниченного API с permission guards
+- [`frontend/src/entities/plugin/model/pluginRegistry.ts`](../frontend/src/entities/plugin/model/pluginRegistry.ts) - реестр UI registration-ов
+- [`frontend/src/entities/plugin/model/pluginSettingsStore.ts`](../frontend/src/entities/plugin/model/pluginSettingsStore.ts) - reserved settings storage, merge с default values и `settings.onChange`
+- [`frontend/src/shared/lib/plugin-runtime/pluginEventBus.ts`](../frontend/src/shared/lib/plugin-runtime/pluginEventBus.ts) - plugin-local события и tracked unsubscribe
+- [`frontend/src/shared/lib/plugin-runtime/editorSessionManager.ts`](../frontend/src/shared/lib/plugin-runtime/editorSessionManager.ts) - note sessions, detached buffers и anchor mapping
+- [`frontend/src/shared/lib/plugin-runtime/pluginProcessManager.ts`](../frontend/src/shared/lib/plugin-runtime/pluginProcessManager.ts) - frontend bridge для desktop process runs
+- [`frontend/src/features/plugin-task-status/model/pluginTaskStatusStore.ts`](../frontend/src/features/plugin-task-status/model/pluginTaskStatusStore.ts) - host-managed task statuses, surface routing и cleanup lifecycle
 
 Plugin settings UI теперь не зависит от plugin runtime:
 
