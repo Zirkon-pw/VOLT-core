@@ -3,6 +3,7 @@ export {
   readNote,
   saveNote,
   listTree,
+  createFile,
   createNote,
   createDirectory,
   deleteNote,

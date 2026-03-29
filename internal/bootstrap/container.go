@@ -53,6 +53,7 @@ func NewContainer() *Container {
 	saveNote := appnote.NewSaveNoteUseCase(noteRepo)
 	listTree := appnote.NewListTreeUseCase(noteRepo)
 	createNote := appnote.NewCreateNoteUseCase(noteRepo)
+	createFile := appnote.NewCreateFileUseCase(noteRepo)
 	createDir := appnote.NewCreateDirectoryUseCase(noteRepo)
 	deleteNote := appnote.NewDeleteNoteUseCase(noteRepo)
 	renameNote := appnote.NewRenameNoteUseCase(noteRepo)
@@ -75,7 +76,7 @@ func NewContainer() *Container {
 
 	// Handlers
 	voltHandler := wailshandler.NewVoltHandler(listVolts, createVolt, deleteVolt, localization)
-	noteHandler := wailshandler.NewNoteHandler(readNote, saveNote, listTree, createNote, createDir, deleteNote, renameNote, localization)
+	noteHandler := wailshandler.NewNoteHandler(readNote, saveNote, listTree, createNote, createFile, createDir, deleteNote, renameNote, localization)
 	searchHandler := wailshandler.NewSearchHandler(searchFiles, localization)
 	pluginHandler := wailshandler.NewPluginHandler(listPlugins, loadPlugin, togglePlugin, getPluginData, setPluginData, localization)
 	imageHandler := wailshandler.NewImageHandler(localization)

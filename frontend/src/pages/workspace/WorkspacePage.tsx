@@ -4,8 +4,7 @@ import { useWorkspaceStore } from '@app/stores/workspaceStore';
 import { useTabStore, type FileTab } from '@app/stores/tabStore';
 import { Sidebar } from '@widgets/sidebar/Sidebar';
 import { FileTabs } from '@widgets/file-tabs/FileTabs';
-import { EditorPanel } from '@widgets/editor-panel/EditorPanel';
-import { ImageViewer } from '@widgets/image-viewer/ImageViewer';
+import { FileViewHost } from '@widgets/file-view-host/FileViewHost';
 import { PluginPageHost } from '@widgets/plugin-page/PluginPageHost';
 import { SearchPopup } from '@widgets/search-popup/SearchPopup';
 import { WorkspaceToolbar } from '@widgets/workspace-toolbar/WorkspaceToolbar';
@@ -108,8 +107,6 @@ export function WorkspacePage() {
 
   const isPluginTab = activeTab?.type === 'plugin';
   const activeFilePath = activeTab?.type === 'file' ? activeTab.filePath : null;
-  const imageExtensions = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg', '.bmp', '.ico'];
-  const isImageFile = activeFilePath != null && imageExtensions.some((ext) => activeFilePath.toLowerCase().endsWith(ext));
 
   return (
     <div className={styles.layout}>
@@ -129,10 +126,8 @@ export function WorkspacePage() {
               pageId={activeTab?.pluginPageId ?? ''}
               className={styles.pluginPage}
             />
-          ) : isImageFile ? (
-            <ImageViewer voltPath={workspace.voltPath} filePath={activeFilePath} />
           ) : (
-            <EditorPanel
+            <FileViewHost
               voltId={voltId}
               voltPath={workspace.voltPath}
               filePath={activeFilePath}

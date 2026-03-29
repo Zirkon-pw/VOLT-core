@@ -5,6 +5,8 @@ import {context} from '../models';
 
 export function CreateDirectory(arg1:string,arg2:string):Promise<void>;
 
+export function CreateFile(arg1:string,arg2:string,arg3:string):Promise<void>;
+
 export function CreateNote(arg1:string,arg2:string):Promise<void>;
 
 export function DeleteNote(arg1:string,arg2:string):Promise<void>;

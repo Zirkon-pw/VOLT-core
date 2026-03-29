@@ -14,6 +14,7 @@ type NoteHandler struct {
 	saveNote        *appnote.SaveNoteUseCase
 	listTree        *appnote.ListTreeUseCase
 	createNote      *appnote.CreateNoteUseCase
+	createFile      *appnote.CreateFileUseCase
 	createDirectory *appnote.CreateDirectoryUseCase
 	deleteNote      *appnote.DeleteNoteUseCase
 	renameNote      *appnote.RenameNoteUseCase
@@ -25,6 +26,7 @@ func NewNoteHandler(
 	saveNote *appnote.SaveNoteUseCase,
 	listTree *appnote.ListTreeUseCase,
 	createNote *appnote.CreateNoteUseCase,
+	createFile *appnote.CreateFileUseCase,
 	createDirectory *appnote.CreateDirectoryUseCase,
 	deleteNote *appnote.DeleteNoteUseCase,
 	renameNote *appnote.RenameNoteUseCase,
@@ -35,6 +37,7 @@ func NewNoteHandler(
 		saveNote:        saveNote,
 		listTree:        listTree,
 		createNote:      createNote,
+		createFile:      createFile,
 		createDirectory: createDirectory,
 		deleteNote:      deleteNote,
 		renameNote:      renameNote,
@@ -72,6 +75,13 @@ func (h *NoteHandler) ListTree(voltPath, dirPath string) ([]domain.FileEntry, er
 func (h *NoteHandler) CreateNote(voltPath, filePath string) error {
 	if err := h.createNote.Execute(voltPath, filePath); err != nil {
 		return localizedNoteError(h.localization, "backend.action.createNote", quotedPathParam(filePath), err)
+	}
+	return nil
+}
+
+func (h *NoteHandler) CreateFile(voltPath, filePath, content string) error {
+	if err := h.createFile.Execute(voltPath, filePath, content); err != nil {
+		return localizedNoteError(h.localization, "backend.action.createFile", quotedPathParam(filePath), err)
 	}
 	return nil
 }

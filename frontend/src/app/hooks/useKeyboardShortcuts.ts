@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useFileTreeStore } from '@app/stores/fileTreeStore';
+import { useActiveFileStore } from '@app/stores/activeFileStore';
 import { useTabStore } from '@app/stores/tabStore';
 import { usePluginRegistryStore } from '@app/plugins/pluginRegistry';
 
@@ -42,10 +43,7 @@ export function useKeyboardShortcuts({ voltId, voltPath }: UseKeyboardShortcutsO
         switch (e.key) {
           case 's': {
             e.preventDefault();
-            const tab = getActiveTab();
-            if (tab && tab.type === 'file' && tab.filePath) {
-              window.dispatchEvent(new CustomEvent('volt:save-active-file'));
-            }
+            void useActiveFileStore.getState().saveActiveFile(voltId);
             return;
           }
           case 'w': {

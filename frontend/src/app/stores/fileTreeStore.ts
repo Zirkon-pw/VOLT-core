@@ -17,8 +17,8 @@ import {
   getEntryDisplayName,
   getParentPath,
   getPathBasename,
+  getPreservedDisplayExtension,
   hasPathPrefix,
-  isMarkdownName,
   isFolderMoveIntoOwnSubtree,
   joinRelativePath,
   removePathPrefixFromList,
@@ -28,6 +28,7 @@ import {
   validateInlineName,
 } from '@app/lib/fileTree';
 import { translate } from '@app/i18n/runtime';
+import { emit } from '@app/plugins/pluginEventBus';
 import { useToastStore } from './toastStore';
 import { useTabStore } from './tabStore';
 
@@ -38,7 +39,7 @@ interface InlineRenameState {
   path: string;
   value: string;
   isDir: boolean;
-  isMarkdown: boolean;
+  preservedExtension: string | null;
 }
 
 interface PendingCreateState {
@@ -288,7 +289,7 @@ export const useFileTreeStore = create<FileTreeState>((set, get) => ({
           path,
           isDir: entry.isDir,
           value: getEntryDisplayName(entry.name, entry.isDir),
-          isMarkdown: !entry.isDir && isMarkdownName(entry.name),
+          preservedExtension: entry.isDir ? null : getPreservedDisplayExtension(entry.name),
         },
       },
       pendingCreate: {
@@ -384,7 +385,7 @@ export const useFileTreeStore = create<FileTreeState>((set, get) => ({
 
     const nextPath = editingItem.isDir
       ? buildRenamedPath(editingItem.path, trimmedValue, true)
-      : buildRenamedFilePath(editingItem.path, trimmedValue, editingItem.isMarkdown);
+      : buildRenamedFilePath(editingItem.path, trimmedValue, editingItem.preservedExtension);
     if (nextPath === editingItem.path) {
       get().cancelInlineEdit(voltId);
       return editingItem.path;
@@ -416,6 +417,10 @@ export const useFileTreeStore = create<FileTreeState>((set, get) => ({
       showSuccess(translate('fileTree.toast.renamed', {
         name: getEntryDisplayName(getPathBasename(nextPath), editingItem.isDir),
       }));
+      emit('workspace:path-renamed', {
+        oldPath: editingItem.path,
+        newPath: nextPath,
+      });
       await get().refreshTree(voltId, voltPath);
       return nextPath;
     } catch (err) {
@@ -669,6 +674,10 @@ export const useFileTreeStore = create<FileTreeState>((set, get) => ({
       showSuccess(translate('fileTree.toast.moved', {
         name: getEntryDisplayName(getPathBasename(nextPath), draggingIsDir),
       }));
+      emit('workspace:path-renamed', {
+        oldPath: draggingPath,
+        newPath: nextPath,
+      });
       await get().refreshTree(voltId, voltPath);
       return nextPath;
     } catch (err) {

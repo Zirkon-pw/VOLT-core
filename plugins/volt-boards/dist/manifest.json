@@ -1,0 +1,179 @@
+{
+  "id": "volt-boards",
+  "name": "Volt Boards",
+  "version": "0.0.4",
+  "description": "Доски на базе Excalidraw для Volt.",
+  "main": "main.js",
+  "permissions": ["read", "write"],
+  "settings": {
+    "sections": [
+      {
+        "id": "general",
+        "title": "Общие",
+        "description": "Хранение файлов и поведение автосохранения для досок.",
+        "fields": [
+          {
+            "key": "attachmentsDir",
+            "type": "text",
+            "label": "Папка вложений",
+            "description": "Куда внутри vault сохраняются вставленные и импортированные изображения досок.",
+            "defaultValue": "attachments/boards",
+            "placeholder": "attachments/boards"
+          },
+          {
+            "key": "autosaveDelayMs",
+            "type": "number",
+            "label": "Задержка автосохранения (мс)",
+            "description": "Сколько ждать после изменения, прежде чем сохранить доску на диск.",
+            "defaultValue": 750,
+            "min": 100,
+            "max": 5000,
+            "step": 50
+          }
+        ]
+      },
+      {
+        "id": "appearance",
+        "title": "Внешний вид",
+        "description": "Глобальные визуальные параметры по умолчанию для всех досок в Volt.",
+        "fields": [
+          {
+            "key": "themeMode",
+            "type": "select",
+            "label": "Тема доски",
+            "description": "Использовать тему Volt или принудительно включить для досок светлую либо тёмную тему.",
+            "defaultValue": "system",
+            "options": [
+              { "label": "Как в Volt", "value": "system" },
+              { "label": "Светлая", "value": "light" },
+              { "label": "Тёмная", "value": "dark" }
+            ]
+          },
+          {
+            "key": "language",
+            "type": "select",
+            "label": "Язык доски",
+            "description": "По умолчанию интерфейс доски использует текущий язык Volt, но здесь это можно переопределить.",
+            "defaultValue": "system",
+            "options": [
+              { "label": "Как в Volt", "value": "system" },
+              { "label": "English", "value": "en" },
+              { "label": "العربية", "value": "ar-SA" },
+              { "label": "Български", "value": "bg-BG" },
+              { "label": "Català", "value": "ca-ES" },
+              { "label": "Čeština", "value": "cs-CZ" },
+              { "label": "Deutsch", "value": "de-DE" },
+              { "label": "Ελληνικά", "value": "el-GR" },
+              { "label": "Español", "value": "es-ES" },
+              { "label": "Euskara", "value": "eu-ES" },
+              { "label": "فارسی", "value": "fa-IR" },
+              { "label": "Suomi", "value": "fi-FI" },
+              { "label": "Français", "value": "fr-FR" },
+              { "label": "Galego", "value": "gl-ES" },
+              { "label": "עברית", "value": "he-IL" },
+              { "label": "हिन्दी", "value": "hi-IN" },
+              { "label": "Magyar", "value": "hu-HU" },
+              { "label": "Bahasa Indonesia", "value": "id-ID" },
+              { "label": "Italiano", "value": "it-IT" },
+              { "label": "日本語", "value": "ja-JP" },
+              { "label": "Taqbaylit", "value": "kab-KAB" },
+              { "label": "Қазақ тілі", "value": "kk-KZ" },
+              { "label": "한국어", "value": "ko-KR" },
+              { "label": "Kurdî", "value": "ku-TR" },
+              { "label": "Lietuvių", "value": "lt-LT" },
+              { "label": "Latviešu", "value": "lv-LV" },
+              { "label": "Burmese", "value": "my-MM" },
+              { "label": "Norsk bokmål", "value": "nb-NO" },
+              { "label": "Nederlands", "value": "nl-NL" },
+              { "label": "Norsk nynorsk", "value": "nn-NO" },
+              { "label": "Occitan", "value": "oc-FR" },
+              { "label": "ਪੰਜਾਬੀ", "value": "pa-IN" },
+              { "label": "Polski", "value": "pl-PL" },
+              { "label": "Português Brasileiro", "value": "pt-BR" },
+              { "label": "Português", "value": "pt-PT" },
+              { "label": "Română", "value": "ro-RO" },
+              { "label": "Русский", "value": "ru-RU" },
+              { "label": "Slovenčina", "value": "sk-SK" },
+              { "label": "Svenska", "value": "sv-SE" },
+              { "label": "Slovenščina", "value": "sl-SI" },
+              { "label": "Türkçe", "value": "tr-TR" },
+              { "label": "Українська", "value": "uk-UA" },
+              { "label": "简体中文", "value": "zh-CN" },
+              { "label": "繁體中文", "value": "zh-TW" },
+              { "label": "Tiếng Việt", "value": "vi-VN" },
+              { "label": "मराठी", "value": "mr-IN" }
+            ]
+          },
+          {
+            "key": "canvasBackgroundLight",
+            "type": "text",
+            "label": "Фон холста (светлая тема)",
+            "description": "Цвет холста доски, когда viewer работает в светлой теме.",
+            "defaultValue": "#f7f7f5",
+            "placeholder": "#f7f7f5"
+          },
+          {
+            "key": "canvasBackgroundDark",
+            "type": "text",
+            "label": "Фон холста (тёмная тема)",
+            "description": "Цвет холста доски, когда viewer работает в тёмной теме.",
+            "defaultValue": "#202020",
+            "placeholder": "#202020"
+          },
+          {
+            "key": "gridModeEnabled",
+            "type": "toggle",
+            "label": "Показывать сетку по умолчанию",
+            "description": "Включать сетку холста для всех досок, открытых в Volt.",
+            "defaultValue": false
+          },
+          {
+            "key": "gridSize",
+            "type": "number",
+            "label": "Размер сетки",
+            "description": "Размер ячейки сетки в пикселях, когда сетка включена.",
+            "defaultValue": 20,
+            "min": 4,
+            "max": 96,
+            "step": 4
+          },
+          {
+            "key": "defaultFontFamily",
+            "type": "select",
+            "label": "Шрифт текста по умолчанию",
+            "description": "Стартовый шрифт для новых текстовых элементов и подписей.",
+            "defaultValue": "helvetica",
+            "options": [
+              { "label": "Helvetica", "value": "helvetica" },
+              { "label": "Virgil", "value": "virgil" },
+              { "label": "Cascadia", "value": "cascadia" }
+            ]
+          },
+          {
+            "key": "defaultFillStyle",
+            "type": "select",
+            "label": "Стиль заливки по умолчанию",
+            "description": "Начальный стиль заливки для новых фигур.",
+            "defaultValue": "solid",
+            "options": [
+              { "label": "Сплошная", "value": "solid" },
+              { "label": "Штриховка", "value": "hachure" },
+              { "label": "Перекрёстная штриховка", "value": "cross-hatch" },
+              { "label": "Зигзаг", "value": "zigzag" }
+            ]
+          },
+          {
+            "key": "defaultRoughness",
+            "type": "number",
+            "label": "Шероховатость по умолчанию",
+            "description": "Чем ниже значение, тем чище и ближе к остальному интерфейсу Volt выглядит рисунок.",
+            "defaultValue": 0,
+            "min": 0,
+            "max": 4,
+            "step": 1
+          }
+        ]
+      }
+    ]
+  }
+}

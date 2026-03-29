@@ -19,6 +19,10 @@ export async function createNote(voltPath: string, filePath: string): Promise<vo
   return invokeWails(loadNoteHandler, (mod) => mod.CreateNote(voltPath, filePath));
 }
 
+export async function createFile(voltPath: string, filePath: string, content = ''): Promise<void> {
+  return invokeWails(loadNoteHandler, (mod) => mod.CreateFile(voltPath, filePath, content));
+}
+
 export async function createDirectory(voltPath: string, dirPath: string): Promise<void> {
   return invokeWails(loadNoteHandler, (mod) => mod.CreateDirectory(voltPath, dirPath));
 }

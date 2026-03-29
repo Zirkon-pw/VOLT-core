@@ -8,6 +8,7 @@ import type {
 import {
   registerCommand,
   registerContextMenuItem,
+  registerFileViewer,
   registerPluginPage,
   registerSidebarButton,
   registerSidebarPanel,
@@ -16,10 +17,12 @@ import {
   usePluginRegistryStore,
 } from './pluginRegistry';
 import { onTracked } from './pluginEventBus';
-import { readNote, saveNote, listTree } from '@api/note';
+import { createFile as createWorkspaceFile, listTree, readNote, saveNote } from '@api/note';
+import { copyImage, pickImage, readImageBase64, saveImageBase64 } from '@api/image/imageApi';
 import { getPluginData, setPluginData } from '@api/plugin';
 import { openPluginPrompt } from '@app/stores/pluginPromptStore';
 import { useWorkspaceStore } from '@app/stores/workspaceStore';
+import { useFileTreeStore } from '@app/stores/fileTreeStore';
 import { useTabStore } from '@app/stores/tabStore';
 import { useToastStore } from '@app/stores/toastStore';
 import { icons } from '@uikit/icon/icons';
@@ -37,7 +40,7 @@ import {
   createPluginTaskStatus,
   type PluginTaskStatusHandle,
 } from './pluginTaskStatusStore';
-import { reportPluginError, safeExecuteMaybeAsync } from './safeExecute';
+import { reportPluginError, safeExecute, safeExecuteMaybeAsync } from './safeExecute';
 import {
   getAllPluginSettings,
   getPluginSettingValue,
@@ -61,6 +64,14 @@ export function createPluginAPI(
   const declaredPermissions = new Set(permissions);
 
   const namespaceId = (configId: string) => `${pluginId}:${configId}`;
+  const notifyFsMutation = async (): Promise<void> => {
+    const voltId = useWorkspaceStore.getState().activeWorkspaceId;
+    if (!voltId) {
+      return;
+    }
+
+    await useFileTreeStore.getState().notifyFsMutation(voltId, voltPath);
+  };
 
   const requirePermission = (permission: 'read' | 'write' | 'editor' | 'process', action: string) => {
     if (declaredPermissions.has(permission)) {
@@ -148,6 +159,17 @@ export function createPluginAPI(
         requirePermission('write', 'volt.write');
         return saveNote(voltPath, path, content);
       },
+      async createFile(path: string, content = ''): Promise<void> {
+        requirePermission('write', 'volt.createFile');
+
+        const normalizedPath = path.trim();
+        if (!normalizedPath) {
+          throw reportPluginError(pluginId, 'volt.createFile', new Error('File path is required'));
+        }
+
+        await createWorkspaceFile(voltPath, normalizedPath, content);
+        await notifyFsMutation();
+      },
       async list(dirPath?: string): Promise<unknown[]> {
         requirePermission('read', 'volt.list');
         return listTree(voltPath, dirPath ?? '');
@@ -162,6 +184,27 @@ export function createPluginAPI(
         const tabs = tabState.tabs[voltId] ?? [];
         const tab = tabs.find((t) => t.id === activeTabId);
         return tab && tab.type === 'file' ? tab.filePath : null;
+      },
+    },
+    media: {
+      pickImage() {
+        return pickImage();
+      },
+      async copyImage(sourcePath: string, targetDir?: string) {
+        requirePermission('write', 'media.copyImage');
+        const path = await copyImage(voltPath, sourcePath, targetDir ?? '');
+        await notifyFsMutation();
+        return path;
+      },
+      async saveImageBase64(fileName: string, base64: string, targetDir?: string) {
+        requirePermission('write', 'media.saveImageBase64');
+        const path = await saveImageBase64(voltPath, fileName, targetDir ?? '', base64);
+        await notifyFsMutation();
+        return path;
+      },
+      async readImageDataUrl(path: string) {
+        requirePermission('read', 'media.readImageDataUrl');
+        return readImageBase64(voltPath, path);
       },
     },
     desktop: {
@@ -229,6 +272,26 @@ export function createPluginAPI(
           mode: config.mode,
           render: config.render,
           cleanup: config.cleanup,
+        });
+      },
+      registerFileViewer(config) {
+        registerFileViewer({
+          id: namespaceId(config.id),
+          pluginId,
+          extensions: config.extensions.map((extension) => extension.trim().toLowerCase()).filter(Boolean),
+          icon: config.icon ? normalizePluginIcon(config.icon) : undefined,
+          render: (container, context) => {
+            safeExecute(pluginId, `fileViewer:${config.id}:render`, () => {
+              config.render(container, context);
+            });
+          },
+          cleanup: config.cleanup
+            ? () => {
+              safeExecute(pluginId, `fileViewer:${config.id}:cleanup`, () => {
+                config.cleanup!();
+              });
+            }
+            : undefined,
         });
       },
       registerSlashCommand(config) {

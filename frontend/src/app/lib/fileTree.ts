@@ -1,20 +1,26 @@
 import type { FileEntry } from '@api/note/types';
 import { translate } from '@app/i18n/runtime';
-
-const MARKDOWN_EXTENSION = '.md';
+import {
+  MARKDOWN_EXTENSION,
+  ensureExtension,
+  getHiddenDisplayExtension,
+  isMarkdownName,
+  stripHiddenDisplayExtension,
+} from './fileTypes';
 
 export type FileTreeDropPosition = 'inside' | 'before' | 'after';
-
-export function isMarkdownName(name: string): boolean {
-  return name.toLowerCase().endsWith(MARKDOWN_EXTENSION);
-}
+export { isMarkdownName };
 
 export function stripMarkdownExtension(name: string): string {
   return isMarkdownName(name) ? name.slice(0, -MARKDOWN_EXTENSION.length) : name;
 }
 
 export function ensureMarkdownFileName(name: string): string {
-  return isMarkdownName(name) ? name : `${name}${MARKDOWN_EXTENSION}`;
+  return ensureExtension(name, MARKDOWN_EXTENSION);
+}
+
+export function ensureFileNameExtension(name: string, extension: string): string {
+  return ensureExtension(name, extension);
 }
 
 export function getEntryDisplayName(name: string, isDir: boolean): string {
@@ -22,7 +28,7 @@ export function getEntryDisplayName(name: string, isDir: boolean): string {
     return name;
   }
 
-  return stripMarkdownExtension(name);
+  return stripHiddenDisplayExtension(name);
 }
 
 export function getPathBasename(path: string): string {
@@ -49,9 +55,9 @@ export function buildRenamedPath(path: string, nextName: string, isDir: boolean)
   return joinRelativePath(getParentPath(path), normalizedName);
 }
 
-export function buildRenamedFilePath(path: string, nextName: string, preserveMarkdownExtension: boolean): string {
+export function buildRenamedFilePath(path: string, nextName: string, preservedExtension?: string | null): string {
   const trimmed = nextName.trim();
-  const normalizedName = preserveMarkdownExtension ? ensureMarkdownFileName(trimmed) : trimmed;
+  const normalizedName = preservedExtension ? ensureExtension(trimmed, preservedExtension) : trimmed;
   return joinRelativePath(getParentPath(path), normalizedName);
 }
 
@@ -99,6 +105,10 @@ export function removePathPrefixFromList(paths: string[], prefix: string): strin
 
 export function getTabLabelFromPath(path: string): string {
   return getEntryDisplayName(getPathBasename(path), false);
+}
+
+export function getPreservedDisplayExtension(name: string): string | null {
+  return getHiddenDisplayExtension(name);
 }
 
 export function getDropPositionForPointer(

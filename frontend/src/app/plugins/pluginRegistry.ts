@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import type { IconName } from '@uikit/icon';
+import type { PluginFileViewerContext } from './pluginApi';
 import { reportPluginError } from './safeExecute';
 
 export interface RegisteredCommand {
@@ -23,6 +24,15 @@ export interface RegisteredPluginPage {
   title: string;
   mode: 'tab' | 'route';
   render: (container: HTMLElement) => void;
+  cleanup?: () => void;
+}
+
+export interface RegisteredFileViewer {
+  id: string;
+  pluginId: string;
+  extensions: string[];
+  icon?: IconName;
+  render: (container: HTMLElement, context: PluginFileViewerContext) => void;
   cleanup?: () => void;
 }
 
@@ -69,6 +79,7 @@ interface PluginRegistryState {
   commands: RegisteredCommand[];
   sidebarPanels: RegisteredSidebarPanel[];
   pluginPages: RegisteredPluginPage[];
+  fileViewers: RegisteredFileViewer[];
   slashCommands: RegisteredSlashCommand[];
   contextMenuItems: RegisteredContextMenuItem[];
   toolbarButtons: RegisteredToolbarButton[];
@@ -76,6 +87,7 @@ interface PluginRegistryState {
   registerCommand: (cmd: RegisteredCommand) => void;
   registerSidebarPanel: (panel: RegisteredSidebarPanel) => void;
   registerPluginPage: (page: RegisteredPluginPage) => void;
+  registerFileViewer: (viewer: RegisteredFileViewer) => void;
   registerSlashCommand: (command: RegisteredSlashCommand) => void;
   registerContextMenuItem: (item: RegisteredContextMenuItem) => void;
   registerToolbarButton: (button: RegisteredToolbarButton) => void;
@@ -103,6 +115,7 @@ export const usePluginRegistryStore = create<PluginRegistryState>((set) => ({
   commands: [],
   sidebarPanels: [],
   pluginPages: [],
+  fileViewers: [],
   slashCommands: [],
   contextMenuItems: [],
   toolbarButtons: [],
@@ -110,6 +123,7 @@ export const usePluginRegistryStore = create<PluginRegistryState>((set) => ({
   registerCommand: (cmd) => set((s) => ({ commands: [...s.commands, cmd] })),
   registerSidebarPanel: (panel) => set((s) => ({ sidebarPanels: [...s.sidebarPanels, panel] })),
   registerPluginPage: (page) => set((s) => ({ pluginPages: [...s.pluginPages, page] })),
+  registerFileViewer: (viewer) => set((s) => ({ fileViewers: [...s.fileViewers, viewer] })),
   registerSlashCommand: (command) => set((s) => ({ slashCommands: [...s.slashCommands, command] })),
   registerContextMenuItem: (item) => set((s) => ({ contextMenuItems: [...s.contextMenuItems, item] })),
   registerToolbarButton: (button) => set((s) => ({ toolbarButtons: [...s.toolbarButtons, button] })),
@@ -122,6 +136,7 @@ export const usePluginRegistryStore = create<PluginRegistryState>((set) => ({
       commands: s.commands.filter((cmd) => cmd.pluginId !== pluginId),
       sidebarPanels: s.sidebarPanels.filter((panel) => panel.pluginId !== pluginId),
       pluginPages: s.pluginPages.filter((page) => page.pluginId !== pluginId),
+      fileViewers: s.fileViewers.filter((viewer) => viewer.pluginId !== pluginId),
       slashCommands: s.slashCommands.filter((cmd) => cmd.pluginId !== pluginId),
       contextMenuItems: s.contextMenuItems.filter((item) => item.pluginId !== pluginId),
       toolbarButtons: s.toolbarButtons.filter((button) => button.pluginId !== pluginId),
@@ -135,6 +150,7 @@ export const usePluginRegistryStore = create<PluginRegistryState>((set) => ({
       commands: [],
       sidebarPanels: [],
       pluginPages: [],
+      fileViewers: [],
       slashCommands: [],
       contextMenuItems: [],
       toolbarButtons: [],
@@ -153,6 +169,10 @@ export function registerSidebarPanel(panel: RegisteredSidebarPanel): void {
 
 export function registerPluginPage(page: RegisteredPluginPage): void {
   usePluginRegistryStore.getState().registerPluginPage(page);
+}
+
+export function registerFileViewer(viewer: RegisteredFileViewer): void {
+  usePluginRegistryStore.getState().registerFileViewer(viewer);
 }
 
 export function registerSlashCommand(command: RegisteredSlashCommand): void {

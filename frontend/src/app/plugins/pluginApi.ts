@@ -50,12 +50,28 @@ export interface PluginTaskStatusHandle {
   close(): void;
 }
 
+export interface PluginFileViewerContext {
+  voltId: string;
+  voltPath: string;
+  filePath: string;
+  fileName: string;
+  setDirty(dirty: boolean): void;
+  registerSaveHandler(handler: () => Promise<void>): () => void;
+}
+
 export interface VoltPluginAPI {
   volt: {
     read(path: string): Promise<string>;
     write(path: string, content: string): Promise<void>;
+    createFile(path: string, content?: string): Promise<void>;
     list(dirPath?: string): Promise<unknown[]>;
     getActivePath(): string | null;
+  };
+  media: {
+    pickImage(): Promise<string>;
+    copyImage(sourcePath: string, targetDir?: string): Promise<string>;
+    saveImageBase64(fileName: string, base64: string, targetDir?: string): Promise<string>;
+    readImageDataUrl(path: string): Promise<string>;
   };
   desktop: {
     process: {
@@ -103,6 +119,13 @@ export interface VoltPluginAPI {
       title: string;
       mode: 'tab' | 'route';
       render: (container: HTMLElement) => void;
+      cleanup?: () => void;
+    }): void;
+    registerFileViewer(config: {
+      id: string;
+      extensions: string[];
+      icon?: string;
+      render: (container: HTMLElement, context: PluginFileViewerContext) => void;
       cleanup?: () => void;
     }): void;
     registerSlashCommand(config: {

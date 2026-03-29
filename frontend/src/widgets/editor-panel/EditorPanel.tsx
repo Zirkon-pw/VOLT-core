@@ -3,6 +3,7 @@ import { EditorContent } from '@tiptap/react';
 import { readNote } from '@api/note/noteApi';
 import { copyImage, pickImage, saveImageBase64, base64ToBlobUrl } from '@api/image/imageApi';
 import { useI18n } from '@app/providers/I18nProvider';
+import { useActiveFileStore } from '@app/stores/activeFileStore';
 import { useFileTreeStore } from '@app/stores/fileTreeStore';
 import { useTabStore } from '@app/stores/tabStore';
 import { useEditorSetup } from './hooks/useEditorSetup';
@@ -33,6 +34,7 @@ export function EditorPanel({ voltId, voltPath, filePath }: EditorPanelProps) {
   const loadedPathRef = useRef<string | null>(null);
   const { resolve, register, unresolveAll, resolveAll, clear } = useImageResolver(voltPath);
   const notifyFsMutation = useFileTreeStore((state) => state.notifyFsMutation);
+  const registerSaveHandler = useActiveFileStore((state) => state.registerSaveHandler);
   const pendingRename = useTabStore((state) => state.pendingRenames[voltId] ?? null);
   const consumePendingRename = useTabStore((state) => state.consumePendingRename);
   const activeFileTab = useTabStore((state) => {
@@ -102,17 +104,12 @@ export function EditorPanel({ voltId, voltPath, filePath }: EditorPanelProps) {
   }, [activeFileTab?.isDirty, clear, consumePendingRename, editor, filePath, pendingRename, resolveAll, save, voltId, voltPath]);
 
   useEffect(() => {
-    if (!editor || !filePath) {
+    if (!filePath) {
       return;
     }
 
-    const handleSaveEvent = () => {
-      void save();
-    };
-
-    window.addEventListener('volt:save-active-file', handleSaveEvent);
-    return () => window.removeEventListener('volt:save-active-file', handleSaveEvent);
-  }, [editor, filePath, save]);
+    return registerSaveHandler(voltId, filePath, save);
+  }, [filePath, registerSaveHandler, save, voltId]);
 
   // Insert image with blob URL
   const insertImage = useCallback(async (relPath: string, existingBlobUrl?: string) => {
