@@ -1,7 +1,9 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { readImageBase64, dataUrlToBlobUrl } from '@shared/api/image/imageApi';
 import { useI18n } from '@app/providers/I18nProvider';
 import { Icon } from '@shared/ui/icon';
+import { useImageZoom } from './useImageZoom';
+import { useImageDrag } from './useImageDrag';
 import styles from './ImageViewer.module.scss';
 
 interface ImageViewerProps {
@@ -9,24 +11,15 @@ interface ImageViewerProps {
   filePath: string;
 }
 
-const ZOOM_STEP = 0.25;
-const ZOOM_MIN = 0.1;
-const ZOOM_MAX = 10;
-
 export function ImageViewer({ voltPath, filePath }: ImageViewerProps) {
   const { t } = useI18n();
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
-  const [zoom, setZoom] = useState(1);
-  const [dimensions, setDimensions] = useState<{ w: number; h: number } | null>(null);
-  const [fitZoom, setFitZoom] = useState(1);
-  const canvasRef = useRef<HTMLDivElement>(null);
-  const imgRef = useRef<HTMLImageElement>(null);
+  const {
+    zoom, dimensions, canvasRef, imgRef,
+    handleImageLoad, zoomIn, zoomOut, zoomFit, zoomActual, resetZoom, zoomPercent,
+  } = useImageZoom();
+  const { dragging, handleMouseDown } = useImageDrag(canvasRef);
 
-  // Drag state
-  const [dragging, setDragging] = useState(false);
-  const dragStart = useRef({ x: 0, y: 0, scrollX: 0, scrollY: 0 });
-
-  // Load image
   useEffect(() => {
     let revoke: string | null = null;
     let cancelled = false;
@@ -38,8 +31,7 @@ export function ImageViewer({ voltPath, filePath }: ImageViewerProps) {
         const url = dataUrlToBlobUrl(dataUrl);
         revoke = url;
         setBlobUrl(url);
-        setZoom(1);
-        setDimensions(null);
+        resetZoom();
       } catch (e) {
         console.error('Failed to load image:', e);
       }
@@ -49,96 +41,9 @@ export function ImageViewer({ voltPath, filePath }: ImageViewerProps) {
       cancelled = true;
       if (revoke) URL.revokeObjectURL(revoke);
     };
-  }, [voltPath, filePath]);
-
-  // Calculate fit zoom once image loads
-  const handleImageLoad = useCallback(() => {
-    const img = imgRef.current;
-    const canvas = canvasRef.current;
-    if (!img || !canvas) return;
-
-    const natW = img.naturalWidth;
-    const natH = img.naturalHeight;
-    setDimensions({ w: natW, h: natH });
-
-    const padding = 40;
-    const canvasW = canvas.clientWidth - padding * 2;
-    const canvasH = canvas.clientHeight - padding * 2;
-    const fit = Math.min(1, canvasW / natW, canvasH / natH);
-    setFitZoom(fit);
-    setZoom(fit);
-  }, []);
-
-  const zoomIn = useCallback(() => {
-    setZoom((z) => Math.min(ZOOM_MAX, z + ZOOM_STEP));
-  }, []);
-
-  const zoomOut = useCallback(() => {
-    setZoom((z) => Math.max(ZOOM_MIN, z - ZOOM_STEP));
-  }, []);
-
-  const zoomFit = useCallback(() => {
-    setZoom(fitZoom);
-  }, [fitZoom]);
-
-  const zoomActual = useCallback(() => {
-    setZoom(1);
-  }, []);
-
-  // Mouse wheel zoom
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const handleWheel = (e: WheelEvent) => {
-      if (e.ctrlKey || e.metaKey) {
-        e.preventDefault();
-        const delta = e.deltaY > 0 ? -ZOOM_STEP : ZOOM_STEP;
-        setZoom((z) => Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, z + delta)));
-      }
-    };
-
-    canvas.addEventListener('wheel', handleWheel, { passive: false });
-    return () => canvas.removeEventListener('wheel', handleWheel);
-  }, []);
-
-  // Drag to pan
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    setDragging(true);
-    dragStart.current = {
-      x: e.clientX,
-      y: e.clientY,
-      scrollX: canvas.scrollLeft,
-      scrollY: canvas.scrollTop,
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!dragging) return;
-
-    const handleMouseMove = (e: MouseEvent) => {
-      const canvas = canvasRef.current;
-      if (!canvas) return;
-      const dx = e.clientX - dragStart.current.x;
-      const dy = e.clientY - dragStart.current.y;
-      canvas.scrollLeft = dragStart.current.scrollX - dx;
-      canvas.scrollTop = dragStart.current.scrollY - dy;
-    };
-
-    const handleMouseUp = () => setDragging(false);
-
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [dragging]);
+  }, [voltPath, filePath, resetZoom]);
 
   const fileName = filePath.split('/').pop() ?? filePath;
-  const zoomPercent = Math.round(zoom * 100);
 
   return (
     <div className={styles.viewer}>
@@ -147,9 +52,7 @@ export function ImageViewer({ voltPath, filePath }: ImageViewerProps) {
         {dimensions && (
           <>
             <div className={styles.separator} />
-            <span className={styles.dimensions}>
-              {dimensions.w} x {dimensions.h}
-            </span>
+            <span className={styles.dimensions}>{dimensions.w} x {dimensions.h}</span>
           </>
         )}
         <div className={styles.separator} />
@@ -174,10 +77,7 @@ export function ImageViewer({ voltPath, filePath }: ImageViewerProps) {
         onMouseDown={handleMouseDown}
       >
         {blobUrl && (
-          <div
-            className={styles.imageWrapper}
-            style={{ transform: `scale(${zoom})` }}
-          >
+          <div className={styles.imageWrapper} style={{ transform: `scale(${zoom})` }}>
             <img
               ref={imgRef}
               src={blobUrl}

@@ -1,9 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { useActiveFileStore } from '@entities/editor-session';
-import { useTabStore } from '@entities/tab';
-import { readNote, saveNote } from '@shared/api/note';
-import { emit } from '@shared/lib/plugin-runtime';
+import { useCallback, useRef, useState } from 'react';
 import { useI18n } from '@app/providers/I18nProvider';
+import { useFileSession } from '@shared/lib/hooks/useFileSession';
 import { PluginTaskStatusBanner } from '@features/plugin-task-status';
 import styles from './RawTextEditor.module.scss';
 
@@ -16,95 +13,22 @@ interface RawTextEditorProps {
 export function RawTextEditor({ voltId, voltPath, filePath }: RawTextEditorProps) {
   const { t } = useI18n();
   const [value, setValue] = useState('');
-  const loadedPathRef = useRef<string | null>(null);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const setDirty = useTabStore((state) => state.setDirty);
-  const pendingRename = useTabStore((state) => state.pendingRenames[voltId] ?? null);
-  const consumePendingRename = useTabStore((state) => state.consumePendingRename);
-  const registerSaveHandler = useActiveFileStore((state) => state.registerSaveHandler);
+  const valueRef = useRef(value);
+  valueRef.current = value;
 
-  const save = useCallback(async () => {
-    if (!filePath) {
-      return;
-    }
-
-    try {
-      await saveNote(voltPath, filePath, value);
-      setDirty(voltId, filePath, false);
-      emit('file-save', filePath);
-    } catch (error) {
-      console.error('Failed to save text file:', error);
-    }
-  }, [filePath, setDirty, value, voltId, voltPath]);
-
-  useEffect(() => {
-    if (!filePath) {
-      loadedPathRef.current = null;
-      setValue('');
-      return;
-    }
-
-    let cancelled = false;
-
-    (async () => {
-      try {
-        const isRenameTransition = pendingRename?.newPath === filePath && loadedPathRef.current === pendingRename.oldPath;
-        if (isRenameTransition) {
-          loadedPathRef.current = filePath;
-          consumePendingRename(voltId, filePath);
-          return;
-        }
-
-        const content = await readNote(voltPath, filePath);
-        if (cancelled) {
-          return;
-        }
-
-        setValue(content);
-        loadedPathRef.current = filePath;
-        setDirty(voltId, filePath, false);
-        emit('file-open', filePath);
-      } catch (error) {
-        console.error('Failed to load text file:', error);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [consumePendingRename, filePath, pendingRename, setDirty, voltId, voltPath]);
-
-  useEffect(() => {
-    if (!filePath) {
-      return;
-    }
-
-    return registerSaveHandler(voltId, filePath, save);
-  }, [filePath, registerSaveHandler, save, voltId]);
-
-  useEffect(() => () => {
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-    }
-  }, []);
+  const { markDirtyAndAutoSave } = useFileSession({
+    voltId,
+    voltPath,
+    filePath,
+    getContent: useCallback(() => valueRef.current, []),
+    setContent: setValue,
+    onClear: useCallback(() => setValue(''), []),
+  });
 
   const handleChange = useCallback((nextValue: string) => {
-    if (!filePath) {
-      return;
-    }
-
     setValue(nextValue);
-    setDirty(voltId, filePath, true);
-    emit('editor-change');
-
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-    }
-
-    timerRef.current = setTimeout(() => {
-      void save();
-    }, 500);
-  }, [filePath, save, setDirty, voltId]);
+    markDirtyAndAutoSave();
+  }, [markDirtyAndAutoSave]);
 
   if (!filePath) {
     return (

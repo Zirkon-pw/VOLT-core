@@ -29,8 +29,8 @@ import {
 } from '@shared/lib/fileTree';
 import { translate } from '@shared/i18n';
 import { emit } from '@shared/lib/plugin-runtime';
-import { useToastStore } from '@shared/ui/toast';
-import { useTabStore } from '@entities/tab';
+import { notifyError, notifySuccess } from '@shared/ui/toast';
+import { syncTabsOnFileCreate, syncTabsOnRename, syncTabsOnDelete } from './fileTreeEffects';
 
 const HOVER_EXPAND_DELAY_MS = 400;
 const hoverExpandTimers = new Map<string, ReturnType<typeof setTimeout>>();
@@ -146,11 +146,11 @@ function clearDragState(state: FileTreeState, voltId: string) {
 }
 
 function showError(message: string) {
-  useToastStore.getState().addToast(message, 'error');
+  notifyError(message);
 }
 
 function showSuccess(message: string) {
-  useToastStore.getState().addToast(message, 'success');
+  notifySuccess(message);
 }
 
 async function loadTreeData(set: FileTreeSetState, voltId: string, voltPath: string) {
@@ -346,7 +346,7 @@ export const useFileTreeStore = create<FileTreeState>((set, get) => ({
           showSuccess(translate('fileTree.toast.folderCreated', { name: normalizedName }));
         } else {
           await createNote(voltPath, nextPath);
-          useTabStore.getState().openTab(voltId, nextPath, getEntryDisplayName(normalizedName, false));
+          syncTabsOnFileCreate(voltId, nextPath, getEntryDisplayName(normalizedName, false));
           showSuccess(translate('fileTree.toast.fileCreated', { name: getEntryDisplayName(normalizedName, false) }));
         }
 
@@ -394,11 +394,7 @@ export const useFileTreeStore = create<FileTreeState>((set, get) => ({
     try {
       await renameNote(voltPath, editingItem.path, nextPath);
 
-      if (editingItem.isDir) {
-        useTabStore.getState().replacePathPrefix(voltId, editingItem.path, nextPath);
-      } else {
-        useTabStore.getState().renamePath(voltId, editingItem.path, nextPath);
-      }
+      syncTabsOnRename(voltId, editingItem.path, nextPath, editingItem.isDir);
 
       set((state) => ({
         ...clearMutationState(state, voltId),
@@ -478,11 +474,7 @@ export const useFileTreeStore = create<FileTreeState>((set, get) => ({
 
     try {
       await deleteNote(voltPath, target.path);
-      if (target.isDir) {
-        useTabStore.getState().removePathPrefix(voltId, target.path);
-      } else {
-        useTabStore.getState().removePath(voltId, target.path);
-      }
+      syncTabsOnDelete(voltId, target.path, target.isDir);
 
       set((state) => ({
         pendingDelete: {
@@ -646,11 +638,7 @@ export const useFileTreeStore = create<FileTreeState>((set, get) => ({
     try {
       await renameNote(voltPath, draggingPath, nextPath);
 
-      if (draggingIsDir) {
-        useTabStore.getState().replacePathPrefix(voltId, draggingPath, nextPath);
-      } else {
-        useTabStore.getState().renamePath(voltId, draggingPath, nextPath);
-      }
+      syncTabsOnRename(voltId, draggingPath, nextPath, draggingIsDir);
 
       set((state) => ({
         ...clearDragState(state, voltId),

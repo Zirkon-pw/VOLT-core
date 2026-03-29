@@ -1,20 +1,20 @@
 import { Volt } from './types';
-import { invokeWails } from '@shared/api/wails';
+import { invokeWailsSafe } from '@shared/api/wailsWithError';
 
 const loadVoltHandler = () => import('../../../../wailsjs/go/wailshandler/VoltHandler');
 
 export async function listVolts(): Promise<Volt[]> {
-  return invokeWails(loadVoltHandler, (mod) => mod.ListVolts());
+  return invokeWailsSafe(loadVoltHandler, (mod) => mod.ListVolts(), 'listVolts');
 }
 
 export async function createVolt(name: string, path: string): Promise<Volt> {
-  return invokeWails(loadVoltHandler, (mod) => mod.CreateVolt(name, path));
+  return invokeWailsSafe(loadVoltHandler, (mod) => mod.CreateVolt(name, path), 'createVolt');
 }
 
 export async function deleteVolt(id: string): Promise<void> {
-  return invokeWails(loadVoltHandler, (mod) => mod.DeleteVolt(id));
+  return invokeWailsSafe(loadVoltHandler, (mod) => mod.DeleteVolt(id), 'deleteVolt');
 }
 
 export async function selectDirectory(): Promise<string> {
-  return invokeWails(loadVoltHandler, (mod) => mod.SelectDirectory());
+  return invokeWailsSafe(loadVoltHandler, (mod) => mod.SelectDirectory(), 'selectDirectory');
 }

@@ -3,8 +3,7 @@ build/bin/
 frontend/dist/
 frontend/node_modules/
 
-plugins/volt-boards/dist/
-plugins/volt-boards/node_modules/
+plugins/
 
 # IDE
 .idea/

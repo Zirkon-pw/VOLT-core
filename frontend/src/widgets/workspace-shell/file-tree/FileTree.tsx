@@ -1,6 +1,18 @@
 import { useEffect } from 'react';
 import { BUILTIN_SHORTCUT_ACTIONS, useShortcutAction } from '@entities/app-settings';
-import { useFileTreeStore } from '@entities/file-tree';
+import {
+  useFileTreeStore,
+  selectTree,
+  selectLoading,
+  selectError,
+  selectPendingCreate,
+  selectPendingDelete,
+  selectDraggingPath,
+  selectDropTargetPath,
+  selectDropTargetParentPath,
+  selectDropPosition,
+  selectSelectedPath,
+} from '@entities/file-tree';
 import { findEntryByPath } from '@shared/lib/fileTree';
 import { useI18n } from '@app/providers/I18nProvider';
 import { Button } from '@shared/ui/button';
@@ -9,8 +21,6 @@ import { FileTreeInlineEditor } from './FileTreeInlineEditor';
 import { FileTreeItem } from './FileTreeItem';
 import styles from './FileTree.module.scss';
 
-const EMPTY_TREE = [] as const;
-
 interface FileTreeProps {
   voltId: string;
   voltPath: string;
@@ -18,16 +28,16 @@ interface FileTreeProps {
 
 export function FileTree({ voltId, voltPath }: FileTreeProps) {
   const { t } = useI18n();
-  const tree = useFileTreeStore((state) => state.trees[voltId] ?? EMPTY_TREE);
-  const loading = useFileTreeStore((state) => state.loading[voltId] ?? false);
-  const error = useFileTreeStore((state) => state.error[voltId] ?? null);
-  const pendingCreate = useFileTreeStore((state) => state.pendingCreate[voltId] ?? null);
-  const pendingDelete = useFileTreeStore((state) => state.pendingDelete[voltId] ?? null);
-  const draggingPath = useFileTreeStore((state) => state.draggingPath[voltId] ?? null);
-  const dropTargetPath = useFileTreeStore((state) => state.dropTargetPath[voltId] ?? null);
-  const dropTargetParentPath = useFileTreeStore((state) => state.dropTargetParentPath[voltId] ?? null);
-  const dropPosition = useFileTreeStore((state) => state.dropPosition[voltId] ?? null);
-  const selectedPath = useFileTreeStore((state) => state.selectedPath[voltId] ?? null);
+  const tree = useFileTreeStore(selectTree(voltId));
+  const loading = useFileTreeStore(selectLoading(voltId));
+  const error = useFileTreeStore(selectError(voltId));
+  const pendingCreate = useFileTreeStore(selectPendingCreate(voltId));
+  const pendingDelete = useFileTreeStore(selectPendingDelete(voltId));
+  const draggingPath = useFileTreeStore(selectDraggingPath(voltId));
+  const dropTargetPath = useFileTreeStore(selectDropTargetPath(voltId));
+  const dropTargetParentPath = useFileTreeStore(selectDropTargetParentPath(voltId));
+  const dropPosition = useFileTreeStore(selectDropPosition(voltId));
+  const selectedPath = useFileTreeStore(selectSelectedPath(voltId));
   const loadTree = useFileTreeStore((state) => state.loadTree);
   const startRename = useFileTreeStore((state) => state.startRename);
   const updatePendingCreateValue = useFileTreeStore((state) => state.updatePendingCreateValue);

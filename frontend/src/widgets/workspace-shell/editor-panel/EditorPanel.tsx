@@ -1,21 +1,19 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { EditorContent } from '@tiptap/react';
 import { useAppSettingsStore } from '@entities/app-settings';
 import { useActiveFileStore } from '@entities/editor-session';
 import { useFileTreeStore } from '@entities/file-tree';
 import { useTabStore } from '@entities/tab';
 import { readNote } from '@shared/api/note/noteApi';
-import { copyImage, pickImage, saveImageBase64, base64ToBlobUrl } from '@shared/api/image/imageApi';
 import { useI18n } from '@app/providers/I18nProvider';
 import { emit, setEditor } from '@shared/lib/plugin-runtime';
 import { useEditorSetup } from './hooks/useEditorSetup';
 import { useAutoSave } from './hooks/useAutoSave';
 import { useImageResolver } from './hooks/useImageResolver';
+import { useImageHandlers } from './hooks/useImageHandlers';
 import { TableBubbleMenu } from './extensions/TableBubbleMenu';
 import { PluginTaskStatusBanner } from '@features/plugin-task-status';
 import styles from './EditorPanel.module.scss';
-
-const IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/svg+xml'];
 
 interface EditorPanelProps {
   voltId: string;
@@ -34,15 +32,15 @@ export function EditorPanel({ voltId, voltPath, filePath }: EditorPanelProps) {
   const pendingRename = useTabStore((state) => state.pendingRenames[voltId] ?? null);
   const consumePendingRename = useTabStore((state) => state.consumePendingRename);
   const activeFileTab = useTabStore((state) => {
-    if (!filePath) {
-      return null;
-    }
-
+    if (!filePath) return null;
     const voltTabs = state.tabs[voltId] ?? [];
     return voltTabs.find((tab) => tab.id === filePath) ?? null;
   });
 
   const { save } = useAutoSave({ editor, voltId, voltPath, filePath, transformMarkdown: unresolveAll });
+  const { handleDrop, handleDragOver, handlePaste } = useImageHandlers({
+    editor, voltId, voltPath, imageDir, resolve, register, notifyFsMutation,
+  });
 
   // Register editor with plugin bridge
   useEffect(() => {
@@ -51,15 +49,11 @@ export function EditorPanel({ voltId, voltPath, filePath }: EditorPanelProps) {
     } else {
       setEditor(null);
     }
-
     return () => { setEditor(null); };
   }, [editor, filePath, voltId, voltPath]);
 
   useEffect(() => {
-    if (filePath) {
-      return;
-    }
-
+    if (filePath) return;
     loadedPathRef.current = null;
     clear();
   }, [clear, filePath]);
@@ -100,118 +94,9 @@ export function EditorPanel({ voltId, voltPath, filePath }: EditorPanelProps) {
   }, [activeFileTab?.isDirty, clear, consumePendingRename, editor, filePath, pendingRename, resolveAll, save, voltId, voltPath]);
 
   useEffect(() => {
-    if (!filePath) {
-      return;
-    }
-
+    if (!filePath) return;
     return registerSaveHandler(voltId, filePath, save);
   }, [filePath, registerSaveHandler, save, voltId]);
-
-  // Insert image with blob URL
-  const insertImage = useCallback(async (relPath: string, existingBlobUrl?: string) => {
-    if (!editor) return;
-    let src: string;
-    if (existingBlobUrl) {
-      register(relPath, existingBlobUrl);
-      src = existingBlobUrl;
-    } else {
-      src = await resolve(relPath);
-    }
-    editor.chain().focus().setImage({ src }).run();
-  }, [editor, resolve, register]);
-
-  // Handle image drag-and-drop
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    const files = e.dataTransfer?.files;
-    if (!files || files.length === 0) return;
-
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      if (IMAGE_TYPES.includes(file.type)) {
-        e.preventDefault();
-        e.stopPropagation();
-
-        const reader = new FileReader();
-        reader.onload = async () => {
-          try {
-            const result = reader.result as string;
-            const b64 = result.split(',')[1];
-            if (!b64) return;
-            const relPath = await saveImageBase64(voltPath, file.name, imageDir, b64);
-            const blobUrl = base64ToBlobUrl(b64, file.type);
-            await insertImage(relPath, blobUrl);
-            void notifyFsMutation(voltId, voltPath);
-          } catch (err) {
-            console.error('Failed to save dropped image:', err);
-          }
-        };
-        reader.readAsDataURL(file);
-        return;
-      }
-    }
-  }, [imageDir, insertImage, notifyFsMutation, voltId, voltPath]);
-
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    if (e.dataTransfer?.types?.includes('Files')) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-  }, []);
-
-  // Handle clipboard paste with images
-  const handlePaste = useCallback((e: React.ClipboardEvent) => {
-    const items = e.clipboardData?.items;
-    if (!items) return;
-
-    for (let i = 0; i < items.length; i++) {
-      const item = items[i];
-      if (item.type.startsWith('image/')) {
-        e.preventDefault();
-        const blob = item.getAsFile();
-        if (!blob) continue;
-
-        const reader = new FileReader();
-        reader.onload = async () => {
-          try {
-            const result = reader.result as string;
-            const b64 = result.split(',')[1];
-            if (!b64) return;
-            const ext = blob.type.split('/')[1] || 'png';
-            const fileName = `pasted_${Date.now()}.${ext === 'jpeg' ? 'jpg' : ext}`;
-            const relPath = await saveImageBase64(voltPath, fileName, imageDir, b64);
-            const blobUrl = base64ToBlobUrl(b64, blob.type);
-            await insertImage(relPath, blobUrl);
-            void notifyFsMutation(voltId, voltPath);
-          } catch (err) {
-            console.error('Failed to save pasted image:', err);
-          }
-        };
-        reader.readAsDataURL(blob);
-        return;
-      }
-    }
-  }, [imageDir, insertImage, notifyFsMutation, voltId, voltPath]);
-
-  // Listen for slash command image picker event
-  useEffect(() => {
-    if (!editor) return;
-
-    const handler = async () => {
-      try {
-        const selectedPath = await pickImage();
-        if (selectedPath) {
-          const relPath = await copyImage(voltPath, selectedPath, imageDir);
-          await insertImage(relPath);
-          void notifyFsMutation(voltId, voltPath);
-        }
-      } catch (e) {
-        console.error('Failed to pick image:', e);
-      }
-    };
-
-    window.addEventListener('volt:pick-image', handler);
-    return () => window.removeEventListener('volt:pick-image', handler);
-  }, [editor, imageDir, insertImage, notifyFsMutation, voltId, voltPath]);
 
   if (!filePath) {
     return (

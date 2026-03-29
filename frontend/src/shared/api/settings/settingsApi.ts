@@ -1,4 +1,4 @@
-import { invokeWails } from '@shared/api/wails';
+import { invokeWailsSafe } from '@shared/api/wailsWithError';
 import type { LocalizationPayload } from './types';
 
 const loadSettingsHandler = () => import('../../../../wailsjs/go/wailshandler/SettingsHandler');
@@ -22,11 +22,11 @@ function normalizeLocalization(payload: {
 }
 
 export async function getLocalization(preferredLocales: string[]): Promise<LocalizationPayload> {
-  const payload = await invokeWails(loadSettingsHandler, (mod) => mod.GetLocalization(preferredLocales));
+  const payload = await invokeWailsSafe(loadSettingsHandler, (mod) => mod.GetLocalization(preferredLocales), 'getLocalization');
   return normalizeLocalization(payload);
 }
 
 export async function setLocale(locale: string, preferredLocales: string[]): Promise<LocalizationPayload> {
-  const payload = await invokeWails(loadSettingsHandler, (mod) => mod.SetLocale(locale, preferredLocales));
+  const payload = await invokeWailsSafe(loadSettingsHandler, (mod) => mod.SetLocale(locale, preferredLocales), 'setLocale');
   return normalizeLocalization(payload);
 }
