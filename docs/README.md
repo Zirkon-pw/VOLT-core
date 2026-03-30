@@ -7,4 +7,5 @@
 - [Архитектура проекта](architecture.md)
 - [Бэкенд](backend.md)
 - [Фронтенд](frontend.md)
+- [Плагинная система](plugins.md)
 - [Релизы и GitHub Actions](release.md)

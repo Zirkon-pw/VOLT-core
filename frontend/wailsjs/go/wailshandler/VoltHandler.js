@@ -17,7 +17,3 @@ export function ListVolts() {
 export function SelectDirectory() {
   return window['go']['wailshandler']['VoltHandler']['SelectDirectory']();
 }
-
-export function SetContext(arg1) {
-  return window['go']['wailshandler']['VoltHandler']['SetContext'](arg1);
-}

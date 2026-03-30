@@ -1,16 +1,18 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useVoltStore } from '@app/stores/voltStore';
-import { useWorkspaceStore } from '@app/stores/workspaceStore';
-import { Button } from '@uikit/button';
-import { TextInput } from '@uikit/text-input';
-import { Modal } from '@uikit/modal';
-import { VoltCard } from '@widgets/volt-card/VoltCard';
-import { selectDirectory } from '@api/volt/voltApi';
-import voltLogo from '@app/assets/volt-logo.svg';
+import { useVoltStore } from '@entities/volt';
+import { useWorkspaceStore } from '@entities/workspace';
+import { Button } from '@shared/ui/button';
+import { TextInput } from '@shared/ui/text-input';
+import { Modal } from '@shared/ui/modal';
+import { useI18n } from '@app/providers/I18nProvider';
+import { VoltCard } from '@shared/ui/volt-card';
+import { selectDirectory } from '@shared/api/volt';
+import voltLogo from '@shared/assets/volt-logo.svg';
 import styles from './HomePage.module.scss';
 
 export function HomePage() {
+  const { t } = useI18n();
   const { volts, loading, error, fetchVolts, createVolt, deleteVolt } =
     useVoltStore();
   const openWorkspace = useWorkspaceStore((s) => s.openWorkspace);
@@ -74,17 +76,17 @@ export function HomePage() {
       <div className={styles.container}>
         <div className={styles.header}>
           <div className={styles.brand}>
-            <img className={styles.logo} src={voltLogo} alt="volt logo" />
+            <img className={styles.logo} src={voltLogo} alt={t('home.logoAlt')} />
             <div className={styles.brandCopy}>
-              <span className={styles.kicker}>Local-first markdown workspace</span>
+              <span className={styles.kicker}>{t('home.kicker')}</span>
               <h1 className={styles.title}>volt</h1>
               <p className={styles.subtitle}>
-                Notes, graph links and fast search in one compact desktop app.
+                {t('home.subtitle')}
               </p>
             </div>
           </div>
           <Button variant="primary" size="md" onClick={handleOpenModal}>
-            New volt
+            {t('home.newVolt')}
           </Button>
         </div>
 
@@ -92,12 +94,12 @@ export function HomePage() {
 
         {!loading && volts.length === 0 ? (
           <div className={styles.empty}>
-            <span className={styles.emptyText}>No volts yet</span>
+            <span className={styles.emptyText}>{t('home.emptyTitle')}</span>
             <span className={styles.emptyHint}>
-              Create a new volt to get started
+              {t('home.emptyHint')}
             </span>
             <Button variant="secondary" size="lg" onClick={handleOpenModal}>
-              Create your first volt
+              {t('home.createFirstVolt')}
             </Button>
           </div>
         ) : (
@@ -114,33 +116,33 @@ export function HomePage() {
         )}
       </div>
 
-      <Modal isOpen={modalOpen} onClose={handleCloseModal} title="New volt">
+      <Modal isOpen={modalOpen} onClose={handleCloseModal} title={t('home.modal.title')}>
         <TextInput
-          label="volt name"
-          placeholder="My Notes"
+          label={t('home.modal.nameLabel')}
+          placeholder={t('home.modal.namePlaceholder')}
           value={voltName}
           onChange={(e) => setVoltName(e.target.value)}
           autoFocus
         />
 
         <div className={styles.modalField}>
-          <span className={styles.modalLabel}>Location</span>
+          <span className={styles.modalLabel}>{t('home.modal.locationLabel')}</span>
           <div className={styles.directorySelector}>
             <div
               className={`${styles.directoryPath} ${voltPath ? styles.directoryPathSelected : ''}`}
               title={voltPath}
             >
-              {voltPath || 'No directory selected'}
+              {voltPath || t('home.modal.noDirectory')}
             </div>
             <Button variant="secondary" size="sm" onClick={handleSelectDirectory}>
-              Browse
+              {t('home.modal.browse')}
             </Button>
           </div>
         </div>
 
         <div className={styles.modalActions}>
           <Button variant="ghost" size="md" onClick={handleCloseModal}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button
             variant="primary"
@@ -148,7 +150,7 @@ export function HomePage() {
             onClick={handleCreate}
             disabled={!voltName.trim() || !voltPath.trim() || creating}
           >
-            {creating ? 'Creating...' : 'Create'}
+            {creating ? t('home.modal.creating') : t('home.modal.create')}
           </Button>
         </div>
       </Modal>

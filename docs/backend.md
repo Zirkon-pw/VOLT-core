@@ -3,38 +3,46 @@
 ## Основные модули
 
 - `core/volt` - сущность volt и контракт хранилища volt
-- `core/note` - сущности и ошибки для работы с файлами заметок
+- `core/file` - generic файловые сущности, ошибки и контракт repository
+- `core/note` - markdown-specific абстракции заметок и документов, без generic file repository
 - `core/search` - структура результатов поиска
-- `core/graph` - узлы и связи графа заметок
+- `core/plugin` - manifest и metadata плагинов
+- `core/settings` - настройки приложения и доменный сервис локализации
 
-## Use case-слой
+## Command-слой
 
-В `internal/application/` лежат отдельные операции:
+В `commands/` лежат отдельные команды:
 
 - `volt/` - создание, удаление и получение списка volt
-- `note/` - чтение, сохранение, создание файлов и каталогов, удаление и переименование
+- `file/` - generic чтение, запись, дерево, удаление и переименование путей внутри workspace
+- `note/` - markdown-specific команды, например создание note с нормализацией `.md`
 - `search/` - полнотекстовый поиск по markdown-файлам
-- `graph/` - построение графа заметок
+- `plugin/` - управление плагинами и их данными
+- `settings/` - получение и изменение локализации
+- `system/` - диалоги, изображения и desktop process runtime
 
-Такой формат упрощает развитие логики без сильной связности между слоями.
+Команды регистрируются в общем `commands.Manager` и вызываются из Wails-адаптеров по имени.
 
 ## Wails handlers
 
-Каталог `internal/interfaces/wailshandler/` это внешний API backend для frontend.
+Каталог `interfaces/wailshandler/` это внешний API backend для frontend.
+
+Имя пакета `wailshandler` сохранено намеренно, чтобы не менять Wails-namespace и текущие frontend imports из `frontend/wailsjs/go/wailshandler/*`.
 
 Handlers группируются по зонам ответственности:
 
 - `VoltHandler`
-- `NoteHandler`
+- `FileHandler`
 - `SearchHandler`
-- `GraphHandler`
-- `AppHandler`
+- `PluginHandler`
+- `ImageHandler`
+- `SettingsHandler`
 
-`AppHandler` на старте передает `context.Context` во вложенные handlers.
+Startup lifecycle вынесен в отдельный `Lifecycle`, который сохраняет `context.Context` во внутренний Wails runtime bridge, но не публикуется во frontend через `Bind`.
 
-## Работа с заметками
+## Работа с файлами
 
-Реализация [`internal/infrastructure/filesystem/note_repository.go`](../internal/infrastructure/filesystem/note_repository.go) выполняет всю файловую работу.
+Реализация [`infrastructure/filesystem/file_repository.go`](../infrastructure/filesystem/file_repository.go) выполняет всю файловую работу.
 
 Особенности:
 
@@ -45,7 +53,7 @@ Handlers группируются по зонам ответственности
 
 ## Хранение списка volt
 
-Реализация [`internal/infrastructure/persistence/local/volt_store.go`](../internal/infrastructure/persistence/local/volt_store.go) хранит список подключенных volt в JSON-файле в домашнем каталоге пользователя.
+Реализация [`infrastructure/persistence/local/volt_store.go`](../infrastructure/persistence/local/volt_store.go) хранит список подключенных volt в JSON-файле в домашнем каталоге пользователя.
 
 Особенности:
 
@@ -55,25 +63,61 @@ Handlers группируются по зонам ответственности
 
 ## Поиск
 
-Поиск реализован в [`internal/application/search/search_files.go`](../internal/application/search/search_files.go).
+Поиск реализован в [`commands/search/search_files.go`](../commands/search/search_files.go).
 
 Правила:
 
-- поиск выполняется только по файлам `.md`
+- backend ищет только по `.md`
 - сначала возвращаются совпадения по имени файла
-- затем совпадения по содержимому
+- затем совпадения по содержимому markdown
 - максимум `50` результатов на запрос
 - максимум `5` совпадений по содержимому на один файл
 
-## Граф заметок
+Plugin-owned форматы больше не индексируются в Go core. Их поиск собирается во frontend через runtime V3 `search.registerFileTextProvider(...)`.
 
-Построение графа реализовано в [`internal/application/graph/build_graph.go`](../internal/application/graph/build_graph.go).
+## Плагины
 
-Алгоритм:
+Плагины хранятся в `~/.volt/plugins` и подгружаются отдельно от core-сервисов.
 
-- обходит все `.md` файлы в volt
-- создает узлы по относительным путям файлов
-- извлекает wiki-ссылки формата `[[target]]`
-- поддерживает ссылки с alias `[[target|alias]]`
-- поддерживает ссылки на заголовки `[[target#heading]]`
-- исключает самоссылки и дубликаты связей
+Host-side backend оставляет для них только инфраструктурные операции:
+
+- список установленных плагинов
+- загрузка исходника `main.js`
+- включение и выключение
+- key/value storage для plugin data
+- запуск локальных процессов через `PluginHandler`
+
+### Что делает backend для plugin runtime
+
+Backend не исполняет plugin JS и не хранит plugin registry. Его зона ответственности уже:
+
+- перечислить plugin folders и прочитать `manifest.json`
+- загрузить содержимое `main.js`
+- сохранить enabled-state в `~/.volt/plugin-state.json`
+- сохранить plugin-local `data.json`
+- запустить plugin-owned process внутри текущего workspace и стримить stdout/stderr/exit/error события во frontend через Wails runtime events
+
+### Безопасность файлового доступа
+
+Даже если плагин имеет `read` или `write`, фактические файловые операции всё равно идут через file repository:
+
+- путь нормализуется и проверяется через `safePath`
+- выход за пределы активного workspace блокируется
+- hidden files не попадают в `listTree`
+
+### Desktop process broker
+
+Текущий backend bridge для процессов собран из:
+
+- [`commands/system/plugin_process.go`](../commands/system/plugin_process.go)
+- [`interfaces/wailshandler/plugin_process.go`](../interfaces/wailshandler/plugin_process.go)
+- [`infrastructure/runtime/wails/runtime.go`](../infrastructure/runtime/wails/runtime.go)
+
+Он:
+
+- запускает бинарник напрямую, без `sh -c`
+- ограничивает `cwd` активным `voltPath`
+- публикует `stdout`, `stderr`, `exit` и `error` события во frontend через Wails runtime events
+- хранит cancel-функции по `runId` и принудительно останавливает plugin-owned runs при unload
+
+Подробное описание plugin contract находится в [docs/plugins.md](plugins.md).

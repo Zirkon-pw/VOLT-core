@@ -1,0 +1,95 @@
+.menu {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-popup, 0 4px 12px rgba(0, 0, 0, 0.15));
+  position: relative;
+}
+
+.group {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.groupLabel {
+  font-size: 10px;
+  color: var(--color-text-tertiary);
+  margin-right: 2px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.btn {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 6px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 11px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--transition-fast), color var(--transition-fast);
+
+  &:hover {
+    background: var(--color-bg-hover);
+    color: var(--color-text-primary);
+  }
+}
+
+.btnActive {
+  background: var(--color-bg-active, var(--color-bg-hover));
+  color: var(--color-accent);
+}
+
+.btnDanger {
+  &:hover {
+    background: var(--color-danger-bg, #fee2e2);
+    color: var(--color-danger, #ef4444);
+  }
+}
+
+.divider {
+  width: 1px;
+  height: 16px;
+  background: var(--color-border);
+  margin: 0 2px;
+}
+
+.colorPicker {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  display: flex;
+  gap: 4px;
+  padding: var(--space-2);
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-popup, 0 4px 12px rgba(0, 0, 0, 0.15));
+}
+
+.colorSwatch {
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform var(--transition-fast);
+
+  &:hover {
+    transform: scale(1.2);
+    border-color: var(--color-border-strong);
+  }
+}

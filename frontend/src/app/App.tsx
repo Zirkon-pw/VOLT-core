@@ -1,8 +1,11 @@
 import { useEffect } from 'react';
 import { ThemeProvider } from './providers/ThemeProvider';
 import { ErrorBoundary } from './providers/ErrorBoundary';
+import { I18nProvider } from './providers/I18nProvider';
 import { AppRouter } from './routes/AppRouter';
-import { ToastController } from '@uikit/toast';
+import { ToastController } from '@shared/ui/toast';
+import { PluginPromptDialog } from '@features/plugin-prompt';
+import { PluginTaskStatusController } from '@features/plugin-task-status';
 import './styles/globals.scss';
 
 function App() {
@@ -24,10 +27,14 @@ function App() {
 
   return (
     <ErrorBoundary>
-      <ThemeProvider>
-        <AppRouter />
-        <ToastController />
-      </ThemeProvider>
+      <I18nProvider>
+        <ThemeProvider>
+          <AppRouter />
+          <PluginTaskStatusController />
+          <ToastController />
+          <PluginPromptDialog />
+        </ThemeProvider>
+      </I18nProvider>
     </ErrorBoundary>
   );
 }

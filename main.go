@@ -8,8 +8,8 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
 	"github.com/wailsapp/wails/v2/pkg/options/mac"
 
-	"volt/internal/bootstrap"
-	"volt/internal/interfaces/wailshandler"
+	"volt/bootstrap"
+	"volt/interfaces/wailshandler"
 )
 
 //go:embed all:frontend/dist
@@ -31,8 +31,8 @@ func main() {
 		BackgroundColour: &options.RGBA{R: 25, G: 25, B: 25, A: 1},
 		StartHidden:      false,
 		Frameless:        false,
-		OnStartup:        container.App.Startup,
-		OnDomReady:       container.App.DomReady,
+		OnStartup:        container.Lifecycle.Startup,
+		OnDomReady:       container.Lifecycle.DomReady,
 		Bind:             container.Bindings(),
 		Mac: &mac.Options{
 			TitleBar: &mac.TitleBar{

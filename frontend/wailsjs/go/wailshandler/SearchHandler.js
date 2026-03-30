@@ -5,7 +5,3 @@
 export function SearchFiles(arg1, arg2) {
   return window['go']['wailshandler']['SearchHandler']['SearchFiles'](arg1, arg2);
 }
-
-export function SetContext(arg1) {
-  return window['go']['wailshandler']['SearchHandler']['SetContext'](arg1);
-}

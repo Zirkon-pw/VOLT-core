@@ -1,0 +1,150 @@
+.sidebar {
+  display: flex;
+  position: relative;
+  flex: 0 0 auto;
+  height: 100%;
+  overflow: visible;
+}
+
+.collapsed {
+}
+
+.rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 52px;
+  min-width: 52px;
+  height: 100%;
+  padding: var(--space-2) var(--space-1);
+  background-color: var(--color-bg-secondary);
+  border-right: 1px solid var(--color-border);
+  z-index: 1;
+}
+
+.rail-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  width: 100%;
+}
+
+.pane {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  height: 100%;
+  min-width: 0;
+  background-color: var(--color-bg-secondary);
+  border-right: 1px solid var(--color-border);
+  overflow: hidden;
+  transition: width 0.15s ease;
+}
+
+.icon-button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  color: var(--color-icon);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+
+  &:hover {
+    background: var(--color-bg-hover);
+    color: var(--color-icon-hover);
+  }
+}
+
+.icon-button-dragging {
+  opacity: 0.45;
+  cursor: grabbing;
+}
+
+.icon-button-drag-over {
+  background: var(--color-bg-hover);
+  color: var(--color-icon-hover);
+  box-shadow: inset 0 0 0 1px var(--color-accent);
+}
+
+.toggle-button {
+  position: absolute;
+  top: 50%;
+  right: -13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 48px;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-left: none;
+  border-radius: 0 14px 14px 0;
+  background: var(--color-bg-secondary);
+  color: var(--color-icon);
+  cursor: pointer;
+  transform: translateY(-50%);
+  transition: background var(--transition-fast), color var(--transition-fast);
+  z-index: 20;
+
+  &:hover {
+    background: var(--color-bg-hover);
+    color: var(--color-icon-hover);
+  }
+}
+
+.toggle-icon-collapsed,
+.toggle-icon-expanded {
+  transition: transform var(--transition-fast);
+}
+
+.toggle-icon-expanded {
+  transform: rotate(180deg);
+}
+
+.resize-handle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 4px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 10;
+  transition: background-color var(--transition-fast);
+
+  &:hover {
+    background-color: var(--color-accent);
+  }
+}
+
+.tree-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.plugin-panels {
+  border-top: 1px solid var(--color-divider);
+  overflow-y: auto;
+  max-height: 200px;
+}
+
+.plugin-panel {
+  padding: var(--space-2);
+}
+
+.plugin-panel-title {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: var(--space-1);
+}

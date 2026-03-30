@@ -19,10 +19,10 @@
     "paths": {
       "@app/*": ["src/app/*"],
       "@pages/*": ["src/pages/*"],
+      "@entities/*": ["src/entities/*"],
+      "@features/*": ["src/features/*"],
       "@widgets/*": ["src/widgets/*"],
-      "@components/*": ["src/components/*"],
-      "@uikit/*": ["src/uikit/*"],
-      "@api/*": ["src/api/*"]
+      "@shared/*": ["src/shared/*"]
     }
   },
   "include": ["src"],
