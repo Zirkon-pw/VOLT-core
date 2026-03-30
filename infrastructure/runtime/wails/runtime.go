@@ -53,6 +53,21 @@ func (r *Runtime) OpenFileDialog(ctx context.Context, title string, filters []co
 	})
 }
 
+func (r *Runtime) OpenMultipleFilesDialog(ctx context.Context, title string, filters []commandsystem.FileFilter) ([]string, error) {
+	dialogFilters := make([]runtime.FileFilter, 0, len(filters))
+	for _, filter := range filters {
+		dialogFilters = append(dialogFilters, runtime.FileFilter{
+			DisplayName: filter.DisplayName,
+			Pattern:     filter.Pattern,
+		})
+	}
+
+	return runtime.OpenMultipleFilesDialog(ctx, runtime.OpenDialogOptions{
+		Title:   title,
+		Filters: dialogFilters,
+	})
+}
+
 func (r *Runtime) EventsEmit(ctx context.Context, name string, payload any) {
 	runtime.EventsEmit(ctx, name, payload)
 }

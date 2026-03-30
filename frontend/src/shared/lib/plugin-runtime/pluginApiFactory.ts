@@ -23,7 +23,7 @@ import {
 import { onTracked } from './pluginEventBus';
 import { createFile as createWorkspaceFile, listTree, readFile, type FileEntry, writeFile } from '@shared/api/file';
 import { copyImage, pickImage, readImageBase64, saveImageBase64 } from '@shared/api/image/imageApi';
-import { getPluginData, setPluginData } from '@shared/api/plugin';
+import { copyPluginAsset, getPluginData, pickPluginFiles, setPluginData } from '@shared/api/plugin';
 import { openPluginPrompt } from '@features/plugin-prompt';
 import { useWorkspaceStore } from '@entities/workspace';
 import { useFileTreeStore } from '@entities/file-tree';
@@ -56,6 +56,7 @@ import {
   setPluginSettingValue,
   subscribePluginSettings,
 } from '@entities/plugin';
+import { BrowserOpenURL } from '../../../../wailsjs/runtime/runtime';
 
 function normalizePluginIcon(icon?: string): IconName {
   if (icon && icon in icons) {
@@ -86,7 +87,7 @@ export function createPluginAPI(
     await useFileTreeStore.getState().notifyFsMutation(voltId, voltPath);
   };
 
-  const requirePermission = (permission: 'read' | 'write' | 'editor' | 'process', action: string) => {
+  const requirePermission = (permission: 'read' | 'write' | 'editor' | 'process' | 'external', action: string) => {
     if (declaredPermissions.has(permission)) {
       return;
     }
@@ -298,6 +299,10 @@ export function createPluginAPI(
         const tab = tabs.find((t) => t.id === activeTabId);
         return tab && tab.type === 'file' ? tab.filePath : null;
       },
+      getWorkspacePath(): string {
+        requirePermission('read', 'volt.getWorkspacePath');
+        return voltPath;
+      },
     },
     search: {
       registerFileTextProvider(config) {
@@ -313,6 +318,26 @@ export function createPluginAPI(
     media: {
       pickImage() {
         return pickImage();
+      },
+      async pickFile(config) {
+        requirePermission('external', 'media.pickFile');
+        const paths = await pickPluginFiles(
+          config?.title ?? '',
+          config?.accept ?? [],
+          Boolean(config?.multiple),
+        );
+
+        if (config?.multiple) {
+          return paths;
+        }
+
+        return paths[0] ?? null;
+      },
+      async copyAsset(sourcePath: string, targetDir?: string) {
+        requirePermission('write', 'media.copyAsset');
+        const path = await copyPluginAsset(voltPath, sourcePath, targetDir ?? '');
+        await notifyFsMutation();
+        return path;
       },
       async copyImage(sourcePath: string, targetDir?: string) {
         requirePermission('write', 'media.copyImage');
@@ -506,6 +531,15 @@ export function createPluginAPI(
         }
 
         useTabStore.getState().openTab(voltId, normalizedPath, normalizedPath);
+      },
+      openExternalUrl(url: string) {
+        requirePermission('external', 'ui.openExternalUrl');
+        const normalizedUrl = url.trim();
+        if (!normalizedUrl) {
+          throw reportPluginError(pluginId, 'ui.openExternalUrl', new Error('URL is required'));
+        }
+
+        BrowserOpenURL(normalizedUrl);
       },
       showNotice(message: string, durationMs?: number) {
         useToastStore.getState().addToast(message, 'info', durationMs ?? 4000);

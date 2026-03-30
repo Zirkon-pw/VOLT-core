@@ -1,5 +1,5 @@
 import type { RegisteredFileViewer } from '@entities/plugin';
-import { getFileExtension, isImagePath, isMarkdownPath } from '@shared/lib/fileTypes';
+import { isImagePath, isMarkdownPath } from '@shared/lib/fileTypes';
 
 export interface BuiltInFileViewTarget {
   type: 'builtin';
@@ -21,8 +21,32 @@ export type FileViewTarget =
   | PluginCustomFileViewTarget
   | PluginHostEditorFileViewTarget;
 
-function sortViewers(viewers: RegisteredFileViewer[]): RegisteredFileViewer[] {
+function getViewerMatchLength(filePath: string, viewer: RegisteredFileViewer): number {
+  const normalizedPath = filePath.toLowerCase();
+  let longestMatch = 0;
+
+  viewer.extensions.forEach((extension) => {
+    const normalizedExtension = extension.trim().toLowerCase();
+    if (!normalizedExtension) {
+      return;
+    }
+
+    if (normalizedPath.endsWith(normalizedExtension)) {
+      longestMatch = Math.max(longestMatch, normalizedExtension.length);
+    }
+  });
+
+  return longestMatch;
+}
+
+function sortViewers(filePath: string, viewers: RegisteredFileViewer[]): RegisteredFileViewer[] {
   return [...viewers].sort((left, right) => {
+    const rightMatchLength = getViewerMatchLength(filePath, right);
+    const leftMatchLength = getViewerMatchLength(filePath, left);
+    if (rightMatchLength !== leftMatchLength) {
+      return rightMatchLength - leftMatchLength;
+    }
+
     if (right.priority !== left.priority) {
       return right.priority - left.priority;
     }
@@ -45,15 +69,12 @@ export function resolveFileViewTarget(
     return { type: 'builtin', kind: 'image' };
   }
 
-  const extension = getFileExtension(filePath);
-  if (extension) {
-    const matched = sortViewers(viewers.filter((viewer) => viewer.extensions.includes(extension)));
-    const winner = matched[0];
-    if (winner) {
-      return winner.type === 'host-editor'
-        ? { type: 'plugin-host-editor', viewer: winner }
-        : { type: 'plugin-custom', viewer: winner };
-    }
+  const matched = sortViewers(filePath, viewers.filter((viewer) => getViewerMatchLength(filePath, viewer) > 0));
+  const winner = matched[0];
+  if (winner) {
+    return winner.type === 'host-editor'
+      ? { type: 'plugin-host-editor', viewer: winner }
+      : { type: 'plugin-custom', viewer: winner };
   }
 
   return { type: 'builtin', kind: 'raw-text' };

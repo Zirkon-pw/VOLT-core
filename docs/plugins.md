@@ -173,13 +173,15 @@ api.ui.registerCommand({
 - `read`
 - `write`
 - `editor`
+- `external`
 - `process`
 
 Что они дают:
 
-- `read`: `volt.read`, `volt.list`, `volt.getActivePath`, `search.registerFileTextProvider`, `media.readImageDataUrl`
-- `write`: `volt.write`, `volt.createFile`, `media.copyImage`, `media.saveImageBase64`
+- `read`: `volt.read`, `volt.list`, `volt.getActivePath`, `volt.getWorkspacePath`, `search.registerFileTextProvider`, `media.readImageDataUrl`
+- `write`: `volt.write`, `volt.createFile`, `media.copyAsset`, `media.copyImage`, `media.saveImageBase64`
 - `editor`: `editor.captureActiveSession`, `editor.openSession`, `editor.listKinds`, `editor.getCapabilities`, `editor.mount`
+- `external`: `media.pickFile`, `ui.openExternalUrl`
 - `process`: `desktop.process.start`
 
 UI методы (`ui.register*`, `ui.promptText`, `ui.createTaskStatus`, `ui.showNotice`), `events.on(...)`, `storage.*` и `settings.*` не требуют отдельного permission.
@@ -202,6 +204,7 @@ write(path: string, content: string): Promise<void>
 createFile(path: string, content?: string): Promise<void>
 list(dirPath?: string): Promise<FileEntry[]>
 getActivePath(): string | null
+getWorkspacePath(): string
 ```
 
 Поведение:
@@ -209,6 +212,28 @@ getActivePath(): string | null
 - все пути относительные к активному `voltPath`
 - backend file repository дополнительно защищает операции от path traversal
 - `list()` возвращает рекурсивное дерево без hidden files и directories
+
+### `api.media`
+
+```ts
+pickImage(): Promise<string>
+pickFile(config?: {
+  title?: string
+  accept?: string[]
+  multiple?: boolean
+}): Promise<string | string[] | null>
+copyAsset(sourcePath: string, targetDir?: string): Promise<string>
+copyImage(sourcePath: string, targetDir?: string): Promise<string>
+saveImageBase64(fileName: string, base64: string, targetDir?: string): Promise<string>
+readImageDataUrl(path: string): Promise<string>
+```
+
+Поведение:
+
+- `pickFile(...)` открывает системный file picker и требует permission `external`
+- `copyAsset(...)` копирует произвольный локальный файл в workspace и возвращает workspace-relative path
+- `copyImage(...)` это image-specific helper поверх того же asset pipeline
+- `targetDir`, если задан, интерпретируется относительно активного workspace
 
 ### `api.search`
 
@@ -314,6 +339,7 @@ registerPluginPage(config: {
 
 openPluginPage(pageId: string): void
 openFile(path: string): void
+openExternalUrl(url: string): void
 ```
 
 Поведение:
@@ -322,6 +348,7 @@ openFile(path: string): void
 - `mode: 'route'` открывает `/workspace/:voltId/plugin/:pageId`
 - `cleanup` вызывается при unmount и при unload
 - `openFile(path)` открывает указанный файл в обычном workspace tab, включая plugin-owned viewer-ы
+- `openExternalUrl(url)` открывает ссылку или `file://` URL во внешнем браузере/системном обработчике и требует permission `external`
 
 #### File viewer delegate на host editor
 

@@ -6,6 +6,10 @@ export function CancelPluginProcess(arg1) {
   return window['go']['wailshandler']['PluginHandler']['CancelPluginProcess'](arg1);
 }
 
+export function CopyPluginAsset(arg1, arg2, arg3) {
+  return window['go']['wailshandler']['PluginHandler']['CopyPluginAsset'](arg1, arg2, arg3);
+}
+
 export function DeletePlugin(arg1) {
   return window['go']['wailshandler']['PluginHandler']['DeletePlugin'](arg1);
 }
@@ -28,6 +32,10 @@ export function LoadPluginSource(arg1) {
 
 export function PickPluginArchive() {
   return window['go']['wailshandler']['PluginHandler']['PickPluginArchive']();
+}
+
+export function PickPluginFiles(arg1, arg2, arg3) {
+  return window['go']['wailshandler']['PluginHandler']['PickPluginFiles'](arg1, arg2, arg3);
 }
 
 export function SetPluginData(arg1, arg2, arg3) {

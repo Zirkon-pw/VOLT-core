@@ -38,6 +38,30 @@ export async function setPluginData(pluginId: string, key: string, value: string
   return invokeWailsSafe(loadPluginHandler, (mod) => mod.SetPluginData(pluginId, key, value), 'setPluginData');
 }
 
+export async function pickPluginFiles(
+  title: string,
+  accept: string[],
+  multiple: boolean,
+): Promise<string[]> {
+  return invokeWailsSafe(
+    loadPluginHandler,
+    (mod) => mod.PickPluginFiles(title, accept, multiple),
+    'pickPluginFiles',
+  );
+}
+
+export async function copyPluginAsset(
+  voltPath: string,
+  sourcePath: string,
+  targetDir: string,
+): Promise<string> {
+  return invokeWailsSafe(
+    loadPluginHandler,
+    (mod) => mod.CopyPluginAsset(voltPath, sourcePath, targetDir),
+    'copyPluginAsset',
+  );
+}
+
 export async function startPluginProcess(
   runId: string,
   voltPath: string,

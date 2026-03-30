@@ -2,6 +2,7 @@ package wailshandler
 
 import (
 	"context"
+	"strings"
 
 	commandbase "volt/commands"
 	commandplugin "volt/commands/plugin"
@@ -138,4 +139,91 @@ func (h *PluginHandler) SetPluginData(pluginID, key, value string) error {
 		return localizedPluginError(h.localization, "backend.action.setPluginData", nil, err)
 	}
 	return nil
+}
+
+func (h *PluginHandler) PickPluginFiles(title string, accept []string, multiple bool) ([]string, error) {
+	resolvedTitle := strings.TrimSpace(title)
+	if resolvedTitle == "" {
+		if multiple {
+			resolvedTitle = translate(h.localization, "dialog.selectFiles", nil)
+		} else {
+			resolvedTitle = translate(h.localization, "dialog.selectFile", nil)
+		}
+	}
+
+	result, err := commandbase.Execute[commandssystem.PickFilesResponse](
+		context.Background(),
+		h.manager,
+		commandssystem.PickFilesName,
+		commandssystem.PickFileRequest{
+			Title:    resolvedTitle,
+			Filters:  buildPluginFileFilters(h.localization, accept),
+			Multiple: multiple,
+		},
+	)
+	if err != nil {
+		return nil, localizedUnexpectedError(h.localization, "backend.action.openFileDialog", nil, err)
+	}
+
+	return result.Paths, nil
+}
+
+func (h *PluginHandler) CopyPluginAsset(voltPath, sourcePath, targetDir string) (string, error) {
+	result, err := commandbase.Execute[commandssystem.CopyAssetResponse](
+		context.Background(),
+		h.manager,
+		commandssystem.CopyAssetName,
+		commandssystem.CopyAssetRequest{
+			VoltPath:   voltPath,
+			SourcePath: sourcePath,
+			TargetDir:  targetDir,
+		},
+	)
+	if err != nil {
+		return "", localizedUnexpectedError(h.localization, "backend.action.copyAsset", nil, err)
+	}
+
+	return result.RelativePath, nil
+}
+
+func buildPluginFileFilters(localization *coresettings.LocalizationService, accept []string) []commandssystem.FileFilter {
+	patterns := make([]string, 0, len(accept))
+	for _, rawPattern := range accept {
+		patterns = append(patterns, expandPluginFilePatterns(rawPattern)...)
+	}
+
+	if len(patterns) == 0 {
+		patterns = []string{"*"}
+	}
+
+	return []commandssystem.FileFilter{{
+		DisplayName: translate(localization, "dialog.filesFilter", nil),
+		Pattern:     strings.Join(patterns, ";"),
+	}}
+}
+
+func expandPluginFilePatterns(rawPattern string) []string {
+	pattern := strings.TrimSpace(rawPattern)
+	if pattern == "" {
+		return nil
+	}
+
+	switch strings.ToLower(pattern) {
+	case "image/*":
+		return []string{"*.png", "*.jpg", "*.jpeg", "*.gif", "*.webp", "*.svg", "*.avif"}
+	case "video/*":
+		return []string{"*.mp4", "*.mov", "*.webm", "*.m4v", "*.mkv"}
+	case "audio/*":
+		return []string{"*.mp3", "*.wav", "*.ogg", "*.m4a", "*.aac", "*.flac"}
+	}
+
+	if strings.HasPrefix(pattern, ".") {
+		return []string{"*" + pattern}
+	}
+
+	if !strings.Contains(pattern, "*") && !strings.Contains(pattern, ".") && !strings.Contains(pattern, "/") {
+		return []string{"*." + pattern}
+	}
+
+	return []string{pattern}
 }

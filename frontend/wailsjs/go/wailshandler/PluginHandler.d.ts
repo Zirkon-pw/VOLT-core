@@ -4,6 +4,8 @@ import {plugin} from '../models';
 
 export function CancelPluginProcess(arg1:string):Promise<void>;
 
+export function CopyPluginAsset(arg1:string,arg2:string,arg3:string):Promise<string>;
+
 export function DeletePlugin(arg1:string):Promise<void>;
 
 export function GetPluginData(arg1:string,arg2:string):Promise<string>;
@@ -15,6 +17,8 @@ export function ListPlugins():Promise<Array<plugin.Plugin>>;
 export function LoadPluginSource(arg1:string):Promise<string>;
 
 export function PickPluginArchive():Promise<string>;
+
+export function PickPluginFiles(arg1:string,arg2:Array<string>,arg3:boolean):Promise<Array<string>>;
 
 export function SetPluginData(arg1:string,arg2:string,arg3:string):Promise<void>;
 

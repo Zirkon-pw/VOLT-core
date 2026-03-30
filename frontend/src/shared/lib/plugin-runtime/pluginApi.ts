@@ -29,6 +29,12 @@ export interface SearchFileTextProvider {
   extractText(input: SearchFileTextProviderInput): string | null | undefined | Promise<string | null | undefined>;
 }
 
+export interface PluginFilePickerConfig {
+  title?: string;
+  accept?: string[];
+  multiple?: boolean;
+}
+
 export interface PluginEventMap {
   'workspace:path-renamed': WorkspacePathRenamedEvent;
   'file-open': string;
@@ -194,12 +200,15 @@ export interface VoltPluginAPI {
     createFile(path: string, content?: string): Promise<void>;
     list(dirPath?: string): Promise<FileEntry[]>;
     getActivePath(): string | null;
+    getWorkspacePath(): string;
   };
   search: {
     registerFileTextProvider(config: SearchFileTextProvider): void;
   };
   media: {
     pickImage(): Promise<string>;
+    pickFile(config?: PluginFilePickerConfig): Promise<string | string[] | null>;
+    copyAsset(sourcePath: string, targetDir?: string): Promise<string>;
     copyImage(sourcePath: string, targetDir?: string): Promise<string>;
     saveImageBase64(fileName: string, base64: string, targetDir?: string): Promise<string>;
     readImageDataUrl(path: string): Promise<string>;
@@ -281,6 +290,7 @@ export interface VoltPluginAPI {
     }): void;
     openPluginPage(pageId: string): void;
     openFile(path: string): void;
+    openExternalUrl(url: string): void;
     showNotice(message: string, durationMs?: number): void;
   };
   editor: {

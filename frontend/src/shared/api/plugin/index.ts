@@ -15,6 +15,8 @@ export {
   setPluginEnabled,
   getPluginData,
   setPluginData,
+  pickPluginFiles,
+  copyPluginAsset,
   startPluginProcess,
   cancelPluginProcess,
 } from './pluginApi';

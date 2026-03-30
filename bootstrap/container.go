@@ -80,6 +80,8 @@ func NewContainer() *Container {
 		commandssystem.NewSelectDirectoryCommand(runtime),
 		commandssystem.NewPickPluginArchiveCommand(runtime),
 		commandssystem.NewPickImageCommand(runtime),
+		commandssystem.NewPickFilesCommand(runtime),
+		commandssystem.NewCopyAssetCommand(),
 		commandssystem.NewCopyImageCommand(),
 		commandssystem.NewSaveImageBase64Command(),
 		commandssystem.NewReadImageBase64Command(),
