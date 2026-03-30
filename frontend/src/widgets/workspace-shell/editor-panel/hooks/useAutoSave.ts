@@ -2,6 +2,7 @@ import { useEffect, useRef, useCallback } from 'react';
 import type { Editor } from '@tiptap/react';
 import { useTabStore } from '@entities/tab';
 import { writeFile } from '@shared/api/file';
+import { EDITOR } from '@shared/config/constants';
 import { emit } from '@shared/lib/plugin-runtime';
 
 interface UseAutoSaveOptions {
@@ -19,7 +20,7 @@ export function useAutoSave({
   voltId,
   voltPath,
   filePath,
-  delay = 500,
+  delay = EDITOR.AUTO_SAVE_DELAY_MS,
   transformMarkdown,
 }: UseAutoSaveOptions) {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);

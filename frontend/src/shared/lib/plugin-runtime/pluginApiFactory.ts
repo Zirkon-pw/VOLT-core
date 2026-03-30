@@ -37,6 +37,11 @@ import {
   type PluginEditorSession,
 } from './editorSessionManager';
 import {
+  getAvailableHostEditorCapabilities,
+  listAvailableHostEditorKinds,
+  mountPluginHostEditor,
+} from './hostEditorService';
+import {
   startPluginProcess,
   type PluginProcessHandle,
 } from './pluginProcessManager';
@@ -171,6 +176,91 @@ export function createPluginAPI(
       return '';
     }
   };
+
+  const wrapAsyncResult = <TArgs extends unknown[]>(
+    label: string,
+    callback: (...args: TArgs) => unknown | Promise<unknown>,
+  ) => async (...args: TArgs): Promise<unknown> => {
+    try {
+      return await callback(...args);
+    } catch (err) {
+      throw reportPluginError(pluginId, label, err);
+    }
+  };
+
+  const normalizeHostEditorConfig = <TConfig extends {
+    kind: string;
+    readOnly?: boolean;
+    autofocus?: boolean;
+    toolbarActions?: Array<{
+      id: string;
+      label: string;
+      slot?: 'primary' | 'secondary';
+      commandId?: string;
+      callback?: () => void | Promise<void>;
+    }>;
+    commands?: Array<{
+      id: string;
+      execute(payload?: unknown): unknown | Promise<unknown>;
+    }>;
+    panels?: Array<{
+      id: string;
+      slot?: 'right' | 'bottom';
+      render(container: HTMLElement): void;
+      cleanup?: () => void;
+    }>;
+    overlays?: Array<{
+      id: string;
+      anchor: {
+        type: 'text-range' | 'page-rect';
+      };
+      render(container: HTMLElement): void;
+      cleanup?: () => void;
+    }>;
+  }>(
+    labelPrefix: string,
+    config: TConfig,
+  ): TConfig => ({
+    ...config,
+    toolbarActions: config.toolbarActions?.map((action) => ({
+      ...action,
+      callback: action.callback ? wrapCallback(`${labelPrefix}:toolbar:${action.id}`, action.callback) : undefined,
+    })),
+    commands: config.commands?.map((command) => ({
+      ...command,
+      execute: wrapAsyncResult(`${labelPrefix}:command:${command.id}`, command.execute),
+    })),
+    panels: config.panels?.map((panel) => ({
+      ...panel,
+      render: (container: HTMLElement) => {
+        safeExecute(pluginId, `${labelPrefix}:panel:${panel.id}:render`, () => {
+          panel.render(container);
+        });
+      },
+      cleanup: panel.cleanup
+        ? () => {
+          safeExecute(pluginId, `${labelPrefix}:panel:${panel.id}:cleanup`, () => {
+            panel.cleanup!();
+          });
+        }
+        : undefined,
+    })),
+    overlays: config.overlays?.map((overlay) => ({
+      ...overlay,
+      render: (container: HTMLElement) => {
+        safeExecute(pluginId, `${labelPrefix}:overlay:${overlay.id}:render`, () => {
+          overlay.render(container);
+        });
+      },
+      cleanup: overlay.cleanup
+        ? () => {
+          safeExecute(pluginId, `${labelPrefix}:overlay:${overlay.id}:cleanup`, () => {
+            overlay.cleanup!();
+          });
+        }
+        : undefined,
+    })),
+  });
 
   return {
     volt: {
@@ -309,11 +399,24 @@ export function createPluginAPI(
         });
       },
       registerFileViewer(config) {
-        registerFileViewer({
+        const normalizedBase = {
           id: namespaceId(config.id),
           pluginId,
           extensions: config.extensions.map((extension) => extension.trim().toLowerCase()).filter(Boolean),
           icon: config.icon ? normalizePluginIcon(config.icon) : undefined,
+          priority: config.priority ?? 0,
+        };
+
+        if ('hostEditor' in config) {
+          registerFileViewer({
+            ...normalizedBase,
+            hostEditor: normalizeHostEditorConfig(`fileViewer:${config.id}:hostEditor`, config.hostEditor),
+          });
+          return;
+        }
+
+        registerFileViewer({
+          ...normalizedBase,
           render: (container, context) => {
             safeExecute(pluginId, `fileViewer:${config.id}:render`, () => {
               config.render(container, context);
@@ -418,6 +521,30 @@ export function createPluginAPI(
         requirePermission('editor', 'editor.openSession');
         const session = await openEditorSession(pluginId, voltPath, path);
         return wrapSession(session);
+      },
+      listKinds() {
+        requirePermission('editor', 'editor.listKinds');
+        return listAvailableHostEditorKinds();
+      },
+      getCapabilities(kind: string) {
+        requirePermission('editor', 'editor.getCapabilities');
+        const capabilities = getAvailableHostEditorCapabilities(kind);
+        if (!capabilities) {
+          throw reportPluginError(pluginId, `editor.getCapabilities:${kind}`, new Error(`Host editor kind "${kind}" is not available`));
+        }
+        return capabilities;
+      },
+      async mount(container: HTMLElement, config) {
+        requirePermission('editor', 'editor.mount');
+        if (!container) {
+          throw reportPluginError(pluginId, 'editor.mount', new Error('A valid container element is required'));
+        }
+        return mountPluginHostEditor(
+          pluginId,
+          voltPath,
+          container,
+          normalizeHostEditorConfig('editor.mount', config),
+        );
       },
     },
     events: {

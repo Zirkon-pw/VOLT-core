@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useTabStore, type FileTab } from '@entities/tab';
 import { SearchPopup } from '@features/workspace-search';
 import { PluginPageHost } from '@widgets/plugin-page';
+import { SIDEBAR } from '@shared/config/constants';
 import { FileTabs } from './file-tabs/FileTabs';
 import { FileViewHost } from './file-view-host/FileViewHost';
 import { Sidebar } from './sidebar/Sidebar';
@@ -19,7 +20,7 @@ export function WorkspaceShell({ voltId, voltPath }: WorkspaceShellProps) {
   const allTabs = useTabStore((state) => state.tabs);
   const [searchOpen, setSearchOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(
-    () => localStorage.getItem('volt-sidebar-collapsed') === 'true',
+    () => localStorage.getItem(SIDEBAR.COLLAPSED_STORAGE_KEY) === 'true',
   );
 
   const toggleSearch = useCallback(() => {
@@ -35,7 +36,7 @@ export function WorkspaceShell({ voltId, voltPath }: WorkspaceShellProps) {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('volt-sidebar-collapsed', String(sidebarCollapsed));
+    localStorage.setItem(SIDEBAR.COLLAPSED_STORAGE_KEY, String(sidebarCollapsed));
   }, [sidebarCollapsed]);
 
   useWorkspaceHotkeys({

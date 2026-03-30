@@ -65,6 +65,9 @@ export const SlashCommandMenu = forwardRef<
           key={item.title}
           data-index={index}
           className={`${styles.item} ${index === selectedIndex ? styles.selected : ''}`}
+          onMouseDown={(event) => {
+            event.preventDefault();
+          }}
           onClick={() => command(item)}
           onMouseEnter={() => setSelectedIndex(index)}
           type="button"

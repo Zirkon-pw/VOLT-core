@@ -84,6 +84,109 @@ export interface PluginFileViewerContext {
   registerSaveHandler(handler: () => Promise<void>): () => void;
 }
 
+export type EditorEventName =
+  | 'ready'
+  | 'focus'
+  | 'blur'
+  | 'change'
+  | 'save'
+  | 'selection-change'
+  | 'dirty-change'
+  | 'dispose';
+
+export type PluginEditorOverlayAnchor =
+  | { type: 'text-range'; from: number; to: number }
+  | { type: 'page-rect'; page: number; x: number; y: number; width: number; height: number; unit: 'normalized' };
+
+export interface PluginEditorToolbarAction {
+  id: string;
+  label: string;
+  slot?: 'primary' | 'secondary';
+  commandId?: string;
+  callback?: () => void | Promise<void>;
+}
+
+export interface PluginEditorCommand {
+  id: string;
+  execute(payload?: unknown): unknown | Promise<unknown>;
+}
+
+export interface PluginEditorPanel {
+  id: string;
+  slot?: 'right' | 'bottom';
+  render(container: HTMLElement): void;
+  cleanup?: () => void;
+}
+
+export interface PluginEditorOverlay {
+  id: string;
+  anchor: PluginEditorOverlayAnchor;
+  render(container: HTMLElement): void;
+  cleanup?: () => void;
+}
+
+export interface EditorKindInfo {
+  kind: string;
+  title: string;
+}
+
+export interface EditorKindCapabilities {
+  kind: string;
+  supportsFileTabs: boolean;
+  supportsEmbeddedMount: boolean;
+  supportsReadOnly: boolean;
+  supportsToolbarActions: boolean;
+  supportsPanels: boolean;
+  supportsOverlays: boolean;
+  supportedOverlayAnchors: PluginEditorOverlayAnchor['type'][];
+  commandIds: string[];
+  eventNames: EditorEventName[];
+}
+
+export interface EditorMountConfig {
+  kind: string;
+  filePath: string;
+  readOnly?: boolean;
+  autofocus?: boolean;
+  toolbarActions?: PluginEditorToolbarAction[];
+  commands?: PluginEditorCommand[];
+  panels?: PluginEditorPanel[];
+  overlays?: PluginEditorOverlay[];
+}
+
+export interface EditorHandle {
+  id: string;
+  kind: string;
+  filePath: string;
+  focus(): void;
+  save(): Promise<void>;
+  dispose(): void;
+  isDirty(): boolean;
+  execute(commandId: string, payload?: unknown): Promise<unknown>;
+  on(eventName: EditorEventName, callback: (payload: unknown) => void | Promise<void>): () => void;
+}
+
+export interface PluginCustomFileViewerConfig {
+  id: string;
+  extensions: string[];
+  icon?: string;
+  priority?: number;
+  render: (container: HTMLElement, context: PluginFileViewerContext) => void;
+  cleanup?: () => void;
+}
+
+export interface PluginHostEditorFileViewerConfig {
+  id: string;
+  extensions: string[];
+  icon?: string;
+  priority?: number;
+  hostEditor: Omit<EditorMountConfig, 'filePath'>;
+}
+
+export type PluginFileViewerConfig =
+  | PluginCustomFileViewerConfig
+  | PluginHostEditorFileViewerConfig;
+
 export interface VoltPluginAPI {
   volt: {
     read(path: string): Promise<string>;
@@ -149,13 +252,7 @@ export interface VoltPluginAPI {
       render: (container: HTMLElement) => void;
       cleanup?: () => void;
     }): void;
-    registerFileViewer(config: {
-      id: string;
-      extensions: string[];
-      icon?: string;
-      render: (container: HTMLElement, context: PluginFileViewerContext) => void;
-      cleanup?: () => void;
-    }): void;
+    registerFileViewer(config: PluginFileViewerConfig): void;
     registerSlashCommand(config: {
       id: string;
       title: string;
@@ -189,6 +286,9 @@ export interface VoltPluginAPI {
   editor: {
     captureActiveSession(): Promise<EditorSession | null>;
     openSession(path: string): Promise<EditorSession>;
+    listKinds(): EditorKindInfo[];
+    getCapabilities(kind: string): EditorKindCapabilities;
+    mount(container: HTMLElement, config: EditorMountConfig): Promise<EditorHandle>;
   };
   events: {
     on<TEvent extends keyof PluginEventMap>(

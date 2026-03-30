@@ -179,7 +179,7 @@ api.ui.registerCommand({
 
 - `read`: `volt.read`, `volt.list`, `volt.getActivePath`, `search.registerFileTextProvider`, `media.readImageDataUrl`
 - `write`: `volt.write`, `volt.createFile`, `media.copyImage`, `media.saveImageBase64`
-- `editor`: `editor.captureActiveSession`, `editor.openSession`
+- `editor`: `editor.captureActiveSession`, `editor.openSession`, `editor.listKinds`, `editor.getCapabilities`, `editor.mount`
 - `process`: `desktop.process.start`
 
 UI методы (`ui.register*`, `ui.promptText`, `ui.createTaskStatus`, `ui.showNotice`), `events.on(...)`, `storage.*` и `settings.*` не требуют отдельного permission.
@@ -323,6 +323,35 @@ openFile(path: string): void
 - `cleanup` вызывается при unmount и при unload
 - `openFile(path)` открывает указанный файл в обычном workspace tab, включая plugin-owned viewer-ы
 
+#### File viewer delegate на host editor
+
+`registerFileViewer(...)` по-прежнему принимает custom renderer, но теперь также умеет delegate-конфиг:
+
+```ts
+registerFileViewer({
+  id: string
+  extensions: string[]
+  priority?: number
+  hostEditor: {
+    kind: string
+    readOnly?: boolean
+    autofocus?: boolean
+    toolbarActions?: PluginEditorToolbarAction[]
+    commands?: PluginEditorCommand[]
+    panels?: PluginEditorPanel[]
+    overlays?: PluginEditorOverlay[]
+  }
+}): void
+```
+
+Поведение:
+
+- старый `render(container, context)` контракт остаётся без изменений
+- `priority` участвует в выборе между несколькими plugin viewer registrations на один extension
+- built-in `markdown` и `image` остаются host-owned и не переопределяются плагинами
+- generic `raw-text` fallback может быть заменён явным plugin viewer binding для новых форматов
+- если delegate-config ссылается на недоступный `hostEditor.kind`, host не открывает новую вкладку
+
 #### Slash-команды
 
 ```ts
@@ -379,16 +408,33 @@ showNotice(message: string, durationMs?: number): void
 
 ### `api.editor`
 
-Editor API построен вокруг **note sessions**. Session это стабильный public handle для конкретной заметки, который живёт независимо от активного таба.
+`api.editor` теперь состоит из двух additive частей:
+
+- note sessions для markdown notes
+- host editor service для built-in editor kinds, которые можно встраивать в plugin page и использовать через file viewer delegate
 
 ```ts
 captureActiveSession(): Promise<EditorSession | null>
 openSession(path: string): Promise<EditorSession>
+listKinds(): EditorKindInfo[]
+getCapabilities(kind: string): EditorKindCapabilities
+mount(container: HTMLElement, config: EditorMountConfig): Promise<EditorHandle>
 ```
 
 `captureActiveSession()` возвращает session текущей открытой заметки или `null`, если активного note editor сейчас нет.
 
 `openSession(path)` открывает session для конкретной заметки по относительному path внутри текущего workspace.
+
+`listKinds()` и `getCapabilities(kind)` дают runtime discovery встроенных editor kinds.
+
+`mount(container, config)` монтирует host editor в DOM container, принадлежащий plugin page или plugin-owned UI.
+
+Важно:
+
+- это additive API поверх note sessions, старые плагины не ломаются
+- host editor mount по-прежнему использует permission `editor`
+- current built-in kinds: `markdown`, `raw-text`, `image`
+- этот change не добавляет built-in `pdf` editor, а только подготавливает API и runtime слой для такого kind в будущем
 
 #### `EditorSession`
 

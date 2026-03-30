@@ -5,6 +5,7 @@ import { clearAllListeners, clearPluginListeners } from './pluginEventBus';
 import { reportPluginError, safeExecute } from './safeExecute';
 import { cleanupPluginProcesses, cleanupAllPluginProcesses } from './pluginProcessManager';
 import { cleanupPluginEditorSessions, cleanupAllEditorSessions } from './editorSessionManager';
+import { cleanupAllHostEditors, cleanupPluginHostEditors } from './hostEditorService';
 import { useTabStore } from '@entities/tab';
 import {
   clearAll,
@@ -57,6 +58,7 @@ export async function loadAllPlugins(voltPath: string): Promise<void> {
   const sessionId = ++activeLoadAllSession;
   cleanupAllPluginProcesses();
   cleanupAllEditorSessions();
+  cleanupAllHostEditors();
   cleanupAllPluginTaskStatuses();
   clearAllPluginSettingsRuntime();
   clearAll();
@@ -97,6 +99,7 @@ export async function loadSinglePlugin(pluginId: string, voltPath: string): Prom
 export function unloadSinglePlugin(pluginId: string): void {
   cleanupPluginProcesses(pluginId);
   cleanupPluginEditorSessions(pluginId);
+  cleanupPluginHostEditors(pluginId);
   cleanupPluginTaskStatuses(pluginId);
   clearPluginSettingsRuntime(pluginId);
   usePluginRegistryStore.getState().removeByPluginId(pluginId);
@@ -109,6 +112,7 @@ export function unloadAllPlugins(): void {
   activeLoadAllSession += 1;
   cleanupAllPluginProcesses();
   cleanupAllEditorSessions();
+  cleanupAllHostEditors();
   cleanupAllPluginTaskStatuses();
   clearAllPluginSettingsRuntime();
   clearAll();

@@ -1,10 +1,12 @@
 import { create } from 'zustand';
 import type { IconName } from '@shared/ui/icon';
 import type {
+  EditorMountConfig,
   PluginFileViewerContext,
   SearchFileTextProviderInput,
 } from '@shared/lib/plugin-runtime';
 import { reportPluginError } from '@shared/lib/plugin-runtime';
+import { usePluginLogStore } from './pluginLogStore';
 
 export interface RegisteredCommand {
   id: string;
@@ -30,14 +32,28 @@ export interface RegisteredPluginPage {
   cleanup?: () => void;
 }
 
-export interface RegisteredFileViewer {
+interface RegisteredFileViewerBase {
   id: string;
   pluginId: string;
   extensions: string[];
   icon?: IconName;
+  priority: number;
+}
+
+export interface RegisteredCustomFileViewer extends RegisteredFileViewerBase {
+  type: 'custom';
   render: (container: HTMLElement, context: PluginFileViewerContext) => void;
   cleanup?: () => void;
 }
+
+export interface RegisteredHostEditorFileViewer extends RegisteredFileViewerBase {
+  type: 'host-editor';
+  hostEditor: Omit<EditorMountConfig, 'filePath'>;
+}
+
+export type RegisteredFileViewer =
+  | RegisteredCustomFileViewer
+  | RegisteredHostEditorFileViewer;
 
 export interface RegisteredSearchProvider {
   id: string;
@@ -110,6 +126,23 @@ interface PluginRegistryState {
 
 const pageCleanupState = new Map<string, boolean>();
 
+function findOverlappingExtensions(left: RegisteredFileViewer, right: RegisteredFileViewer): string[] {
+  return left.extensions.filter((extension) => right.extensions.includes(extension));
+}
+
+function logViewerConflict(left: RegisteredFileViewer, right: RegisteredFileViewer): void {
+  const overlaps = findOverlappingExtensions(left, right);
+  if (overlaps.length === 0) {
+    return;
+  }
+
+  const message = `fileViewer conflict for extensions [${overlaps.join(', ')}] between "${left.id}" and "${right.id}"`;
+  usePluginLogStore.getState().addEntry(left.pluginId, 'warn', message);
+  if (left.pluginId !== right.pluginId) {
+    usePluginLogStore.getState().addEntry(right.pluginId, 'warn', message);
+  }
+}
+
 function runPageCleanup(page: RegisteredPluginPage, force = false): void {
   if (!page.cleanup || (!force && !pageCleanupState.get(page.id))) {
     return;
@@ -136,7 +169,12 @@ export const usePluginRegistryStore = create<PluginRegistryState>((set) => ({
   registerCommand: (cmd) => set((s) => ({ commands: [...s.commands, cmd] })),
   registerSidebarPanel: (panel) => set((s) => ({ sidebarPanels: [...s.sidebarPanels, panel] })),
   registerPluginPage: (page) => set((s) => ({ pluginPages: [...s.pluginPages, page] })),
-  registerFileViewer: (viewer) => set((s) => ({ fileViewers: [...s.fileViewers, viewer] })),
+  registerFileViewer: (viewer) => set((s) => {
+    s.fileViewers.forEach((existing) => {
+      logViewerConflict(existing, viewer);
+    });
+    return { fileViewers: [...s.fileViewers, viewer] };
+  }),
   registerSearchProvider: (provider) => set((s) => ({ searchProviders: [...s.searchProviders, provider] })),
   registerSlashCommand: (command) => set((s) => ({ slashCommands: [...s.slashCommands, command] })),
   registerContextMenuItem: (item) => set((s) => ({ contextMenuItems: [...s.contextMenuItems, item] })),
@@ -187,8 +225,22 @@ export function registerPluginPage(page: RegisteredPluginPage): void {
   usePluginRegistryStore.getState().registerPluginPage(page);
 }
 
-export function registerFileViewer(viewer: RegisteredFileViewer): void {
-  usePluginRegistryStore.getState().registerFileViewer(viewer);
+export function registerFileViewer(
+  viewer: (
+    Omit<RegisteredCustomFileViewer, 'type' | 'priority'>
+    & Partial<Pick<RegisteredCustomFileViewer, 'priority'>>
+  ) | (
+    Omit<RegisteredHostEditorFileViewer, 'type' | 'priority'>
+    & Partial<Pick<RegisteredHostEditorFileViewer, 'priority'>>
+  ),
+): void {
+  const normalized = {
+    ...viewer,
+    priority: viewer.priority ?? 0,
+    type: 'render' in viewer ? 'custom' : 'host-editor',
+  } as RegisteredFileViewer;
+
+  usePluginRegistryStore.getState().registerFileViewer(normalized);
 }
 
 export function registerSearchProvider(provider: RegisteredSearchProvider): void {

@@ -1,27 +1,20 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { useActiveFileStore } from '@entities/editor-session';
-import { usePluginRegistryStore, type RegisteredFileViewer } from '@entities/plugin';
+import { usePluginRegistryStore, type RegisteredCustomFileViewer } from '@entities/plugin';
 import { useTabStore } from '@entities/tab';
 import { getPathBasename } from '@shared/lib/fileTree';
-import { getFileExtension, isImagePath, isMarkdownPath } from '@shared/lib/fileTypes';
 import { safeExecute } from '@shared/lib/plugin-runtime';
+import { resolveFileViewTarget } from '@shared/lib/plugin-runtime/fileViewResolution';
+import {
+  isRegisteredHostEditorViewerUsable,
+  renderHostEditorFileSurface,
+} from '@shared/lib/plugin-runtime/hostEditorService';
 import { EditorPanel } from '../editor-panel/EditorPanel';
-import { ImageViewer } from '../image-viewer/ImageViewer';
-import { RawTextEditor } from '../raw-text-editor/RawTextEditor';
 
 interface FileViewHostProps {
   voltId: string;
   voltPath: string;
   filePath: string | null;
-}
-
-function resolveViewer(filePath: string, viewers: RegisteredFileViewer[]): RegisteredFileViewer | null {
-  const extension = getFileExtension(filePath);
-  if (!extension) {
-    return null;
-  }
-
-  return viewers.find((viewer) => viewer.extensions.includes(extension)) ?? null;
 }
 
 function PluginFileViewerHost({
@@ -30,7 +23,7 @@ function PluginFileViewerHost({
   voltPath,
   filePath,
 }: {
-  viewer: RegisteredFileViewer;
+  viewer: RegisteredCustomFileViewer;
   voltId: string;
   voltPath: string;
   filePath: string;
@@ -97,15 +90,28 @@ function PluginFileViewerHost({
 
 export function FileViewHost({ voltId, voltPath, filePath }: FileViewHostProps) {
   const fileViewers = usePluginRegistryStore((state) => state.fileViewers);
-  const pluginViewer = useMemo(
-    () => (filePath ? resolveViewer(filePath, fileViewers) : null),
+  const target = useMemo(
+    () => (filePath ? resolveFileViewTarget(filePath, fileViewers) : null),
     [filePath, fileViewers],
   );
 
-  if (pluginViewer && filePath) {
+  if (!filePath) {
+    return <EditorPanel voltId={voltId} voltPath={voltPath} filePath={filePath} />;
+  }
+
+  if (!target) {
+    return renderHostEditorFileSurface({
+      voltId,
+      voltPath,
+      filePath,
+      config: { kind: 'raw-text', filePath },
+    });
+  }
+
+  if (target.type === 'plugin-custom') {
     return (
       <PluginFileViewerHost
-        viewer={pluginViewer}
+        viewer={target.viewer}
         voltId={voltId}
         voltPath={voltPath}
         filePath={filePath}
@@ -113,13 +119,36 @@ export function FileViewHost({ voltId, voltPath, filePath }: FileViewHostProps) 
     );
   }
 
-  if (filePath && isImagePath(filePath)) {
-    return <ImageViewer voltPath={voltPath} filePath={filePath} />;
+  if (target.type === 'plugin-host-editor') {
+    const error = isRegisteredHostEditorViewerUsable(target.viewer);
+    if (error) {
+      return (
+        <div style={{ display: 'flex', flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+          {error}
+        </div>
+      );
+    }
+
+    return renderHostEditorFileSurface({
+      pluginId: target.viewer.pluginId,
+      voltId,
+      voltPath,
+      filePath,
+      config: {
+        ...target.viewer.hostEditor,
+        filePath,
+      },
+    });
   }
 
-  if (!filePath || isMarkdownPath(filePath)) {
+  if (target.type === 'builtin' && target.kind === 'markdown') {
     return <EditorPanel voltId={voltId} voltPath={voltPath} filePath={filePath} />;
   }
 
-  return <RawTextEditor voltId={voltId} voltPath={voltPath} filePath={filePath} />;
+  return renderHostEditorFileSurface({
+    voltId,
+    voltPath,
+    filePath,
+    config: { kind: target.kind, filePath },
+  });
 }

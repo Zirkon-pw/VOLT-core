@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { PLUGIN_STATUS } from '@shared/config/constants';
 import { getEditorSessionSourceInfo } from '@shared/lib/plugin-runtime';
 
 export type PluginTaskStatusState = 'running' | 'success' | 'error' | 'cancelled';
@@ -45,10 +46,6 @@ interface PluginTaskStatusStoreState {
   clearByPlugin: (pluginId: string) => void;
   clearAll: () => void;
 }
-
-const AUTO_CLOSE_SUCCESS_MS = 2200;
-const AUTO_CLOSE_ERROR_MS = 4200;
-const AUTO_CLOSE_CANCELLED_MS = 2600;
 
 const closeTimers = new Map<string, ReturnType<typeof setTimeout>>();
 
@@ -145,7 +142,7 @@ export function createPluginTaskStatus(
         cancellable: false,
         message: message ?? usePluginTaskStatusStore.getState().items.find((item) => item.id === statusId)?.message ?? '',
       });
-      scheduleAutoClose(statusId, AUTO_CLOSE_SUCCESS_MS);
+      scheduleAutoClose(statusId, PLUGIN_STATUS.AUTO_CLOSE_SUCCESS_MS);
     },
     markError(message: string) {
       updateStatus(statusId, {
@@ -153,7 +150,7 @@ export function createPluginTaskStatus(
         cancellable: false,
         message,
       });
-      scheduleAutoClose(statusId, AUTO_CLOSE_ERROR_MS);
+      scheduleAutoClose(statusId, PLUGIN_STATUS.AUTO_CLOSE_ERROR_MS);
     },
     markCancelled(message?: string) {
       updateStatus(statusId, {
@@ -161,7 +158,7 @@ export function createPluginTaskStatus(
         cancellable: false,
         message: message ?? usePluginTaskStatusStore.getState().items.find((item) => item.id === statusId)?.message ?? '',
       });
-      scheduleAutoClose(statusId, AUTO_CLOSE_CANCELLED_MS);
+      scheduleAutoClose(statusId, PLUGIN_STATUS.AUTO_CLOSE_CANCELLED_MS);
     },
     close,
   };

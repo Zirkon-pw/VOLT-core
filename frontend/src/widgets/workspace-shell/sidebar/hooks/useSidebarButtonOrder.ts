@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-
-const STORAGE_KEY = 'volt-sidebar-button-order';
+import { SIDEBAR } from '@shared/config/constants';
 
 interface ButtonItem {
   id: string;
@@ -22,7 +21,7 @@ function loadOrder(): string[] {
   }
 
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(SIDEBAR.BUTTON_ORDER_STORAGE_KEY);
     if (!raw) {
       return [];
     }
@@ -39,7 +38,7 @@ function saveOrder(ids: string[]) {
     return;
   }
 
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(ids));
+  localStorage.setItem(SIDEBAR.BUTTON_ORDER_STORAGE_KEY, JSON.stringify(ids));
 }
 
 function applyOrder<T extends ButtonItem>(buttons: T[], savedOrder: string[]): T[] {

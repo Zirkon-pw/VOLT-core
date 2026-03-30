@@ -53,6 +53,7 @@ Plugin flow в текущей реализации выглядит так:
 - plugin JS работает во frontend runtime, а не в backend
 - привилегированные действия даются только через host API
 - long-running workflows строятся из generic `editor` sessions и `desktop.process`, а не из plugin-specific веток в core
+- host editor reuse для плагинов идёт через frontend-side host editor service, а не через backend handlers
 - schema plugin settings объявляется declarative в `manifest.json`, а host рендерит отдельную settings page `/settings/plugin/:pluginId`
 - settings pages не зависят от загруженного plugin runtime и доступны даже когда plugin disabled
 - backend не знает о plugin-owned file formats

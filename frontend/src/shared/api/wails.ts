@@ -1,5 +1,4 @@
-const WAILS_READY_TIMEOUT_MS = 15000;
-const WAILS_READY_POLL_MS = 25;
+import { WAILS } from '@shared/config/constants';
 
 declare global {
   interface Window {
@@ -15,7 +14,7 @@ function hasWailsBridge(): boolean {
   return typeof window !== 'undefined' && Boolean(window.go?.wailshandler);
 }
 
-export async function waitForWailsBridge(timeoutMs = WAILS_READY_TIMEOUT_MS): Promise<void> {
+export async function waitForWailsBridge(timeoutMs = WAILS.READY_TIMEOUT_MS): Promise<void> {
   if (hasWailsBridge()) {
     return;
   }
@@ -37,7 +36,7 @@ export async function waitForWailsBridge(timeoutMs = WAILS_READY_TIMEOUT_MS): Pr
           return;
         }
 
-        window.setTimeout(check, WAILS_READY_POLL_MS);
+        window.setTimeout(check, WAILS.POLL_MS);
       };
 
       check();

@@ -35,6 +35,7 @@ Frontend не только рендерит core UI, но и выступает 
 - `pluginPromptStore` - host-side prompt modal для плагинов
 - `pluginSettingsStore` - cached plugin settings values и live change dispatch для `api.settings`
 - `pluginTaskStatusStore` - persistent task statuses для long-running plugin tasks, включая floating cards и editor banners
+- `hostEditorService` - runtime слой для built-in editor kinds, embedded mounts и file viewer delegates
 
 ## Виджеты рабочего пространства
 
@@ -80,6 +81,7 @@ Frontend не только рендерит core UI, но и выступает 
 - [`frontend/src/entities/plugin/model/pluginSettingsStore.ts`](../frontend/src/entities/plugin/model/pluginSettingsStore.ts) - reserved settings storage, merge с default values и `settings.onChange`
 - [`frontend/src/shared/lib/plugin-runtime/pluginEventBus.ts`](../frontend/src/shared/lib/plugin-runtime/pluginEventBus.ts) - plugin-local события и tracked unsubscribe
 - [`frontend/src/shared/lib/plugin-runtime/editorSessionManager.ts`](../frontend/src/shared/lib/plugin-runtime/editorSessionManager.ts) - note sessions, detached buffers и anchor mapping
+- [`frontend/src/shared/lib/plugin-runtime/hostEditorService.tsx`](../frontend/src/shared/lib/plugin-runtime/hostEditorService.tsx) - host editor mounts, built-in editor surfaces и plugin cleanup
 - [`frontend/src/shared/lib/plugin-runtime/pluginProcessManager.ts`](../frontend/src/shared/lib/plugin-runtime/pluginProcessManager.ts) - frontend bridge для desktop process runs
 - [`frontend/src/features/plugin-task-status/model/pluginTaskStatusStore.ts`](../frontend/src/features/plugin-task-status/model/pluginTaskStatusStore.ts) - host-managed task statuses, surface routing и cleanup lifecycle
 

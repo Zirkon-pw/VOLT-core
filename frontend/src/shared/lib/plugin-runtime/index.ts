@@ -30,6 +30,15 @@ export {
   unloadSinglePlugin,
 } from './pluginLoader';
 export {
+  cleanupAllHostEditors,
+  cleanupPluginHostEditors,
+  getAvailableHostEditorCapabilities,
+  isRegisteredHostEditorViewerUsable,
+  listAvailableHostEditorKinds,
+  mountPluginHostEditor,
+  renderHostEditorFileSurface,
+} from './hostEditorService';
+export {
   cleanupAllPluginProcesses,
   cleanupPluginProcesses,
   startPluginProcess,
@@ -48,9 +57,20 @@ export {
 export type {
   DesktopProcessEvent,
   DesktopProcessHandle,
+  EditorEventName,
+  EditorHandle,
+  EditorKindCapabilities,
+  EditorKindInfo,
+  EditorMountConfig,
   EditorSession,
   EditorSessionRange,
   PluginEventMap,
+  PluginEditorCommand,
+  PluginEditorOverlay,
+  PluginEditorOverlayAnchor,
+  PluginEditorPanel,
+  PluginEditorToolbarAction,
+  PluginFileViewerConfig,
   PluginFileViewerContext,
   PluginSettingChangeEvent,
   PluginTaskStatusHandle,
