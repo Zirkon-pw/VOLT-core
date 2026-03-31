@@ -22,15 +22,23 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const refreshLocalization = useAppSettingsStore((state) => state.refreshLocalization);
   const setLocale = useAppSettingsStore((state) => state.setLocale);
   const [error, setError] = useState<Error | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
 
-    void refreshLocalization().catch((err) => {
-      if (!cancelled) {
-        setError(err as Error);
-      }
-    });
+    void refreshLocalization()
+      .then(() => {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          setError(err as Error);
+          setIsLoading(false);
+        }
+      });
 
     return () => {
       cancelled = true;
@@ -48,8 +56,12 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     throw error;
   }
 
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
   if (value == null) {
-    return null;
+    return <div>Loading...</div>;
   }
 
   return (

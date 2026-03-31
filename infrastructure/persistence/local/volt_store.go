@@ -9,10 +9,7 @@ import (
 	"volt/core/volt"
 )
 
-const (
-	configDir = ".volt"
-	voltsFile = "volts.json"
-)
+const voltsFile = "volts.json"
 
 type VoltStore struct {
 	mu       sync.RWMutex
@@ -20,12 +17,11 @@ type VoltStore struct {
 }
 
 func NewVoltStore() (*VoltStore, error) {
-	home, err := os.UserHomeDir()
+	dir, err := getConfigDir()
 	if err != nil {
 		return nil, err
 	}
 
-	dir := filepath.Join(home, configDir)
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		return nil, err
 	}

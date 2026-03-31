@@ -55,7 +55,7 @@ func TestSearchFilesCommandIndexesMarkdownOnly(t *testing.T) {
 
 	command := NewSearchFilesCommand(repo)
 	resultRaw, err := command.Execute(context.Background(), SearchFilesRequest{
-		VoltPath: "/tmp/volt",
+		VoltPath: t.TempDir(),
 		Query:    "boards",
 	})
 	if err != nil {

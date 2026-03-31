@@ -19,12 +19,11 @@ type AppSettingsStore struct {
 }
 
 func NewAppSettingsStore() (*AppSettingsStore, error) {
-	home, err := os.UserHomeDir()
+	configDir, err := getConfigDir()
 	if err != nil {
 		return nil, err
 	}
 
-	configDir := filepath.Join(home, ".volt")
 	if err := os.MkdirAll(configDir, 0755); err != nil {
 		return nil, err
 	}

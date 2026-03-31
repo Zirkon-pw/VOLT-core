@@ -57,7 +57,7 @@ func TestRenameCommandRenamesRequestedPath(t *testing.T) {
 
 	command := NewRenameCommand(repo)
 	_, err := command.Execute(context.Background(), RenameRequest{
-		VoltPath: "/tmp/volt",
+		VoltPath: t.TempDir(),
 		OldPath:  "notes/idea.md",
 		NewPath:  "notes/renamed.md",
 	})

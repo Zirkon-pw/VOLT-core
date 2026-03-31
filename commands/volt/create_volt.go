@@ -3,6 +3,7 @@ package volt
 import (
 	"context"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/google/uuid"
@@ -50,7 +51,7 @@ func (c *CreateCommand) Execute(ctx context.Context, req any) (any, error) {
 	}
 
 	// Check write access by attempting to create a temp file
-	testFile := request.Path + "/.volt_write_test"
+	testFile := filepath.Join(request.Path, ".volt_write_test")
 	f, err := os.Create(testFile)
 	if err != nil {
 		return nil, domain.ErrPathNotAccessible

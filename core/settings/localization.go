@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -214,7 +215,8 @@ func loadBuiltinCatalogs() (map[string]localeCatalog, error) {
 			continue
 		}
 
-		raw, err := builtinLocalesFS.ReadFile(filepath.Join("locales", entry.Name()))
+		// Use path.Join for embedded FS (always uses forward slashes)
+		raw, err := builtinLocalesFS.ReadFile(path.Join("locales", entry.Name()))
 		if err != nil {
 			return nil, err
 		}
