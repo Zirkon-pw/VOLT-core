@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { Icon } from '@shared/ui/icon';
 import type { ContextMenuItem } from '../model/types';
 import styles from './ContextMenuView.module.scss';
 
@@ -50,7 +51,12 @@ export function ContextMenuView({ items, position, onClose }: ContextMenuViewPro
                 onClose();
               }}
             >
-              {item.label}
+              {item.icon && (
+                <span className={styles.icon}>
+                  <Icon name={item.icon} size={14} />
+                </span>
+              )}
+              <span className={styles.label}>{item.label}</span>
             </button>
           );
         })}

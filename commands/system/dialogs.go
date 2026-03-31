@@ -10,6 +10,7 @@ const (
 	SelectDirectoryName   = "system.dialog.selectDirectory"
 	PickPluginArchiveName = "system.dialog.pickPluginArchive"
 	PickImageName         = "system.dialog.pickImage"
+	PickFilesName         = "system.dialog.pickFiles"
 )
 
 type SelectDirectoryRequest struct {
@@ -23,10 +24,15 @@ type SelectDirectoryResponse struct {
 type PickFileRequest struct {
 	Title   string
 	Filters []FileFilter
+	Multiple bool
 }
 
 type PickFileResponse struct {
 	Path string
+}
+
+type PickFilesResponse struct {
+	Paths []string
 }
 
 type SelectDirectoryCommand struct {
@@ -120,4 +126,48 @@ func (c *PickImageCommand) Execute(ctx context.Context, req any) (any, error) {
 	}
 
 	return PickFileResponse{Path: path}, nil
+}
+
+type PickFilesCommand struct {
+	runtime Runtime
+}
+
+func NewPickFilesCommand(runtime Runtime) *PickFilesCommand {
+	return &PickFilesCommand{runtime: runtime}
+}
+
+func (c *PickFilesCommand) Name() string {
+	return PickFilesName
+}
+
+func (c *PickFilesCommand) Execute(ctx context.Context, req any) (any, error) {
+	request, err := commandbase.Decode[PickFileRequest](c.Name(), req)
+	if err != nil {
+		return nil, err
+	}
+
+	runtimeCtx := c.runtime.Context()
+	if runtimeCtx == nil {
+		return nil, ErrRuntimeNotReady
+	}
+
+	if request.Multiple {
+		paths, err := c.runtime.OpenMultipleFilesDialog(runtimeCtx, request.Title, request.Filters)
+		if err != nil {
+			return nil, err
+		}
+
+		return PickFilesResponse{Paths: paths}, nil
+	}
+
+	path, err := c.runtime.OpenFileDialog(runtimeCtx, request.Title, request.Filters)
+	if err != nil {
+		return nil, err
+	}
+
+	if path == "" {
+		return PickFilesResponse{Paths: []string{}}, nil
+	}
+
+	return PickFilesResponse{Paths: []string{path}}, nil
 }

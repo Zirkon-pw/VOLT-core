@@ -2,11 +2,11 @@ import { create } from 'zustand';
 import type { FileEntry } from '@shared/api/file/types';
 import {
   createDirectory,
-  createNote,
   deletePath,
   listTree,
   renamePath,
 } from '@shared/api/file';
+import { createNote } from '@shared/api/note';
 import {
   type FileTreeDropPosition,
   buildRenamedPath,
@@ -27,12 +27,11 @@ import {
   validateMoveTarget,
   validateInlineName,
 } from '@shared/lib/fileTree';
+import { FILE_TREE } from '@shared/config/constants';
 import { translate } from '@shared/i18n';
 import { emit } from '@shared/lib/plugin-runtime';
 import { notifyError, notifySuccess } from '@shared/ui/toast';
 import { syncTabsOnFileCreate, syncTabsOnRename, syncTabsOnDelete } from './fileTreeEffects';
-
-const HOVER_EXPAND_DELAY_MS = 400;
 const hoverExpandTimers = new Map<string, ReturnType<typeof setTimeout>>();
 
 interface InlineRenameState {
@@ -723,7 +722,7 @@ export const useFileTreeStore = create<FileTreeState>((set, get) => ({
           },
         };
       });
-    }, HOVER_EXPAND_DELAY_MS);
+    }, FILE_TREE.HOVER_EXPAND_DELAY_MS);
 
     hoverExpandTimers.set(voltId, timer);
   },

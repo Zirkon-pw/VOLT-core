@@ -1,5 +1,4 @@
 import { useEffect, useRef } from 'react';
-import { EditorContent } from '@tiptap/react';
 import { useAppSettingsStore } from '@entities/app-settings';
 import { useActiveFileStore } from '@entities/editor-session';
 import { useFileTreeStore } from '@entities/file-tree';
@@ -11,9 +10,7 @@ import { useEditorSetup } from './hooks/useEditorSetup';
 import { useAutoSave } from './hooks/useAutoSave';
 import { useImageResolver } from './hooks/useImageResolver';
 import { useImageHandlers } from './hooks/useImageHandlers';
-import { TableBubbleMenu } from './extensions/TableBubbleMenu';
-import { TextBubbleMenu } from './extensions/TextBubbleMenu';
-import { PluginTaskStatusBanner } from '@features/plugin-task-status';
+import { MarkdownEditorSurface } from './MarkdownEditorSurface';
 import styles from './EditorPanel.module.scss';
 
 interface EditorPanelProps {
@@ -108,18 +105,14 @@ export function EditorPanel({ voltId, voltPath, filePath }: EditorPanelProps) {
   }
 
   return (
-    <div
-      className={styles.panel}
+    <MarkdownEditorSurface
+      editor={editor}
+      voltPath={voltPath}
+      filePath={filePath}
+      showTaskStatusBanner
       onDrop={handleDrop}
       onDragOver={handleDragOver}
       onPaste={handlePaste}
-    >
-      <PluginTaskStatusBanner voltPath={voltPath} filePath={filePath} />
-      <div className={styles.editorContent}>
-        {editor && <TextBubbleMenu editor={editor} />}
-        {editor && <TableBubbleMenu editor={editor} />}
-        <EditorContent editor={editor} />
-      </div>
-    </div>
+    />
   );
 }

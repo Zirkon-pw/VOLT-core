@@ -1,9 +1,13 @@
 import { create } from 'zustand';
+import { usePluginLogStore } from '@entities/plugin/model/pluginLogStore';
+import { usePluginRegistryStore } from '@entities/plugin/model/pluginRegistry';
 import {
   getTabLabelFromPath,
   hasPathPrefix,
   replacePathPrefix,
 } from '@shared/lib/fileTree';
+import { validateHostEditorConfig } from '@shared/lib/plugin-runtime/hostEditorCatalog';
+import { resolveFileViewTarget } from '@shared/lib/plugin-runtime/fileViewResolution';
 
 export type TabType = 'file' | 'plugin';
 
@@ -61,6 +65,19 @@ export const useTabStore = create<TabState>((set, get) => ({
         activeTabs: { ...activeTabs, [voltId]: filePath },
       });
     } else {
+      const target = resolveFileViewTarget(filePath, usePluginRegistryStore.getState().fileViewers);
+      if (target.type === 'plugin-host-editor') {
+        const error = validateHostEditorConfig(target.viewer.hostEditor);
+        if (error) {
+          usePluginLogStore.getState().addEntry(
+            target.viewer.pluginId,
+            'error',
+            `openTab:${filePath}: ${error}`,
+          );
+          return;
+        }
+      }
+
       const newTab: FileTab = { id: filePath, type: 'file', filePath, fileName: normalizedFileName, isDirty: false };
       set({
         tabs: { ...tabs, [voltId]: [...voltTabs, newTab] },

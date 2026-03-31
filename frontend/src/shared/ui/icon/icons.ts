@@ -8,6 +8,12 @@ export type IconName =
   | 'zoomIn' | 'zoomOut' | 'maximize' | 'refreshCw'
   | 'columns' | 'rows' | 'paintBucket';
 
+export interface CustomSvgIcon {
+  svg: string;
+}
+
+export type IconSource = IconName | CustomSvgIcon;
+
 // Use pipe `|` to separate multiple path d-strings per icon
 export const icons: Record<IconName, string> = {
   search: 'M11 17.25a6.25 6.25 0 1 1 0-12.5 6.25 6.25 0 0 1 0 12.5z|M16 16l4.5 4.5',
@@ -49,3 +55,11 @@ export const icons: Record<IconName, string> = {
   rows: 'M3 12h18|M3 3h18v18H3z',
   paintBucket: 'M19 11H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2z|M12 3l4 8H8l4-8z',
 };
+
+export function isIconName(icon: string): icon is IconName {
+  return Object.prototype.hasOwnProperty.call(icons, icon);
+}
+
+export function isCustomSvgIcon(icon: IconSource): icon is CustomSvgIcon {
+  return typeof icon === 'object' && icon !== null && typeof icon.svg === 'string';
+}

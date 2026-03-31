@@ -2,9 +2,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useI18n } from '@app/providers/I18nProvider';
 import { useFileTreeStore } from '@entities/file-tree';
 import { usePluginRegistryStore, type RegisteredSidebarPanel } from '@entities/plugin';
+import { SIDEBAR } from '@shared/config/constants';
 import { safeExecute } from '@shared/lib/plugin-runtime';
 import { FileTree } from '../file-tree/FileTree';
-import { Icon, type IconName } from '@shared/ui/icon';
+import { Icon, type IconSource } from '@shared/ui/icon';
 import { useSidebarButtonOrder } from './hooks/useSidebarButtonOrder';
 import styles from './Sidebar.module.scss';
 
@@ -30,17 +31,13 @@ function PluginPanelSlot({ panel }: { panel: RegisteredSidebarPanel }) {
   );
 }
 
-const STORAGE_KEY = 'volt-sidebar-width';
-const MIN_WIDTH = 180;
-const MAX_WIDTH = 400;
-
 function getInitialWidth(): number {
-  const saved = localStorage.getItem(STORAGE_KEY);
+  const saved = localStorage.getItem(SIDEBAR.STORAGE_KEY);
   if (saved) {
     const n = Number(saved);
-    if (n >= MIN_WIDTH && n <= MAX_WIDTH) return n;
+    if (n >= SIDEBAR.MIN_WIDTH && n <= SIDEBAR.MAX_WIDTH) return n;
   }
-  return 240;
+  return SIDEBAR.DEFAULT_WIDTH;
 }
 
 interface SidebarProps {
@@ -53,7 +50,7 @@ interface SidebarProps {
 
 interface SidebarButtonItem {
   id: string;
-  icon: IconName;
+  icon: IconSource;
   title: string;
   onClick: () => void | Promise<void>;
 }
@@ -108,7 +105,7 @@ export function Sidebar({ voltId, voltPath, onSearchClick, collapsed, onToggleCo
   useEffect(() => {
     const onMouseMove = (e: MouseEvent) => {
       if (!dragging.current) return;
-      const next = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, e.clientX));
+      const next = Math.min(SIDEBAR.MAX_WIDTH, Math.max(SIDEBAR.MIN_WIDTH, e.clientX));
       setWidth(next);
     };
 
@@ -128,7 +125,7 @@ export function Sidebar({ voltId, voltPath, onSearchClick, collapsed, onToggleCo
   }, []);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, String(width));
+    localStorage.setItem(SIDEBAR.STORAGE_KEY, String(width));
   }, [width]);
 
   return (

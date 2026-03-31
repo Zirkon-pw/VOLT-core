@@ -29,6 +29,19 @@ export interface SearchFileTextProvider {
   extractText(input: SearchFileTextProviderInput): string | null | undefined | Promise<string | null | undefined>;
 }
 
+export interface PluginFilePickerConfig {
+  title?: string;
+  accept?: string[];
+  multiple?: boolean;
+}
+
+export interface PluginSvgIcon {
+  // Full SVG markup, for example: <svg viewBox="0 0 24 24">...</svg>
+  svg: string;
+}
+
+export type PluginIcon = string | PluginSvgIcon;
+
 export interface PluginEventMap {
   'workspace:path-renamed': WorkspacePathRenamedEvent;
   'file-open': string;
@@ -84,34 +97,140 @@ export interface PluginFileViewerContext {
   registerSaveHandler(handler: () => Promise<void>): () => void;
 }
 
+export type EditorEventName =
+  | 'ready'
+  | 'focus'
+  | 'blur'
+  | 'change'
+  | 'save'
+  | 'selection-change'
+  | 'dirty-change'
+  | 'dispose';
+
+export type PluginEditorOverlayAnchor =
+  | { type: 'text-range'; from: number; to: number }
+  | { type: 'page-rect'; page: number; x: number; y: number; width: number; height: number; unit: 'normalized' };
+
+export interface PluginEditorToolbarAction {
+  id: string;
+  label: string;
+  slot?: 'primary' | 'secondary';
+  commandId?: string;
+  callback?: () => void | Promise<void>;
+}
+
+export interface PluginEditorCommand {
+  id: string;
+  execute(payload?: unknown): unknown | Promise<unknown>;
+}
+
+export interface PluginEditorPanel {
+  id: string;
+  slot?: 'right' | 'bottom';
+  render(container: HTMLElement): void;
+  cleanup?: () => void;
+}
+
+export interface PluginEditorOverlay {
+  id: string;
+  anchor: PluginEditorOverlayAnchor;
+  render(container: HTMLElement): void;
+  cleanup?: () => void;
+}
+
+export interface EditorKindInfo {
+  kind: string;
+  title: string;
+}
+
+export interface EditorKindCapabilities {
+  kind: string;
+  supportsFileTabs: boolean;
+  supportsEmbeddedMount: boolean;
+  supportsReadOnly: boolean;
+  supportsToolbarActions: boolean;
+  supportsPanels: boolean;
+  supportsOverlays: boolean;
+  supportedOverlayAnchors: PluginEditorOverlayAnchor['type'][];
+  commandIds: string[];
+  eventNames: EditorEventName[];
+}
+
+export interface EditorMountConfig {
+  kind: string;
+  filePath: string;
+  readOnly?: boolean;
+  autofocus?: boolean;
+  toolbarActions?: PluginEditorToolbarAction[];
+  commands?: PluginEditorCommand[];
+  panels?: PluginEditorPanel[];
+  overlays?: PluginEditorOverlay[];
+}
+
+export interface EditorHandle {
+  id: string;
+  kind: string;
+  filePath: string;
+  focus(): void;
+  save(): Promise<void>;
+  dispose(): void;
+  isDirty(): boolean;
+  execute(commandId: string, payload?: unknown): Promise<unknown>;
+  on(eventName: EditorEventName, callback: (payload: unknown) => void | Promise<void>): () => void;
+}
+
+export interface PluginCustomFileViewerConfig {
+  id: string;
+  extensions: string[];
+  icon?: PluginIcon;
+  priority?: number;
+  render: (container: HTMLElement, context: PluginFileViewerContext) => void;
+  cleanup?: () => void;
+}
+
+export interface PluginHostEditorFileViewerConfig {
+  id: string;
+  extensions: string[];
+  icon?: PluginIcon;
+  priority?: number;
+  hostEditor: Omit<EditorMountConfig, 'filePath'>;
+}
+
+export type PluginFileViewerConfig =
+  | PluginCustomFileViewerConfig
+  | PluginHostEditorFileViewerConfig;
+
 export interface VoltPluginAPI {
-  volt: {
+  fs: {
     read(path: string): Promise<string>;
     write(path: string, content: string): Promise<void>;
-    createFile(path: string, content?: string): Promise<void>;
+    create(path: string, content?: string): Promise<void>;
     list(dirPath?: string): Promise<FileEntry[]>;
+  };
+  workspace: {
     getActivePath(): string | null;
+    getRootPath(): string;
   };
   search: {
-    registerFileTextProvider(config: SearchFileTextProvider): void;
+    registerTextProvider(config: SearchFileTextProvider): void;
   };
-  media: {
+  assets: {
     pickImage(): Promise<string>;
+    pickFile(config?: PluginFilePickerConfig): Promise<string | string[] | null>;
+    copyAsset(sourcePath: string, targetDir?: string): Promise<string>;
     copyImage(sourcePath: string, targetDir?: string): Promise<string>;
     saveImageBase64(fileName: string, base64: string, targetDir?: string): Promise<string>;
     readImageDataUrl(path: string): Promise<string>;
   };
-  desktop: {
-    process: {
-      start(config: {
-        command: string;
-        args?: string[];
-        stdin?: string;
-        cwd: 'workspace';
-        stdoutMode?: 'raw' | 'lines';
-        stderrMode?: 'raw' | 'lines';
-      }): Promise<DesktopProcessHandle>;
-    };
+  process: {
+    start(config: {
+      command: string;
+      args?: string[];
+      stdin?: string;
+      cwd: 'workspace';
+      stdoutMode?: 'raw' | 'lines';
+      stderrMode?: 'raw' | 'lines';
+    }): Promise<DesktopProcessHandle>;
   };
   ui: {
     promptText(config: {
@@ -139,56 +258,55 @@ export interface VoltPluginAPI {
     registerCommand(config: {
       id: string;
       name: string;
+      icon?: PluginIcon;
       hotkey?: string;
       callback: () => void | Promise<void>;
     }): void;
-    registerPluginPage(config: {
+    registerPage(config: {
       id: string;
       title: string;
       mode: 'tab' | 'route';
       render: (container: HTMLElement) => void;
       cleanup?: () => void;
     }): void;
-    registerFileViewer(config: {
-      id: string;
-      extensions: string[];
-      icon?: string;
-      render: (container: HTMLElement, context: PluginFileViewerContext) => void;
-      cleanup?: () => void;
-    }): void;
+    registerFileViewer(config: PluginFileViewerConfig): void;
     registerSlashCommand(config: {
       id: string;
       title: string;
       description: string;
-      icon: string;
+      icon: PluginIcon;
       callback: () => void | Promise<void>;
     }): void;
     registerContextMenuItem(config: {
       id: string;
       label: string;
-      icon?: string;
+      icon?: PluginIcon;
       filter?: (entry: { path: string; isDir: boolean }) => boolean;
       callback: (entry: { path: string; isDir: boolean }) => void | Promise<void>;
     }): void;
     registerToolbarButton(config: {
       id: string;
       label: string;
-      icon: string;
+      icon: PluginIcon;
       callback: () => void | Promise<void>;
     }): void;
     registerSidebarButton(config: {
       id: string;
       label: string;
-      icon: string;
+      icon: PluginIcon;
       callback: () => void | Promise<void>;
     }): void;
     openPluginPage(pageId: string): void;
     openFile(path: string): void;
-    showNotice(message: string, durationMs?: number): void;
+    openExternalUrl(url: string): void;
+    notify(message: string, durationMs?: number): void;
   };
   editor: {
     captureActiveSession(): Promise<EditorSession | null>;
     openSession(path: string): Promise<EditorSession>;
+    listKinds(): EditorKindInfo[];
+    getCapabilities(kind: string): EditorKindCapabilities;
+    mount(container: HTMLElement, config: EditorMountConfig): Promise<EditorHandle>;
   };
   events: {
     on<TEvent extends keyof PluginEventMap>(

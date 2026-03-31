@@ -56,6 +56,7 @@ export const FileTreeItem = memo(function FileTreeItem({ voltId, voltPath, entry
       { label: '', onClick: () => {}, separator: true },
       ...state.pluginMenuItems.map((item) => ({
         label: item.label,
+        icon: item.icon,
         onClick: () => item.callback({ path: entry.path, isDir: entry.isDir }),
       })),
     ] : []),

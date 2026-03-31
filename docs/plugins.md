@@ -1,32 +1,33 @@
 # Плагинная система Volt
 
-## Что это такое
+## Кратко
 
-Плагины в Volt это внешние frontend-расширения, которые лежат в `~/.volt/plugins` и выполняются внутри desktop-приложения через ограниченный host API.
+Плагины в Volt — это внешние frontend-расширения, которые лежат в `~/.volt/plugins` и выполняются внутри desktop-приложения через ограниченный host API.
 
 Плагин может:
 
-- добавлять команды в command palette `>`
-- добавлять slash-команды в редактор `/`
-- добавлять plugin pages в виде workspace tab или отдельного route
-- добавлять кнопки в sidebar rail, toolbar и file tree context menu
+- добавлять команды в command palette
+- добавлять slash-команды в редактор
+- регистрировать plugin pages в табах и на отдельных маршрутах
+- добавлять кнопки в toolbar и sidebar
 - добавлять sidebar panels
-- объявлять schema настроек прямо в `manifest.json`, чтобы host рендерил отдельную settings page
+- регистрировать file viewers для собственных форматов
+- подключать search providers для файлов, которыми владеет плагин
 - читать и писать файлы активного workspace через permission-guarded API
-- работать с note sessions и anchor-ами через editor API
-- запускать локальные процессы внутри активного workspace через desktop process broker
+- работать с editor sessions и host editors
+- запускать локальные процессы внутри workspace
 
-Плагин не получает прямой доступ к backend handler-ам, shell, файловой системе или внутренним store приложения. Все привилегированные действия идут только через объект `api`, который создаёт host app.
+UI-регистрации могут использовать либо встроенные иконки Volt по имени, либо собственный SVG через объект `{ svg: string }`.
+
+Плагин не получает прямой доступ к Go handlers, shell, файловой системе или внутренним store-ам приложения. Все привилегированные действия идут только через объект `api`, который создаёт host runtime.
 
 ## Где живут плагины
 
-Host app использует домашний каталог пользователя:
-
 - каталог плагинов: `~/.volt/plugins`
-- файл enabled-state: `~/.volt/plugin-state.json`
+- состояние включения: `~/.volt/plugin-state.json`
 - plugin-local storage: `~/.volt/plugins/<plugin-id>/data.json`
 
-Каждый плагин это отдельная папка:
+Типичная структура плагина:
 
 ```text
 ~/.volt/plugins/my-plugin/
@@ -35,84 +36,87 @@ Host app использует домашний каталог пользоват
   data.json
 ```
 
-`data.json` создаётся host app автоматически, когда плагин впервые вызывает `api.storage.set(...)`.
+`data.json` создаётся автоматически при первом `storage.set(...)`.
 
-Дополнительно host сам резервирует внутри plugin data ключ:
+## Поддерживаемая версия API
 
-- `__volt_plugin_settings__` - flat-object для `api.settings`
+Сейчас поддерживается только `apiVersion: 4`.
+
+Если в `manifest.json` указана другая версия, backend не загрузит такой плагин и вернёт ошибку `unsupported apiVersion`.
 
 ## Жизненный цикл
 
-### Обнаружение
+### 1. Обнаружение
 
-Backend перечисляет подпапки внутри `~/.volt/plugins`, читает `manifest.json` и строит список установленных плагинов.
+Backend перечисляет подпапки в `~/.volt/plugins`, читает `manifest.json` и валидирует его.
 
-### Включение
+### 2. Включение
 
-При включении плагина в Settings:
+Когда пользователь включает плагин в `Settings`:
 
-- его состояние записывается в `~/.volt/plugin-state.json`
-- если есть активный workspace, frontend сразу вызывает `loadSinglePlugin(pluginId, voltPath)`
-- если активного workspace нет, плагин просто помечается как enabled и реально загрузится при следующем открытии workspace
+- состояние записывается в `~/.volt/plugin-state.json`
+- если workspace уже открыт, frontend сразу загружает плагин
+- если активного workspace нет, плагин загрузится при следующем открытии workspace
 
-### Загрузка
+### 3. Загрузка
 
 При открытии workspace frontend вызывает `loadAllPlugins(voltPath)`:
 
-1. очищает registry, tracked listeners, plugin-owned sessions и активные process runs
-2. получает список enabled plugins
-3. загружает `main.js` через backend
-4. исполняет entry через `new Function('api', source)`
-5. передаёт в него host API, уже привязанный к `pluginId`, `voltPath` и declared permissions
+1. очищает регистрации, listeners, editor sessions, host editors и process runs
+2. получает список плагинов из backend
+3. оставляет только `enabled` плагины
+4. загружает `main.js`
+5. исполняет entry через `new Function('api', source)`
 
-### Выгрузка
+### 4. Выгрузка
 
-`unloadSinglePlugin(pluginId)`:
+При выгрузке runtime:
 
-- снимает tracked listeners из plugin event bus
-- отменяет plugin-owned desktop processes
-- dispose-ит plugin-owned editor sessions
-- удаляет все registrations из registry
-- вызывает `cleanup()` у удаляемых plugin pages
-- закрывает plugin tabs этого плагина
-- очищает runtime listeners для `settings.onChange(...)`
+- снимаются listeners, зарегистрированные runtime
+- отменяются процессы, принадлежащие плагину
+- освобождаются editor sessions и host editors
+- очищаются task statuses
+- удаляются регистрации из `pluginRegistry`
+- закрываются plugin tabs
 
-### Ошибки
-
-Host runtime оборачивает init и callbacks в safe wrappers:
-
-- ошибка попадает в `pluginLogStore`
-- показывается toast
-- подробности уходят в `console.error`
-
-Лог доступен на отдельной settings page конкретного плагина.
-
-## Версия API
-
-Текущий контракт это **Plugin Runtime V3**.
-
-Важно:
-
-- старого `api.agent` больше нет
-- старых helper-ов `editor.getContent()` и `editor.insertAtCursor()` больше нет
-- для работы с заметками теперь используется session-based editor API
-- для long-running local tasks теперь используется generic `desktop.process`
-- plugin-owned file formats больше не реализуются в backend core
-- поиск по plugin-owned форматам делается через `api.search.registerFileTextProvider(...)`
-- best-effort rewrite после rename/move приходит через typed событие `workspace:path-renamed`
-
-## Формат плагина
-
-### `manifest.json`
+## Формат `manifest.json`
 
 Минимальный manifest:
 
 ```json
 {
+  "apiVersion": 4,
   "id": "my-plugin",
   "name": "My Plugin",
   "version": "1.0.0",
-  "description": "Short plugin description",
+  "description": "Example Volt plugin",
+  "main": "main.js",
+  "permissions": ["read"]
+}
+```
+
+Основные поля:
+
+- `apiVersion` — обязательная версия plugin API, сейчас только `4`
+- `id` — стабильный идентификатор
+- `name` — отображаемое имя
+- `version` — версия плагина
+- `description` — краткое описание
+- `main` — entry file, обычно `main.js`
+- `permissions` — список разрешений
+- `settings` — необязательная host-rendered schema настроек
+
+### Настройки в `manifest.json`
+
+Если плагину нужны настройки, они объявляются declarative в `settings.sections`:
+
+```json
+{
+  "apiVersion": 4,
+  "id": "quick-note",
+  "name": "Quick Note",
+  "version": "1.0.0",
+  "description": "Capture notes into inbox",
   "main": "main.js",
   "permissions": ["read", "write"],
   "settings": {
@@ -120,12 +124,19 @@ Host runtime оборачивает init и callbacks в safe wrappers:
       {
         "id": "general",
         "title": "General",
+        "description": "Plugin settings",
         "fields": [
           {
-            "key": "targetPath",
+            "key": "inboxPath",
             "type": "text",
-            "label": "Target path",
-            "defaultValue": "notes/example.md"
+            "label": "Inbox path",
+            "defaultValue": "inbox/capture.md"
+          },
+          {
+            "key": "openAfterWrite",
+            "type": "toggle",
+            "label": "Open after write",
+            "defaultValue": false
           }
         ]
       }
@@ -134,37 +145,13 @@ Host runtime оборачивает init и callbacks в safe wrappers:
 }
 ```
 
-Поля:
+Поддерживаемые типы полей:
 
-- `id`: стабильный идентификатор плагина
-- `name`: отображаемое имя в Settings
-- `version`: версия плагина
-- `description`: короткое описание
-- `main`: entry file, обычно `main.js`
-- `permissions`: список разрешений
-- `settings`: optional declarative schema для host-rendered plugin settings page
-
-### `main.js`
-
-Volt исполняет entry как обычный JavaScript-файл и передаёт переменную `api`.
-
-Минимальный пример:
-
-```js
-api.ui.registerCommand({
-  id: 'hello',
-  name: 'Hello command',
-  callback: () => {
-    api.ui.showNotice('Hello from plugin');
-  },
-});
-```
-
-Важно:
-
-- runtime не собирает зависимости автоматически
-- если плагину нужны внешние библиотеки, их нужно заранее bundle-ить в standalone `main.js`
-- plugin code должен быть self-contained и готовым к выполнению в browser runtime внутри приложения
+- `toggle`
+- `text`
+- `textarea`
+- `number`
+- `select`
 
 ## Permissions
 
@@ -173,258 +160,147 @@ api.ui.registerCommand({
 - `read`
 - `write`
 - `editor`
+- `external`
 - `process`
 
-Что они дают:
+### Что они открывают
 
-- `read`: `volt.read`, `volt.list`, `volt.getActivePath`, `search.registerFileTextProvider`, `media.readImageDataUrl`
-- `write`: `volt.write`, `volt.createFile`, `media.copyImage`, `media.saveImageBase64`
-- `editor`: `editor.captureActiveSession`, `editor.openSession`
-- `process`: `desktop.process.start`
+`read`:
 
-UI методы (`ui.register*`, `ui.promptText`, `ui.createTaskStatus`, `ui.showNotice`), `events.on(...)`, `storage.*` и `settings.*` не требуют отдельного permission.
+- `api.fs.read(...)`
+- `api.fs.list(...)`
+- `api.workspace.getActivePath()`
+- `api.workspace.getRootPath()`
+- `api.search.registerTextProvider(...)`
+- `api.assets.readImageDataUrl(...)`
 
-Если плагин вызывает API без нужного permission:
+`write`:
 
-- действие блокируется
-- в plugin log пишется ошибка
-- пользователю показывается toast
+- `api.fs.write(...)`
+- `api.fs.create(...)`
+- `api.assets.copyAsset(...)`
+- `api.assets.copyImage(...)`
+- `api.assets.saveImageBase64(...)`
+
+`editor`:
+
+- `api.editor.captureActiveSession()`
+- `api.editor.openSession(...)`
+- `api.editor.listKinds()`
+- `api.editor.getCapabilities(...)`
+- `api.editor.mount(...)`
+
+`external`:
+
+- `api.assets.pickFile(...)`
+- `api.ui.openExternalUrl(...)`
+
+`process`:
+
+- `api.process.start(...)`
+
+### Что не требует отдельного permission
+
+- `api.assets.pickImage()`
+- `api.ui.register*`
+- `api.ui.promptText(...)`
+- `api.ui.createTaskStatus(...)`
+- `api.ui.notify(...)`
+- `api.storage.*`
+- `api.settings.*`
+- `api.events.on(...)`
+
+Если плагин вызывает API без нужного permission, runtime блокирует действие, пишет ошибку в plugin log и показывает уведомление пользователю.
 
 ## Public API
 
-Ниже описан runtime API, который получает каждый плагин.
+Ниже приведены актуальные namespace-ы host API.
 
-### `api.volt`
+### Общие типы
+
+```ts
+interface PluginSvgIcon {
+  svg: string
+}
+
+type PluginIcon = string | PluginSvgIcon
+```
+
+`PluginIcon` используется во всех UI-регистрациях, где плагин может задать иконку:
+
+- `registerCommand(...)`
+- `registerSlashCommand(...)`
+- `registerContextMenuItem(...)`
+- `registerToolbarButton(...)`
+- `registerSidebarButton(...)`
+- `registerFileViewer(...)`
+
+Строка означает встроенную иконку Volt. Объект `{ svg }` позволяет передать собственную SVG-иконку.
+
+### `api.fs`
 
 ```ts
 read(path: string): Promise<string>
 write(path: string, content: string): Promise<void>
-createFile(path: string, content?: string): Promise<void>
+create(path: string, content?: string): Promise<void>
 list(dirPath?: string): Promise<FileEntry[]>
-getActivePath(): string | null
 ```
 
 Поведение:
 
-- все пути относительные к активному `voltPath`
-- backend file repository дополнительно защищает операции от path traversal
-- `list()` возвращает рекурсивное дерево без hidden files и directories
+- все пути относительны к активному workspace
+- backend дополнительно защищает операции от path traversal
+- `create(...)` создаёт файл и после этого обновляет file tree
+
+### `api.workspace`
+
+```ts
+getActivePath(): string | null
+getRootPath(): string
+```
+
+- `getActivePath()` возвращает путь активной открытой вкладки файла
+- `getRootPath()` возвращает абсолютный путь текущего workspace
 
 ### `api.search`
 
 ```ts
-registerFileTextProvider(config: {
+registerTextProvider(config: {
   id: string
   extensions: string[]
   extractText(input: { filePath: string; content: string }): string | Promise<string>
 }): void
 ```
 
-Поведение:
+Поиск по форматам плагинов работает так:
 
-- provider регистрируется host-side и ownership привязывается к `pluginId`
-- registration требует permission `read`
 - backend по-прежнему ищет только по markdown
-- frontend search popup сам читает файлы заявленных extensions, вызывает `extractText(...)` и добавляет name/content matches
-- merge происходит по общей семантике: сначала `isName`, затем content matches, с общим лимитом `50`
+- frontend читает файлы нужных расширений
+- runtime вызывает `extractText(...)`
+- результаты объединяются в одном search popup
 
-### `api.ui`
-
-#### Prompt modal
-
-```ts
-promptText(config: {
-  title: string
-  description?: string
-  placeholder?: string
-  submitLabel?: string
-  initialValue?: string
-  multiline?: boolean
-}): Promise<string | null>
-```
-
-Host-side modal:
-
-- возвращает `null` на cancel
-- возвращает trimmed строку на submit
-- блокирует submit для пустого значения
-
-#### Task status
+### `api.assets`
 
 ```ts
-createTaskStatus(config: {
-  title: string
-  message?: string
-  cancellable?: boolean
-  onCancel?: () => void | Promise<void>
-  surface?: 'floating' | 'workspace-banner'
-  sessionId?: string
-  scope?: 'workspace' | 'source-note'
-}): {
-  setMessage(message: string): void
-  markSuccess(message?: string): void
-  markError(message: string): void
-  markCancelled(message?: string): void
-  close(): void
-}
+pickImage(): Promise<string>
+pickFile(config?: {
+  title?: string
+  accept?: string[]
+  multiple?: boolean
+}): Promise<string | string[] | null>
+copyAsset(sourcePath: string, targetDir?: string): Promise<string>
+copyImage(sourcePath: string, targetDir?: string): Promise<string>
+saveImageBase64(fileName: string, base64: string, targetDir?: string): Promise<string>
+readImageDataUrl(path: string): Promise<string>
 ```
 
-Это host-managed status surface для long-running plugin workflows.
+Замечания:
 
-Поведение:
+- `pickFile(...)` требует permission `external`
+- `pickImage()` отдельного permission не требует
+- `copy*` и `saveImageBase64(...)` сохраняют файлы в workspace и возвращают относительный путь
 
-- `surface: 'floating'` показывает отдельную persistent карточку поверх app shell
-- `surface: 'workspace-banner'` рендерит banner внутри рабочей области редактора
-- `scope: 'source-note'` показывает banner только у заметки, из которой был создан task
-- `scope: 'workspace'` показывает banner во всей workspace области
-- `running` состояние показывает spinner и optional `Cancel`
-- terminal states авто-скрываются через короткий timeout
-- status item автоматически закрывается при unload/disable плагина
-
-#### Команды и панели
-
-```ts
-registerCommand(config: {
-  id: string
-  name: string
-  hotkey?: string
-  callback: () => void | Promise<void>
-}): void
-
-registerSidebarPanel(config: {
-  id: string
-  title: string
-  render: (container: HTMLElement) => void
-}): void
-```
-
-- `registerCommand` добавляет команду в palette `>`
-- `registerSidebarPanel` добавляет панель в широкую часть sidebar
-
-#### Plugin pages
-
-```ts
-registerPluginPage(config: {
-  id: string
-  title: string
-  mode: 'tab' | 'route'
-  render: (container: HTMLElement) => void
-  cleanup?: () => void
-}): void
-
-openPluginPage(pageId: string): void
-openFile(path: string): void
-```
-
-Поведение:
-
-- `mode: 'tab'` открывает plugin page как workspace tab
-- `mode: 'route'` открывает `/workspace/:voltId/plugin/:pageId`
-- `cleanup` вызывается при unmount и при unload
-- `openFile(path)` открывает указанный файл в обычном workspace tab, включая plugin-owned viewer-ы
-
-#### Slash-команды
-
-```ts
-registerSlashCommand(config: {
-  id: string
-  title: string
-  description: string
-  icon: string
-  callback: () => void | Promise<void>
-}): void
-```
-
-Host сам удаляет `/query` range перед вызовом plugin callback.
-
-#### Context menu
-
-```ts
-registerContextMenuItem(config: {
-  id: string
-  label: string
-  icon?: string
-  filter?: (entry: { path: string; isDir: boolean }) => boolean
-  callback: (entry: { path: string; isDir: boolean }) => void | Promise<void>
-}): void
-```
-
-Элементы появляются в file tree context menu после built-in `Delete`.
-
-#### Toolbar и sidebar buttons
-
-```ts
-registerToolbarButton(config: {
-  id: string
-  label: string
-  icon: string
-  callback: () => void | Promise<void>
-}): void
-
-registerSidebarButton(config: {
-  id: string
-  label: string
-  icon: string
-  callback: () => void | Promise<void>
-}): void
-```
-
-#### Notices
-
-```ts
-showNotice(message: string, durationMs?: number): void
-```
-
-Показывает обычный toast.
-
-### `api.editor`
-
-Editor API построен вокруг **note sessions**. Session это стабильный public handle для конкретной заметки, который живёт независимо от активного таба.
-
-```ts
-captureActiveSession(): Promise<EditorSession | null>
-openSession(path: string): Promise<EditorSession>
-```
-
-`captureActiveSession()` возвращает session текущей открытой заметки или `null`, если активного note editor сейчас нет.
-
-`openSession(path)` открывает session для конкретной заметки по относительному path внутри текущего workspace.
-
-#### `EditorSession`
-
-```ts
-interface EditorSession {
-  id: string
-  filePath: string
-  getMarkdown(): string
-  save(): Promise<void>
-  dispose(): void
-  onDidChange(callback: () => void | Promise<void>): () => void
-  getSelection(): { from: number; to: number }
-  createAnchor(options?: {
-    from?: number
-    to?: number
-    bias?: 'start' | 'end'
-  }): string
-  getAnchorRange(anchorId: string): { from: number; to: number } | null
-  insertAtAnchor(anchorId: string, text: string): void
-  replaceRange(range: { from: number; to: number }, text: string): void
-  removeAnchor(anchorId: string): void
-}
-```
-
-Семантика:
-
-- offsets и ranges работают в markdown offsets, а не в ProseMirror positions
-- anchor-ы remap-ятся host-side при изменениях документа
-- если заметка активна, session синхронизируется с живым editor
-- если пользователь ушёл на другой tab, session остаётся валидной и продолжает жить как detached markdown buffer
-- `save()` записывает текущее состояние session в файл
-- `dispose()` освобождает session и её anchor-ы
-
-Эта модель нужна для long-running plugin workflows, которые должны продолжать работу даже если пользователь переключился на другой файл.
-
-### `api.desktop.process`
+### `api.process`
 
 ```ts
 start(config: {
@@ -437,59 +313,175 @@ start(config: {
 }): Promise<DesktopProcessHandle>
 ```
 
-`desktop.process` это generic desktop bridge для локальных процессов.
-
-Ограничения:
-
-- shell wrapping не используется
-- `cwd` сейчас поддерживает только `'workspace'`
-- host broker не даёт произвольный cwd и не открывает прямой shell access
-- все process runs привязаны к plugin ownership и отменяются при unload/disable
-
-#### `DesktopProcessHandle`
-
 ```ts
 interface DesktopProcessHandle {
   id: string
-  onEvent(callback: (event: DesktopProcessEvent) => void | Promise<void>): () => void
+  onEvent(callback: (event:
+    | { type: 'stdout'; data: string }
+    | { type: 'stderr'; data: string }
+    | { type: 'exit'; code: number }
+    | { type: 'error'; message: string }
+  ) => void | Promise<void>): () => void
   cancel(): Promise<void>
 }
-
-type DesktopProcessEvent =
-  | { type: 'stdout'; data: string }
-  | { type: 'stderr'; data: string }
-  | { type: 'exit'; code: number }
-  | { type: 'error'; message: string }
 ```
 
-Mode-ы:
+Сейчас поддерживается только `cwd: 'workspace'`.
 
-- `raw`: события приходят chunk-ами как прочитаны из stream
-- `lines`: события приходят построчно, без завершающего `\n`
+### `api.ui`
 
-`error` используется для broker/start/stream failures. Ненулевой exit code приходит через обычное событие `exit`.
+```ts
+promptText(config: {
+  title: string
+  description?: string
+  placeholder?: string
+  submitLabel?: string
+  initialValue?: string
+  multiline?: boolean
+}): Promise<string | null>
+
+createTaskStatus(config: {
+  title: string
+  message?: string
+  cancellable?: boolean
+  onCancel?: () => void | Promise<void>
+  surface?: 'floating' | 'workspace-banner'
+  sessionId?: string
+  scope?: 'workspace' | 'source-note'
+}): PluginTaskStatusHandle
+
+registerSidebarPanel(config: {
+  id: string
+  title: string
+  render(container: HTMLElement): void
+}): void
+
+registerCommand(config: {
+  id: string
+  name: string
+  icon?: PluginIcon
+  hotkey?: string
+  callback(): void | Promise<void>
+}): void
+
+registerPage(config: {
+  id: string
+  title: string
+  mode: 'tab' | 'route'
+  render(container: HTMLElement): void
+  cleanup?(): void
+}): void
+
+registerFileViewer(config: PluginFileViewerConfig): void
+registerSlashCommand(config: {
+  id: string
+  title: string
+  description: string
+  icon: PluginIcon
+  callback(): void | Promise<void>
+}): void
+
+registerContextMenuItem(config: {
+  id: string
+  label: string
+  icon?: PluginIcon
+  filter?: (entry: { path: string; isDir: boolean }) => boolean
+  callback(entry: { path: string; isDir: boolean }): void | Promise<void>
+}): void
+
+registerToolbarButton(config: {
+  id: string
+  label: string
+  icon: PluginIcon
+  callback(): void | Promise<void>
+}): void
+
+registerSidebarButton(config: {
+  id: string
+  label: string
+  icon: PluginIcon
+  callback(): void | Promise<void>
+}): void
+
+openPluginPage(pageId: string): void
+openFile(path: string): void
+openExternalUrl(url: string): void
+notify(message: string, durationMs?: number): void
+```
+
+#### `registerFileViewer(...)`
+
+Плагин может зарегистрировать либо:
+
+- custom renderer
+- host-editor viewer через конфиг `hostEditor`
+
+Это позволяет встраивать как полностью собственный просмотрщик, так и host editor для нестандартного файла.
+
+Обе формы `PluginFileViewerConfig` также поддерживают `icon?: PluginIcon`.
+
+#### Иконки UI-элементов
+
+Поддерживаются два формата:
+
+1. Встроенная иконка Volt по имени:
+
+```ts
+icon: 'graph'
+```
+
+2. Пользовательская SVG-иконка:
+
+```ts
+icon: {
+  svg: `
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M12 3v18" />
+      <path d="M3 12h18" />
+    </svg>
+  `
+}
+```
+
+Замечания:
+
+- встроенные имена иконок берутся из `frontend/src/shared/ui/icon/icons.ts`
+- если имя встроенной иконки неизвестно, host подставляет `file`
+- если custom SVG невалидный, host тоже подставляет `file`
+- из SVG вырезаются `script`, `foreignObject` и inline-обработчики вида `on*`
+- `registerCommand(...)` использует иконку в command palette при поиске по `>`
+- `registerSlashCommand(...)` использует иконку в slash-меню редактора
+- `registerContextMenuItem(...)`, `registerToolbarButton(...)`, `registerSidebarButton(...)` и `registerFileViewer(...)` используют ту же иконку в соответствующих host surface
+
+### `api.editor`
+
+```ts
+captureActiveSession(): Promise<EditorSession | null>
+openSession(path: string): Promise<EditorSession>
+listKinds(): EditorKindInfo[]
+getCapabilities(kind: string): EditorKindCapabilities
+mount(container: HTMLElement, config: EditorMountConfig): Promise<EditorHandle>
+```
+
+Editor sessions полезны для редактирования markdown без прямой привязки к DOM-редактору, а `mount(...)` нужен для встраивания host editor в plugin surface.
 
 ### `api.events`
 
 ```ts
-on('file-open', callback: (filePath: string) => void | Promise<void>): () => void
-on('file-save', callback: (filePath: string) => void | Promise<void>): () => void
-on('editor-change', callback: () => void | Promise<void>): () => void
-on('workspace:path-renamed', callback: (payload: {
-  oldPath: string
-  newPath: string
-  isDir: boolean
-}) => void | Promise<void>): () => void
+on(
+  event: 'workspace:path-renamed' | 'file-open' | 'file-save' | 'editor-change',
+  callback: (payload: unknown) => void | Promise<void>,
+): () => void
 ```
 
-Сейчас core испускает такие события:
+События:
 
+- `workspace:path-renamed`
 - `file-open`
 - `file-save`
 - `editor-change`
-- `workspace:path-renamed`
 
-Host автоматически трекает эти listeners по `pluginId` и снимает их при unload.
+Подписки автоматически снимаются при unload плагина.
 
 ### `api.storage`
 
@@ -498,24 +490,9 @@ get(key: string): Promise<unknown>
 set(key: string, value: unknown): Promise<void>
 ```
 
-Storage сериализует значения в JSON и хранит их в plugin-local `data.json`.
+Storage сериализует значения в JSON и хранит их в `data.json`.
 
 ### `api.settings`
-
-`api.settings` больше не описывает schema UI во время runtime. Источник правды для settings теперь находится в `manifest.json -> settings.sections`, а сам namespace нужен только для чтения, записи и live apply уже объявленных полей.
-
-Плагин может:
-
-- читать merged settings values
-- менять их программно
-- подписываться на live updates
-
-Host app:
-
-- строит settings page плагина из `manifest.settings.sections`
-- показывает её как отдельный top-level пункт в `Settings`
-- даёт доступ к этой странице даже если plugin disabled и даже без открытого workspace
-- хранит значения в reserved key `__volt_plugin_settings__`
 
 ```ts
 get<T = unknown>(key: string): Promise<T | undefined>
@@ -528,189 +505,36 @@ onChange(callback: (event: {
 }) => void | Promise<void>): () => void
 ```
 
-#### Settings schema в `manifest.json`
+Важно:
 
-V1 поддерживает только host-rendered field types:
-
-- `toggle`
-- `text`
-- `textarea`
-- `number`
-- `select`
-
-Общие поля:
-
-- `key`
-- `type`
-- `label`
-- `description?`
-- `defaultValue`
-
-Дополнительно:
-
-- `text` / `textarea`: `placeholder?`
-- `number`: `min?`, `max?`, `step?`
-- `select`: `options: Array<{ label: string; value: string }>`
-
-Поведение:
-
-- `key` должен быть уникален внутри плагина
-- при duplicate key host логирует ошибку и игнорирует повторные поля
-- `get()` и `getAll()` возвращают merged values: stored values поверх `defaultValue`
-- для `number` host валидирует и clamp-ит значения по `min/max`
-- invalid `select` fallback-ится на `defaultValue`
-- `set()` сразу сохраняет данные в reserved key `__volt_plugin_settings__`
-- settings pages полностью host-rendered, custom runtime settings pages больше не используются
-- ошибки в `onChange(...)` попадают в plugin log через safe wrappers
+- schema настроек объявляется в `manifest.json`, а не во время runtime
+- host сам строит settings page по `manifest.settings.sections`
+- страница настроек появляется в `Settings` только у включённого плагина
+- значения хранятся в reserved storage key `__volt_plugin_settings__`
 
 ## Namespace и идентификаторы
 
-Все registrations namespaced host-side как:
+Host namespaced-регистрирует plugin entities по шаблону:
 
 ```text
 ${pluginId}:${config.id}
 ```
 
-Поэтому внутри самого плагина можно использовать короткие `id`, не боясь коллизий с другими расширениями.
+Поэтому внутри `main.js` можно использовать короткие `id`, не боясь коллизий между разными плагинами.
 
-## Как создать свой плагин
-
-### 1. Создайте папку
-
-```text
-~/.volt/plugins/my-plugin/
-```
-
-### 2. Добавьте `manifest.json`
-
-```json
-{
-  "id": "my-plugin",
-  "name": "My Plugin",
-  "version": "1.0.0",
-  "description": "Example Volt plugin",
-  "main": "main.js",
-  "permissions": ["read"],
-  "settings": {
-    "sections": [
-      {
-        "id": "general",
-        "title": "General",
-        "description": "Example plugin settings",
-        "fields": [
-          {
-            "key": "inboxPath",
-            "type": "text",
-            "label": "Inbox path",
-            "defaultValue": "inbox/example.md"
-          },
-          {
-            "key": "openAfterWrite",
-            "type": "toggle",
-            "label": "Open after write",
-            "defaultValue": false
-          }
-        ]
-      }
-    ]
-  }
-}
-```
-
-### 3. Напишите `main.js`
-
-Пример полезного минимального плагина:
-
-```js
-(function () {
-  api.ui.registerCommand({
-    id: 'open-active-file-info',
-    name: 'Show Active File Info',
-    callback: async () => {
-      const path = api.volt.getActivePath();
-      if (!path) {
-        api.ui.showNotice('Open a note first.');
-        return;
-      }
-
-      const content = await api.volt.read(path);
-      api.ui.showNotice(`"${path}" has ${content.length} characters.`, 4000);
-    },
-  });
-})();
-```
-
-### 4. Настройте и включите плагин
-
-В `Settings`:
-
-- на странице `Plugins` плагин можно включить или выключить
-- если в manifest есть `settings.sections`, у плагина появляется отдельный top-level пункт в левом меню
-- эту settings page можно открыть и настроить даже до включения плагина
-
-### 5. Используйте hot reload через toggle
-
-Текущий способ перезагрузить плагин без перезапуска приложения:
-
-1. измените `main.js`
-2. выключите плагин
-3. включите его снова
-
-Host вызовет `unloadSinglePlugin(...)`, снимет listeners/processes/sessions и загрузит новую версию.
-
-## Примеры паттернов
-
-### Команда + plugin page
-
-```js
-(function () {
-  api.ui.registerPluginPage({
-    id: 'hello-page',
-    title: 'Hello',
-    mode: 'tab',
-    render(container) {
-      container.innerHTML = '<div style="padding: 16px;">Hello from plugin page.</div>';
-    },
-  });
-
-  api.ui.registerCommand({
-    id: 'open-hello-page',
-    name: 'Open Hello Page',
-    callback() {
-      api.ui.openPluginPage('hello-page');
-    },
-  });
-})();
-```
-
-### Manifest settings + live apply
+## Минимальный пример
 
 `manifest.json`:
 
 ```json
 {
-  "settings": {
-    "sections": [
-      {
-        "id": "example",
-        "title": "Example plugin",
-        "fields": [
-          {
-            "key": "inboxPath",
-            "type": "text",
-            "label": "Inbox path",
-            "defaultValue": "inbox/example.md"
-          },
-          {
-            "key": "openAfterWrite",
-            "type": "toggle",
-            "label": "Open after write",
-            "defaultValue": false
-          }
-        ]
-      }
-    ]
-  }
+  "apiVersion": 4,
+  "id": "active-file-info",
+  "name": "Active File Info",
+  "version": "1.0.0",
+  "description": "Shows info about the active file",
+  "main": "main.js",
+  "permissions": ["read"]
 }
 ```
 
@@ -718,79 +542,51 @@ Host вызовет `unloadSinglePlugin(...)`, снимет listeners/processes/
 
 ```js
 (function () {
-  api.settings.onChange((event) => {
-    console.log('New plugin settings snapshot:', event.values);
+  api.ui.registerCommand({
+    id: 'show-active-file-info',
+    name: 'Show Active File Info',
+    icon: 'fileText',
+    callback: async () => {
+      const path = api.workspace.getActivePath();
+      if (!path) {
+        api.ui.notify('Open a file first.');
+        return;
+      }
+
+      const content = await api.fs.read(path);
+      api.ui.notify(`"${path}" contains ${content.length} characters.`, 4000);
+    },
   });
 })();
 ```
 
-### Работа с detached note session
+## Как установить плагин
 
-```js
-async function appendTextToCurrentNote(text) {
-  const session = await api.editor.captureActiveSession();
-  if (!session) {
-    api.ui.showNotice('Open a note first.');
-    return;
-  }
+Через интерфейс `Settings -> Plugins`:
 
-  const anchorId = session.createAnchor({ bias: 'end' });
-  session.insertAtAnchor(anchorId, text);
-  await session.save();
-  session.removeAnchor(anchorId);
-  session.dispose();
-}
-```
+1. выбрать ZIP-архив плагина
+2. импортировать его в каталог `~/.volt/plugins`
+3. подтвердить permissions при необходимости
+4. включить плагин
 
-### Запуск локального процесса
+Если у плагина нет дополнительных permissions, host может включить его сразу после успешного импорта.
 
-```js
-async function runWorkspaceProcess() {
-  const handle = await api.desktop.process.start({
-    command: 'git',
-    args: ['status', '--short'],
-    cwd: 'workspace',
-    stdoutMode: 'lines',
-    stderrMode: 'lines',
-  });
+## Как обновить плагин во время разработки
 
-  const lines = [];
-  handle.onEvent((event) => {
-    if (event.type === 'stdout') {
-      lines.push(event.data);
-    }
-    if (event.type === 'exit') {
-      api.ui.showNotice(`Process finished with code ${event.code}`);
-    }
-  });
-}
-```
+Простейший сценарий обновления без перезапуска приложения:
 
-## Полезные замечания
+1. изменить `main.js`
+2. выключить плагин
+3. включить его снова
 
-- plugin pages должны сами чистить DOM listeners, таймеры и подписки в `cleanup()`
-- callbacks лучше делать короткими, а длинные процессы переводить в `desktop.process`
-- если нужен доступ к активной заметке во время долгого workflow, используйте `EditorSession`, а не `volt.getActivePath()`
-- для UI иконок используйте существующие icon names из host app; неизвестная иконка будет автоматически заменена на `file`
-- если плагин пишет в note session по частям, не забывайте вызывать `dispose()`
-- если plugin использует `api.settings`, объявляйте schema в `manifest.json`, а не пытайтесь рисовать settings UI из runtime
+Это принудительно вызовет unload и повторную загрузку runtime.
 
 ## Где смотреть реализацию
 
-Основные runtime-узлы:
-
-- [`frontend/src/shared/lib/plugin-runtime/pluginLoader.ts`](../frontend/src/shared/lib/plugin-runtime/pluginLoader.ts)
+- [`frontend/src/shared/lib/plugin-runtime/pluginApi.ts`](../frontend/src/shared/lib/plugin-runtime/pluginApi.ts)
 - [`frontend/src/shared/lib/plugin-runtime/pluginApiFactory.ts`](../frontend/src/shared/lib/plugin-runtime/pluginApiFactory.ts)
+- [`frontend/src/shared/lib/plugin-runtime/pluginLoader.ts`](../frontend/src/shared/lib/plugin-runtime/pluginLoader.ts)
 - [`frontend/src/entities/plugin/model/pluginRegistry.ts`](../frontend/src/entities/plugin/model/pluginRegistry.ts)
-- [`frontend/src/shared/lib/plugin-runtime/pluginEventBus.ts`](../frontend/src/shared/lib/plugin-runtime/pluginEventBus.ts)
-- [`frontend/src/entities/plugin/model/pluginSettingsStore.ts`](../frontend/src/entities/plugin/model/pluginSettingsStore.ts)
-- [`frontend/src/shared/lib/plugin-runtime/editorSessionManager.ts`](../frontend/src/shared/lib/plugin-runtime/editorSessionManager.ts)
-- [`frontend/src/shared/lib/plugin-runtime/pluginProcessManager.ts`](../frontend/src/shared/lib/plugin-runtime/pluginProcessManager.ts)
-- [`commands/system/plugin_process.go`](../commands/system/plugin_process.go)
+- [`infrastructure/filesystem/plugin_store.go`](../infrastructure/filesystem/plugin_store.go)
+- [`interfaces/wailshandler/plugin_handler.go`](../interfaces/wailshandler/plugin_handler.go)
 - [`interfaces/wailshandler/plugin_process.go`](../interfaces/wailshandler/plugin_process.go)
-
-Реальные примеры runtime plugins:
-
-- [`/Users/docup/.volt/plugins/quick-capture/main.js`](/Users/docup/.volt/plugins/quick-capture/main.js)
-- [`/Users/docup/.volt/plugins/qwen-inline/main.js`](/Users/docup/.volt/plugins/qwen-inline/main.js)
-- [`/Users/docup/.volt/plugins/graph-view/main.js`](/Users/docup/.volt/plugins/graph-view/main.js)

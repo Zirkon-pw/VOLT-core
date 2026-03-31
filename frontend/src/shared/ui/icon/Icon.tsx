@@ -1,14 +1,42 @@
-import { icons, type IconName } from './icons';
+import { icons, isCustomSvgIcon, type IconSource } from './icons';
 import styles from './Icon.module.scss';
 
 interface IconProps {
-  name: IconName;
+  name: IconSource;
   size?: number;
   className?: string;
 }
 
+function normalizeCustomSvg(svg: string): string | null {
+  const trimmed = svg.trim();
+  if (!/^<svg\b/i.test(trimmed)) {
+    return null;
+  }
+
+  const withoutScripts = trimmed
+    .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, '')
+    .replace(/<foreignObject[\s\S]*?>[\s\S]*?<\/foreignObject>/gi, '')
+    .replace(/\son[a-z-]+\s*=\s*(".*?"|'.*?'|[^\s>]+)/gi, '');
+
+  return withoutScripts.replace(/<svg\b([^>]*)>/i, '<svg$1 width="100%" height="100%" aria-hidden="true" focusable="false">');
+}
+
 export function Icon({ name, size = 16, className }: IconProps) {
-  const pathData = icons[name];
+  if (isCustomSvgIcon(name)) {
+    const markup = normalizeCustomSvg(name.svg);
+    if (markup) {
+      return (
+        <span
+          className={`${styles.icon} ${styles.customSvg} ${className ?? ''}`}
+          style={{ width: size, height: size }}
+          dangerouslySetInnerHTML={{ __html: markup }}
+        />
+      );
+    }
+  }
+
+  const builtInName = typeof name === 'string' ? name : 'file';
+  const pathData = icons[builtInName];
   const paths = pathData.split('|');
 
   return (
@@ -30,4 +58,4 @@ export function Icon({ name, size = 16, className }: IconProps) {
   );
 }
 
-export type { IconName };
+export type { IconSource };

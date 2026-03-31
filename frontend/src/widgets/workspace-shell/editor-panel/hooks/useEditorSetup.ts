@@ -24,10 +24,16 @@ const lowlight = createLowlight(common);
 interface UseEditorSetupOptions {
   onUpdate?: (editor: Editor) => void;
   placeholder?: string;
+  editable?: boolean;
 }
 
-export function useEditorSetup({ onUpdate, placeholder = translate('editor.placeholder') }: UseEditorSetupOptions = {}) {
+export function useEditorSetup({
+  onUpdate,
+  placeholder = translate('editor.placeholder'),
+  editable = true,
+}: UseEditorSetupOptions = {}) {
   const editor = useEditor({
+    editable,
     extensions: [
       StarterKit.configure({
         codeBlock: false,

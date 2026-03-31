@@ -4,8 +4,9 @@ import Suggestion from '@tiptap/suggestion';
 import { createRoot, type Root } from 'react-dom/client';
 import { createElement, createRef } from 'react';
 import { usePluginRegistryStore } from '@entities/plugin';
+import { EDITOR } from '@shared/config/constants';
 import { translate } from '@shared/i18n';
-import type { IconName } from '@shared/ui/icon';
+import type { IconSource } from '@shared/ui/icon';
 import {
   SlashCommandMenu,
   type SlashCommandMenuHandle,
@@ -14,7 +15,7 @@ import {
 export interface SlashCommandItem {
   title: string;
   description: string;
-  icon: IconName;
+  icon: IconSource;
   command: (editor: any, range: any) => void;
 }
 
@@ -160,8 +161,8 @@ export const SlashCommand = Extension.create({
           return {
             onStart: (props: any) => {
               popup = document.createElement('div');
-              popup.style.position = 'absolute';
-              popup.style.zIndex = '50';
+              popup.style.position = 'fixed';
+              popup.style.zIndex = '1000';
               document.body.appendChild(popup);
 
               updatePosition(popup, props.clientRect);
@@ -226,13 +227,19 @@ function updatePosition(
   const rect = clientRect?.();
   if (!rect) return;
 
-  const menuHeight = 320;
-  const left = rect.left;
+  const menuWidth = 280;
+  const menuHeight = EDITOR.SLASH_MENU_HEIGHT;
+  const horizontalPadding = 8;
+  const verticalOffset = 4;
+  const maxLeft = Math.max(horizontalPadding, window.innerWidth - menuWidth - horizontalPadding);
+  const left = Math.min(Math.max(rect.left, horizontalPadding), maxLeft);
   let top = rect.bottom + 4;
 
   if (top + menuHeight > window.innerHeight) {
-    top = rect.top - menuHeight - 4;
+    top = rect.top - menuHeight - verticalOffset;
   }
+
+  top = Math.max(horizontalPadding, top);
 
   popup.style.left = `${left}px`;
   popup.style.top = `${top}px`;

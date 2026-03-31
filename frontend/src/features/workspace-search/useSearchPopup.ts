@@ -11,20 +11,17 @@ import { useTabStore } from '@entities/tab';
 import { readFile, type FileEntry } from '@shared/api/file';
 import { searchFiles } from '@shared/api/search';
 import type { SearchResult } from '@shared/api/search';
+import { SEARCH } from '@shared/config/constants';
 import { getPathBasename } from '@shared/lib/fileTree';
 import { getFileExtension } from '@shared/lib/fileTypes';
 import { formatShortcutBinding } from '@shared/lib/hotkeys';
 import { useI18n } from '@app/providers/I18nProvider';
-import type { IconName } from '@shared/ui/icon';
-
-const MAX_SEARCH_RESULTS = 50;
-const MAX_CONTENT_MATCHES_PER_FILE = 5;
-const SNIPPET_CONTEXT_CHARS = 50;
+import type { IconSource } from '@shared/ui/icon';
 const EMPTY_FILE_TREE: FileEntry[] = [];
 
 function extractSnippet(line: string, matchIdx: number, matchLength: number): string {
-  const start = Math.max(matchIdx - SNIPPET_CONTEXT_CHARS, 0);
-  const end = Math.min(matchIdx + matchLength + SNIPPET_CONTEXT_CHARS, line.length);
+  const start = Math.max(matchIdx - SEARCH.SNIPPET_CONTEXT_CHARS, 0);
+  const end = Math.min(matchIdx + matchLength + SEARCH.SNIPPET_CONTEXT_CHARS, line.length);
 
   let snippet = line.slice(start, end);
   if (start > 0) {
@@ -74,7 +71,7 @@ function buildContentMatches(filePath: string, fileName: string, text: string, q
       isName: false,
     });
 
-    if (matches.length >= MAX_CONTENT_MATCHES_PER_FILE) {
+    if (matches.length >= SEARCH.MAX_CONTENT_MATCHES) {
       break;
     }
   }
@@ -106,7 +103,7 @@ async function searchPluginOwnedFiles(
   const contentMatches: SearchResult[] = [];
 
   for (const entry of files) {
-    if (nameMatches.length + contentMatches.length >= MAX_SEARCH_RESULTS) {
+    if (nameMatches.length + contentMatches.length >= SEARCH.MAX_RESULTS) {
       break;
     }
 
@@ -131,7 +128,7 @@ async function searchPluginOwnedFiles(
       });
     }
 
-    if (nameMatches.length + contentMatches.length >= MAX_SEARCH_RESULTS) {
+    if (nameMatches.length + contentMatches.length >= SEARCH.MAX_RESULTS) {
       break;
     }
 
@@ -142,7 +139,7 @@ async function searchPluginOwnedFiles(
         continue;
       }
 
-      const remaining = MAX_SEARCH_RESULTS - nameMatches.length - contentMatches.length;
+      const remaining = SEARCH.MAX_RESULTS - nameMatches.length - contentMatches.length;
       const matches = buildContentMatches(entry.path, fileName, extractedText, queryLower);
       contentMatches.push(...matches.slice(0, remaining));
     } catch (error) {
@@ -176,14 +173,14 @@ function mergeSearchResults(coreResults: SearchResult[], pluginResults: SearchRe
     ...pluginResults.filter((result) => !result.isName),
   ]);
 
-  return [...nameMatches, ...contentMatches].slice(0, MAX_SEARCH_RESULTS);
+  return [...nameMatches, ...contentMatches].slice(0, SEARCH.MAX_RESULTS);
 }
 
 export interface CommandPaletteItem {
   id: string;
   title: string;
   hotkey?: string;
-  icon: IconName;
+  icon: IconSource;
   subtitle?: string;
   callback: () => void;
 }
@@ -305,7 +302,7 @@ export function useSearchPopup(
         id: command.id,
         title: command.name,
         hotkey: formatShortcutBinding(byActionId[getPluginCommandShortcutActionId(command.id)]?.binding),
-        icon: 'hash' as IconName,
+        icon: command.icon ?? 'file',
         subtitle: command.pluginId,
         callback: command.callback,
       })),

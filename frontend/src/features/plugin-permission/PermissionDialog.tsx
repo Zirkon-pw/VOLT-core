@@ -27,6 +27,10 @@ const permissionKeyMap: Record<string, { label: string; description: string }> =
     label: 'settings.plugins.permissions.process.label',
     description: 'settings.plugins.permissions.process.description',
   },
+  external: {
+    label: 'settings.plugins.permissions.external.label',
+    description: 'settings.plugins.permissions.external.description',
+  },
 };
 
 export function PermissionDialog({

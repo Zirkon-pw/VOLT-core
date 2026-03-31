@@ -3,6 +3,7 @@ import type {
   DesktopProcessHandle,
   EditorSession,
   PluginEventMap,
+  PluginIcon,
   PluginSettingsSection,
   SearchFileTextProviderInput,
   VoltPluginAPI,
@@ -23,19 +24,24 @@ import {
 import { onTracked } from './pluginEventBus';
 import { createFile as createWorkspaceFile, listTree, readFile, type FileEntry, writeFile } from '@shared/api/file';
 import { copyImage, pickImage, readImageBase64, saveImageBase64 } from '@shared/api/image/imageApi';
-import { getPluginData, setPluginData } from '@shared/api/plugin';
+import { copyPluginAsset, getPluginData, pickPluginFiles, setPluginData } from '@shared/api/plugin';
 import { openPluginPrompt } from '@features/plugin-prompt';
 import { useWorkspaceStore } from '@entities/workspace';
 import { useFileTreeStore } from '@entities/file-tree';
 import { useTabStore } from '@entities/tab';
 import { useToastStore } from '@shared/ui/toast';
-import { icons } from '@shared/ui/icon/icons';
-import type { IconName } from '@shared/ui/icon';
+import { isIconName } from '@shared/ui/icon/icons';
+import type { IconSource } from '@shared/ui/icon';
 import {
   captureActiveEditorSession,
   openEditorSession,
   type PluginEditorSession,
 } from './editorSessionManager';
+import {
+  getAvailableHostEditorCapabilities,
+  listAvailableHostEditorKinds,
+  mountPluginHostEditor,
+} from './hostEditorService';
 import {
   startPluginProcess,
   type PluginProcessHandle,
@@ -51,11 +57,17 @@ import {
   setPluginSettingValue,
   subscribePluginSettings,
 } from '@entities/plugin';
+import { BrowserOpenURL } from '../../../../wailsjs/runtime/runtime';
 
-function normalizePluginIcon(icon?: string): IconName {
-  if (icon && icon in icons) {
-    return icon as IconName;
+function normalizePluginIcon(icon?: PluginIcon): IconSource {
+  if (typeof icon === 'string' && isIconName(icon)) {
+    return icon;
   }
+
+  if (icon && typeof icon === 'object' && typeof icon.svg === 'string' && icon.svg.trim()) {
+    return { svg: icon.svg.trim() };
+  }
+
   return 'file';
 }
 
@@ -81,7 +93,7 @@ export function createPluginAPI(
     await useFileTreeStore.getState().notifyFsMutation(voltId, voltPath);
   };
 
-  const requirePermission = (permission: 'read' | 'write' | 'editor' | 'process', action: string) => {
+  const requirePermission = (permission: 'read' | 'write' | 'editor' | 'process' | 'external', action: string) => {
     if (declaredPermissions.has(permission)) {
       return;
     }
@@ -172,33 +184,120 @@ export function createPluginAPI(
     }
   };
 
+  const wrapAsyncResult = <TArgs extends unknown[]>(
+    label: string,
+    callback: (...args: TArgs) => unknown | Promise<unknown>,
+  ) => async (...args: TArgs): Promise<unknown> => {
+    try {
+      return await callback(...args);
+    } catch (err) {
+      throw reportPluginError(pluginId, label, err);
+    }
+  };
+
+  const normalizeHostEditorConfig = <TConfig extends {
+    kind: string;
+    readOnly?: boolean;
+    autofocus?: boolean;
+    toolbarActions?: Array<{
+      id: string;
+      label: string;
+      slot?: 'primary' | 'secondary';
+      commandId?: string;
+      callback?: () => void | Promise<void>;
+    }>;
+    commands?: Array<{
+      id: string;
+      execute(payload?: unknown): unknown | Promise<unknown>;
+    }>;
+    panels?: Array<{
+      id: string;
+      slot?: 'right' | 'bottom';
+      render(container: HTMLElement): void;
+      cleanup?: () => void;
+    }>;
+    overlays?: Array<{
+      id: string;
+      anchor: {
+        type: 'text-range' | 'page-rect';
+      };
+      render(container: HTMLElement): void;
+      cleanup?: () => void;
+    }>;
+  }>(
+    labelPrefix: string,
+    config: TConfig,
+  ): TConfig => ({
+    ...config,
+    toolbarActions: config.toolbarActions?.map((action) => ({
+      ...action,
+      callback: action.callback ? wrapCallback(`${labelPrefix}:toolbar:${action.id}`, action.callback) : undefined,
+    })),
+    commands: config.commands?.map((command) => ({
+      ...command,
+      execute: wrapAsyncResult(`${labelPrefix}:command:${command.id}`, command.execute),
+    })),
+    panels: config.panels?.map((panel) => ({
+      ...panel,
+      render: (container: HTMLElement) => {
+        safeExecute(pluginId, `${labelPrefix}:panel:${panel.id}:render`, () => {
+          panel.render(container);
+        });
+      },
+      cleanup: panel.cleanup
+        ? () => {
+          safeExecute(pluginId, `${labelPrefix}:panel:${panel.id}:cleanup`, () => {
+            panel.cleanup!();
+          });
+        }
+        : undefined,
+    })),
+    overlays: config.overlays?.map((overlay) => ({
+      ...overlay,
+      render: (container: HTMLElement) => {
+        safeExecute(pluginId, `${labelPrefix}:overlay:${overlay.id}:render`, () => {
+          overlay.render(container);
+        });
+      },
+      cleanup: overlay.cleanup
+        ? () => {
+          safeExecute(pluginId, `${labelPrefix}:overlay:${overlay.id}:cleanup`, () => {
+            overlay.cleanup!();
+          });
+        }
+        : undefined,
+    })),
+  });
+
   return {
-    volt: {
+    fs: {
       async read(path: string): Promise<string> {
-        requirePermission('read', 'volt.read');
+        requirePermission('read', 'fs.read');
         return readFile(voltPath, path);
       },
       async write(path: string, content: string): Promise<void> {
-        requirePermission('write', 'volt.write');
+        requirePermission('write', 'fs.write');
         return writeFile(voltPath, path, content);
       },
-      async createFile(path: string, content = ''): Promise<void> {
-        requirePermission('write', 'volt.createFile');
+      async create(path: string, content = ''): Promise<void> {
+        requirePermission('write', 'fs.create');
 
         const normalizedPath = path.trim();
         if (!normalizedPath) {
-          throw reportPluginError(pluginId, 'volt.createFile', new Error('File path is required'));
+          throw reportPluginError(pluginId, 'fs.create', new Error('File path is required'));
         }
 
         await createWorkspaceFile(voltPath, normalizedPath, content);
         await notifyFsMutation();
       },
       async list(dirPath?: string): Promise<FileEntry[]> {
-        requirePermission('read', 'volt.list');
+        requirePermission('read', 'fs.list');
         return listTree(voltPath, dirPath ?? '');
       },
+    },
+    workspace: {
       getActivePath(): string | null {
-        requirePermission('read', 'volt.getActivePath');
+        requirePermission('read', 'workspace.getActivePath');
         const voltId = useWorkspaceStore.getState().activeWorkspaceId;
         if (!voltId) return null;
         const tabState = useTabStore.getState();
@@ -208,10 +307,14 @@ export function createPluginAPI(
         const tab = tabs.find((t) => t.id === activeTabId);
         return tab && tab.type === 'file' ? tab.filePath : null;
       },
+      getRootPath(): string {
+        requirePermission('read', 'workspace.getRootPath');
+        return voltPath;
+      },
     },
     search: {
-      registerFileTextProvider(config) {
-        requirePermission('read', 'search.registerFileTextProvider');
+      registerTextProvider(config) {
+        requirePermission('read', 'search.registerTextProvider');
         registerSearchProvider({
           id: namespaceId(config.id),
           pluginId,
@@ -220,42 +323,60 @@ export function createPluginAPI(
         });
       },
     },
-    media: {
+    assets: {
       pickImage() {
         return pickImage();
       },
+      async pickFile(config) {
+        requirePermission('external', 'assets.pickFile');
+        const paths = await pickPluginFiles(
+          config?.title ?? '',
+          config?.accept ?? [],
+          Boolean(config?.multiple),
+        );
+
+        if (config?.multiple) {
+          return paths;
+        }
+
+        return paths[0] ?? null;
+      },
+      async copyAsset(sourcePath: string, targetDir?: string) {
+        requirePermission('write', 'assets.copyAsset');
+        const path = await copyPluginAsset(voltPath, sourcePath, targetDir ?? '');
+        await notifyFsMutation();
+        return path;
+      },
       async copyImage(sourcePath: string, targetDir?: string) {
-        requirePermission('write', 'media.copyImage');
+        requirePermission('write', 'assets.copyImage');
         const path = await copyImage(voltPath, sourcePath, targetDir ?? '');
         await notifyFsMutation();
         return path;
       },
       async saveImageBase64(fileName: string, base64: string, targetDir?: string) {
-        requirePermission('write', 'media.saveImageBase64');
+        requirePermission('write', 'assets.saveImageBase64');
         const path = await saveImageBase64(voltPath, fileName, targetDir ?? '', base64);
         await notifyFsMutation();
         return path;
       },
       async readImageDataUrl(path: string) {
-        requirePermission('read', 'media.readImageDataUrl');
+        requirePermission('read', 'assets.readImageDataUrl');
         return readImageBase64(voltPath, path);
       },
     },
-    desktop: {
-      process: {
-        async start(config) {
-          requirePermission('process', 'desktop.process.start');
-          if (config.cwd !== 'workspace') {
-            throw reportPluginError(
-              pluginId,
-              'desktop.process.start',
-              new Error('Only cwd="workspace" is supported'),
-            );
-          }
+    process: {
+      async start(config) {
+        requirePermission('process', 'process.start');
+        if (config.cwd !== 'workspace') {
+          throw reportPluginError(
+            pluginId,
+            'process.start',
+            new Error('Only cwd="workspace" is supported'),
+          );
+        }
 
-          const handle = await startPluginProcess(pluginId, voltPath, config);
-          return wrapProcessHandle(handle);
-        },
+        const handle = await startPluginProcess(pluginId, voltPath, config);
+        return wrapProcessHandle(handle);
       },
     },
     ui: {
@@ -294,11 +415,12 @@ export function createPluginAPI(
           id: namespaceId(config.id),
           pluginId,
           name: config.name,
+          icon: config.icon ? normalizePluginIcon(config.icon) : undefined,
           hotkey: config.hotkey,
           callback: wrapCallback(`command:${config.id}`, config.callback),
         });
       },
-      registerPluginPage(config) {
+      registerPage(config) {
         registerPluginPage({
           id: namespaceId(config.id),
           pluginId,
@@ -309,11 +431,24 @@ export function createPluginAPI(
         });
       },
       registerFileViewer(config) {
-        registerFileViewer({
+        const normalizedBase = {
           id: namespaceId(config.id),
           pluginId,
           extensions: config.extensions.map((extension) => extension.trim().toLowerCase()).filter(Boolean),
           icon: config.icon ? normalizePluginIcon(config.icon) : undefined,
+          priority: config.priority ?? 0,
+        };
+
+        if ('hostEditor' in config) {
+          registerFileViewer({
+            ...normalizedBase,
+            hostEditor: normalizeHostEditorConfig(`fileViewer:${config.id}:hostEditor`, config.hostEditor),
+          });
+          return;
+        }
+
+        registerFileViewer({
+          ...normalizedBase,
           render: (container, context) => {
             safeExecute(pluginId, `fileViewer:${config.id}:render`, () => {
               config.render(container, context);
@@ -404,7 +539,16 @@ export function createPluginAPI(
 
         useTabStore.getState().openTab(voltId, normalizedPath, normalizedPath);
       },
-      showNotice(message: string, durationMs?: number) {
+      openExternalUrl(url: string) {
+        requirePermission('external', 'ui.openExternalUrl');
+        const normalizedUrl = url.trim();
+        if (!normalizedUrl) {
+          throw reportPluginError(pluginId, 'ui.openExternalUrl', new Error('URL is required'));
+        }
+
+        BrowserOpenURL(normalizedUrl);
+      },
+      notify(message: string, durationMs?: number) {
         useToastStore.getState().addToast(message, 'info', durationMs ?? 4000);
       },
     },
@@ -418,6 +562,30 @@ export function createPluginAPI(
         requirePermission('editor', 'editor.openSession');
         const session = await openEditorSession(pluginId, voltPath, path);
         return wrapSession(session);
+      },
+      listKinds() {
+        requirePermission('editor', 'editor.listKinds');
+        return listAvailableHostEditorKinds();
+      },
+      getCapabilities(kind: string) {
+        requirePermission('editor', 'editor.getCapabilities');
+        const capabilities = getAvailableHostEditorCapabilities(kind);
+        if (!capabilities) {
+          throw reportPluginError(pluginId, `editor.getCapabilities:${kind}`, new Error(`Host editor kind "${kind}" is not available`));
+        }
+        return capabilities;
+      },
+      async mount(container: HTMLElement, config) {
+        requirePermission('editor', 'editor.mount');
+        if (!container) {
+          throw reportPluginError(pluginId, 'editor.mount', new Error('A valid container element is required'));
+        }
+        return mountPluginHostEditor(
+          pluginId,
+          voltPath,
+          container,
+          normalizeHostEditorConfig('editor.mount', config),
+        );
       },
     },
     events: {

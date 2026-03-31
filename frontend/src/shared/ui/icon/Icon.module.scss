@@ -4,3 +4,13 @@
   vertical-align: middle;
   flex-shrink: 0;
 }
+
+.customSvg {
+  color: inherit;
+
+  :global(svg) {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+}
