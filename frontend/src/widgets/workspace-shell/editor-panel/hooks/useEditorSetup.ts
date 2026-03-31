@@ -4,7 +4,6 @@ import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
 import TaskList from '@tiptap/extension-task-list';
 import TaskItem from '@tiptap/extension-task-item';
-import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
 import Image from '@tiptap/extension-image';
 import { Table } from '@tiptap/extension-table';
 import { TableRow } from '@tiptap/extension-table-row';
@@ -15,11 +14,9 @@ import Color from '@tiptap/extension-color';
 import Underline from '@tiptap/extension-underline';
 import Highlight from '@tiptap/extension-highlight';
 import { Markdown } from 'tiptap-markdown';
-import { common, createLowlight } from 'lowlight';
 import { translate } from '@shared/i18n';
 import { SlashCommand } from '../extensions/slashCommand';
-
-const lowlight = createLowlight(common);
+import { CodeBlockWithLanguage } from '../extensions/CodeBlockWithLanguage';
 
 interface UseEditorSetupOptions {
   onUpdate?: (editor: Editor) => void;
@@ -51,9 +48,7 @@ export function useEditorSetup({
       TaskItem.configure({
         nested: true,
       }),
-      CodeBlockLowlight.configure({
-        lowlight,
-      }),
+      CodeBlockWithLanguage,
       Image.configure({
         inline: true,
         allowBase64: true,

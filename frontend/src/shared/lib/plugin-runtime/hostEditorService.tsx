@@ -427,6 +427,7 @@ function MarkdownEditorDriver({
     editor,
     voltId: voltId ?? '',
     voltPath,
+    filePath,
     imageDir,
     resolve,
     register,

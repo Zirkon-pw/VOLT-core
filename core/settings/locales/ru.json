@@ -234,6 +234,9 @@
     "image.actualSize": "Реальный размер (100%)",
     "editor.empty": "Выберите файл, чтобы начать редактирование",
     "editor.placeholder": "Начните писать...",
+    "editor.codeBlock.language.plainText": "Обычный текст",
+    "editor.codeBlock.language.searchPlaceholder": "Поиск языка...",
+    "editor.codeBlock.language.empty": "Языки не найдены",
     "pluginPrompt.submit": "Отправить",
     "backend.error.process.commandNotFound": "Команда \"{command}\" не установлена или недоступна в PATH.",
     "backend.error.process.startFailed": "Не удалось запустить процесс плагина.",
@@ -278,6 +281,10 @@
     "editor.slash.image.description": "Вставить изображение из файла",
     "editor.slash.divider.title": "Разделитель",
     "editor.slash.divider.description": "Горизонтальная линия",
+    "editor.slash.link.title": "Ссылка на документ",
+    "editor.slash.link.description": "Вставить ссылку на другой документ",
+    "editor.linkPicker.placeholder": "Поиск документа...",
+    "editor.linkPicker.empty": "Документы не найдены",
     "volt.delete": "Удалить volt"
   }
 }

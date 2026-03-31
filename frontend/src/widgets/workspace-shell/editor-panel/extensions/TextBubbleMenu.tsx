@@ -36,6 +36,7 @@ export function TextBubbleMenu({ editor }: TextBubbleMenuProps) {
   const [showColors, setShowColors] = useState(false);
   const [showHighlight, setShowHighlight] = useState(false);
   const linkInputRef = useRef<HTMLInputElement>(null);
+  const savedSelectionRef = useRef<{ from: number; to: number } | null>(null);
 
   const shouldShow = useCallback(({ editor: ed }: { editor: Editor }) => {
     return ed.state.selection.content().size > 0 && !ed.isActive('table');
@@ -51,6 +52,8 @@ export function TextBubbleMenu({ editor }: TextBubbleMenuProps) {
   const toggleStrike = () => editor.chain().focus().toggleStrike().run();
 
   const openLinkInput = () => {
+    const { from, to } = editor.state.selection;
+    savedSelectionRef.current = { from, to };
     const existingUrl = editor.getAttributes('link').href ?? '';
     setLinkUrl(existingUrl);
     setShowLinkInput(true);
@@ -66,13 +69,25 @@ export function TextBubbleMenu({ editor }: TextBubbleMenuProps) {
       return;
     }
 
-    editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+    const saved = savedSelectionRef.current;
+    if (saved) {
+      editor.chain().focus().setTextSelection(saved).setLink({ href: url }).run();
+    } else {
+      editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+    }
+    savedSelectionRef.current = null;
     setShowLinkInput(false);
     setLinkUrl('');
   };
 
   const removeLink = () => {
-    editor.chain().focus().unsetLink().run();
+    const saved = savedSelectionRef.current;
+    if (saved) {
+      editor.chain().focus().setTextSelection(saved).unsetLink().run();
+    } else {
+      editor.chain().focus().unsetLink().run();
+    }
+    savedSelectionRef.current = null;
     setShowLinkInput(false);
     setLinkUrl('');
   };
@@ -83,6 +98,7 @@ export function TextBubbleMenu({ editor }: TextBubbleMenuProps) {
       applyLink();
     } else if (e.key === 'Escape') {
       e.preventDefault();
+      savedSelectionRef.current = null;
       setShowLinkInput(false);
       setLinkUrl('');
     }

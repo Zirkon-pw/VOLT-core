@@ -26,8 +26,13 @@ export function useFileTreeDragDrop(voltId: string, voltPath: string) {
       return;
     }
     event.stopPropagation();
-    event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.effectAllowed = 'copyMove';
     event.dataTransfer.setData('text/plain', entry.path);
+    event.dataTransfer.setData('application/x-volt-file', JSON.stringify({
+      path: entry.path,
+      isDir: entry.isDir,
+      name: entry.name,
+    }));
     startDrag(voltId, entry.path, entry.isDir);
   }, [voltId, startDrag]);
 

@@ -1,0 +1,262 @@
+/* CodeBlock language selector styles */
+.codeblock-wrapper {
+  position: relative;
+  margin: var(--space-2) 0;
+  overflow: visible;
+}
+
+.codeblock-wrapper pre {
+  position: relative;
+  margin: 0;
+  padding: var(--space-4);
+  padding-top: var(--space-8);
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--color-bg-secondary) 82%, var(--color-bg-primary)) 0%,
+      color-mix(in srgb, var(--color-bg-secondary) 94%, var(--color-bg-primary)) 100%
+    );
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow-x: auto;
+  pointer-events: none;
+}
+
+.codeblock-wrapper pre code {
+  font-family: var(--font-mono, 'JetBrains Mono', 'Fira Code', monospace);
+  font-size: var(--font-size-sm);
+  line-height: 1.6;
+  display: block;
+  pointer-events: none;
+}
+
+.codeblock-lang-button {
+  position: absolute;
+  top: var(--space-1);
+  right: var(--space-2);
+  z-index: 100;
+  padding: 4px var(--space-2);
+  border: 1px solid transparent;
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition:
+    background-color var(--transition-fast),
+    color var(--transition-fast),
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+  line-height: 1.4;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.codeblock-lang-button:hover {
+  background-color: var(--color-bg-hover);
+  color: var(--color-text-secondary);
+  border-color: var(--color-border);
+}
+
+.codeblock-lang-button:focus-visible {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-accent) 14%, transparent);
+}
+
+.codeblock-lang-button[data-open='true'] {
+  background-color: color-mix(in srgb, var(--color-accent) 10%, var(--color-bg-primary));
+  color: var(--color-text-primary);
+  border-color: color-mix(in srgb, var(--color-accent) 24%, var(--color-border));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-accent) 12%, transparent);
+}
+
+.codeblock-lang-button-text {
+  white-space: nowrap;
+}
+
+.codeblock-lang-button-arrow {
+  font-size: 8px;
+  transition: transform var(--transition-base);
+  line-height: 1;
+}
+
+.codeblock-lang-button[data-open='true'] .codeblock-lang-button-arrow {
+  transform: rotate(180deg);
+}
+
+.codeblock-lang-dropdown {
+  position: fixed;
+  z-index: 9999;
+  width: 250px;
+  max-height: 280px;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-popup);
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity var(--transition-base),
+    transform var(--transition-base);
+}
+
+.codeblock-lang-dropdown[data-position='below'] {
+  transform: translateY(-6px) scale(0.98);
+  transform-origin: top right;
+}
+
+.codeblock-lang-dropdown[data-position='above'] {
+  transform: translateY(6px) scale(0.98);
+  transform-origin: bottom right;
+}
+
+.codeblock-lang-dropdown[data-open='true'] {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+}
+
+.codeblock-lang-search {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border: none;
+  border-bottom: 1px solid var(--color-border);
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  outline: none;
+  box-sizing: border-box;
+}
+
+.codeblock-lang-search:focus {
+  border-bottom-color: color-mix(in srgb, var(--color-accent) 55%, var(--color-border));
+  box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--color-accent) 25%, transparent);
+}
+
+.codeblock-lang-search::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+.codeblock-lang-list {
+  overflow-y: auto;
+  flex: 1;
+  padding: var(--space-1) 0;
+  max-height: 200px;
+  scrollbar-color: var(--color-border-strong) transparent;
+}
+
+.codeblock-lang-item {
+  display: block;
+  width: 100%;
+  padding: var(--space-1) var(--space-3);
+  border: none;
+  background: transparent;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background-color var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.codeblock-lang-item:hover {
+  background-color: var(--color-bg-hover);
+}
+
+.codeblock-lang-item:focus-visible {
+  outline: none;
+  background-color: color-mix(in srgb, var(--color-accent) 10%, var(--color-bg-primary));
+}
+
+.codeblock-lang-item-active {
+  background-color: color-mix(in srgb, var(--color-accent) 12%, var(--color-bg-primary));
+  color: var(--color-text-primary);
+  font-weight: 500;
+}
+
+.codeblock-lang-no-results {
+  padding: var(--space-2) var(--space-3);
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-sm);
+}
+
+pre code[class*="language-"] {
+  color: var(--code-color-text, var(--color-text-primary));
+  background: transparent;
+}
+
+pre code[class*="language-"] .hljs-comment,
+pre code[class*="language-"] .hljs-quote {
+  color: var(--code-color-comment, var(--color-text-tertiary));
+  font-style: italic;
+}
+
+pre code[class*="language-"] .hljs-doctag,
+pre code[class*="language-"] .hljs-keyword,
+pre code[class*="language-"] .hljs-formula,
+pre code[class*="language-"] .hljs-operator {
+  color: var(--code-color-keyword, var(--color-accent));
+}
+
+pre code[class*="language-"] .hljs-section,
+pre code[class*="language-"] .hljs-selector-tag,
+pre code[class*="language-"] .hljs-deletion,
+pre code[class*="language-"] .hljs-subst,
+pre code[class*="language-"] .hljs-title.function_,
+pre code[class*="language-"] .hljs-function .hljs-title {
+  color: var(--code-color-function, var(--color-text-primary));
+}
+
+pre code[class*="language-"] .hljs-literal {
+  color: var(--code-color-number, var(--color-accent));
+}
+
+pre code[class*="language-"] .hljs-string,
+pre code[class*="language-"] .hljs-regexp,
+pre code[class*="language-"] .hljs-addition,
+pre code[class*="language-"] .hljs-attribute,
+pre code[class*="language-"] .hljs-meta .hljs-string {
+  color: var(--code-color-string, var(--color-text-secondary));
+}
+
+pre code[class*="language-"] .hljs-attr,
+pre code[class*="language-"] .hljs-variable,
+pre code[class*="language-"] .hljs-template-variable,
+pre code[class*="language-"] .hljs-selector-class,
+pre code[class*="language-"] .hljs-selector-attr,
+pre code[class*="language-"] .hljs-selector-pseudo,
+pre code[class*="language-"] .hljs-number {
+  color: var(--code-color-number, var(--color-accent));
+}
+
+pre code[class*="language-"] .hljs-symbol,
+pre code[class*="language-"] .hljs-bullet,
+pre code[class*="language-"] .hljs-link,
+pre code[class*="language-"] .hljs-meta,
+pre code[class*="language-"] .hljs-selector-id,
+pre code[class*="language-"] .hljs-title,
+pre code[class*="language-"] .hljs-name,
+pre code[class*="language-"] .hljs-type {
+  color: var(--code-color-class, var(--color-text-primary));
+}
+
+pre code[class*="language-"] .hljs-built_in,
+pre code[class*="language-"] .hljs-title.class_,
+pre code[class*="language-"] .hljs-class .hljs-title {
+  color: var(--code-color-class, var(--color-text-primary));
+}
+
+pre code[class*="language-"] .hljs-emphasis {
+  font-style: italic;
+}
+
+pre code[class*="language-"] .hljs-strong {
+  font-weight: bold;
+}

@@ -112,6 +112,15 @@ export function getSlashCommandItems(): SlashCommandItem[] {
       command: (editor, range) =>
         editor.chain().focus().deleteRange(range).setHorizontalRule().run(),
     },
+    {
+      title: translate('editor.slash.link.title'),
+      description: translate('editor.slash.link.description'),
+      icon: 'link',
+      command: (editor, range) => {
+        editor.chain().focus().deleteRange(range).run();
+        window.dispatchEvent(new CustomEvent('volt:pick-link'));
+      },
+    },
   ];
 }
 

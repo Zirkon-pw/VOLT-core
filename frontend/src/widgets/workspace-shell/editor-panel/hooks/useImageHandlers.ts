@@ -1,6 +1,13 @@
 import { useCallback, useEffect } from 'react';
 import type { Editor } from '@tiptap/react';
 import { copyImage, pickImage, saveImageBase64, base64ToBlobUrl } from '@shared/api/image/imageApi';
+import { isImagePath } from '@shared/lib/fileTypes';
+import {
+  computeRelativePath,
+  getParentPath,
+  getPathBasename,
+  getEntryDisplayName,
+} from '@shared/lib/fileTree';
 
 const IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/svg+xml'];
 
@@ -8,6 +15,7 @@ interface UseImageHandlersOptions {
   editor: Editor | null;
   voltId: string;
   voltPath: string;
+  filePath: string | null;
   imageDir: string;
   resolve: (relPath: string) => Promise<string>;
   register: (relPath: string, blobUrl: string) => void;
@@ -35,6 +43,7 @@ export function useImageHandlers({
   editor,
   voltId,
   voltPath,
+  filePath,
   imageDir,
   resolve,
   register,
@@ -64,7 +73,48 @@ export function useImageHandlers({
     }
   }, [voltPath, imageDir, insertImage, notifyFsMutation, voltId]);
 
+  const handleInternalFileDrop = useCallback((e: React.DragEvent) => {
+    if (!editor || !filePath) return false;
+    const raw = e.dataTransfer?.getData('application/x-volt-file');
+    if (!raw) return false;
+
+    try {
+      const data = JSON.parse(raw) as { path: string; isDir: boolean; name: string };
+      e.preventDefault();
+      e.stopPropagation();
+
+      const currentDir = getParentPath(filePath);
+      const relativePath = computeRelativePath(currentDir, data.path);
+      const coords = editor.view.posAtCoords({ left: e.clientX, top: e.clientY });
+      const pos = coords?.pos ?? editor.state.selection.from;
+
+      if (isImagePath(data.path)) {
+        void (async () => {
+          const src = await resolve(data.path);
+          editor.chain().focus().setTextSelection(pos).setImage({ src }).run();
+        })();
+      } else {
+        const displayName = getEntryDisplayName(getPathBasename(data.path), data.isDir);
+        editor
+          .chain()
+          .focus()
+          .setTextSelection(pos)
+          .insertContent({
+            type: 'text',
+            text: displayName,
+            marks: [{ type: 'link', attrs: { href: relativePath } }],
+          })
+          .run();
+      }
+      return true;
+    } catch {
+      return false;
+    }
+  }, [editor, filePath, resolve]);
+
   const handleDrop = useCallback((e: React.DragEvent) => {
+    if (handleInternalFileDrop(e)) return;
+
     const files = e.dataTransfer?.files;
     if (!files || files.length === 0) return;
 
@@ -77,10 +127,13 @@ export function useImageHandlers({
         return;
       }
     }
-  }, [saveAndInsert]);
+  }, [handleInternalFileDrop, saveAndInsert]);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
-    if (e.dataTransfer?.types?.includes('Files')) {
+    if (
+      e.dataTransfer?.types?.includes('Files') ||
+      e.dataTransfer?.types?.includes('application/x-volt-file')
+    ) {
       e.preventDefault();
       e.stopPropagation();
     }

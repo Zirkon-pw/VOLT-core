@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAppSettingsStore } from '@entities/app-settings';
 import { useActiveFileStore } from '@entities/editor-session';
 import { useFileTreeStore } from '@entities/file-tree';
@@ -11,6 +11,7 @@ import { useAutoSave } from './hooks/useAutoSave';
 import { useImageResolver } from './hooks/useImageResolver';
 import { useImageHandlers } from './hooks/useImageHandlers';
 import { MarkdownEditorSurface } from './MarkdownEditorSurface';
+import { LinkFilePicker } from './extensions/LinkFilePicker';
 import styles from './EditorPanel.module.scss';
 
 interface EditorPanelProps {
@@ -37,8 +38,18 @@ export function EditorPanel({ voltId, voltPath, filePath }: EditorPanelProps) {
 
   const { save } = useAutoSave({ editor, voltId, voltPath, filePath, transformMarkdown: unresolveAll });
   const { handleDrop, handleDragOver, handlePaste } = useImageHandlers({
-    editor, voltId, voltPath, imageDir, resolve, register, notifyFsMutation,
+    editor, voltId, voltPath, filePath, imageDir, resolve, register, notifyFsMutation,
   });
+
+  const [showLinkPicker, setShowLinkPicker] = useState(false);
+  const closeLinkPicker = useCallback(() => setShowLinkPicker(false), []);
+
+  useEffect(() => {
+    if (!editor) return;
+    const handler = () => setShowLinkPicker(true);
+    window.addEventListener('volt:pick-link', handler);
+    return () => window.removeEventListener('volt:pick-link', handler);
+  }, [editor]);
 
   // Register editor with plugin bridge
   useEffect(() => {
@@ -105,14 +116,25 @@ export function EditorPanel({ voltId, voltPath, filePath }: EditorPanelProps) {
   }
 
   return (
-    <MarkdownEditorSurface
-      editor={editor}
-      voltPath={voltPath}
-      filePath={filePath}
-      showTaskStatusBanner
-      onDrop={handleDrop}
-      onDragOver={handleDragOver}
-      onPaste={handlePaste}
-    />
+    <>
+      <MarkdownEditorSurface
+        editor={editor}
+        voltId={voltId}
+        voltPath={voltPath}
+        filePath={filePath}
+        showTaskStatusBanner
+        onDrop={handleDrop}
+        onDragOver={handleDragOver}
+        onPaste={handlePaste}
+      />
+      {showLinkPicker && editor && (
+        <LinkFilePicker
+          editor={editor}
+          voltId={voltId}
+          filePath={filePath}
+          onClose={closeLinkPicker}
+        />
+      )}
+    </>
   );
 }

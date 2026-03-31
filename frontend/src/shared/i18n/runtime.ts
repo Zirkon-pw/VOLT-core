@@ -40,6 +40,9 @@ const fallbackMessages: Record<string, string> = {
   'settings.plugins.delete.title': 'Delete plugin',
   'settings.plugins.delete.description': 'Delete "{name}" and remove its files, saved data, logs, and shortcut overrides?',
   'settings.plugins.deleteSuccess': 'Plugin "{name}" deleted.',
+  'editor.codeBlock.language.plainText': 'Plain text',
+  'editor.codeBlock.language.searchPlaceholder': 'Search language...',
+  'editor.codeBlock.language.empty': 'No languages found',
   'errorBoundary.title': 'Something went wrong',
   'errorBoundary.description': 'An unexpected error occurred.',
 };
