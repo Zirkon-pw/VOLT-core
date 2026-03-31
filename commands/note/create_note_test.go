@@ -45,7 +45,7 @@ func TestCreateNoteCommandNormalizesMarkdownExtension(t *testing.T) {
 
 	command := NewCreateNoteCommand(repo)
 	resultRaw, err := command.Execute(context.Background(), CreateNoteRequest{
-		VoltPath: "/tmp/volt",
+		VoltPath: t.TempDir(),
 		FilePath: "notes/project-plan",
 	})
 	if err != nil {

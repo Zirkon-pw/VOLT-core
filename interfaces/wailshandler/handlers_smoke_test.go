@@ -63,7 +63,7 @@ func TestFileHandlerReadFileUsesCommandManager(t *testing.T) {
 	})
 
 	handler := NewFileHandler(manager, nil)
-	content, err := handler.ReadFile("/tmp/volt", "notes/test.md")
+	content, err := handler.ReadFile(t.TempDir(), "notes/test.md")
 	if err != nil {
 		t.Fatalf("ReadFile() error = %v", err)
 	}

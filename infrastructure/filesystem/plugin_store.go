@@ -15,12 +15,12 @@ import (
 )
 
 const (
-	pluginConfigDir = ".volt"
-	pluginsSubDir   = "plugins"
-	stateFile       = "plugin-state.json"
-	manifestFile    = "manifest.json"
-	dataFile        = "data.json"
-	pluginAPIV4     = 4
+	pluginsSubDir = "plugins"
+	stateFile     = "plugin-state.json"
+	manifestFile  = "manifest.json"
+	dataFile      = "data.json"
+	pluginAPIV4   = 4
+	appName       = "volt"
 )
 
 type PluginStore struct {
@@ -29,18 +29,35 @@ type PluginStore struct {
 	stateFile  string
 }
 
+// getConfigDir returns the cross-platform configuration directory:
+// - Windows: %APPDATA%\volt
+// - macOS: ~/Library/Application Support/volt
+// - Linux: ~/.config/volt
+func getConfigDir() (string, error) {
+	configDir, err := os.UserConfigDir()
+	if err != nil {
+		// Fallback to home directory if UserConfigDir fails
+		home, err := os.UserHomeDir()
+		if err != nil {
+			return "", err
+		}
+		return filepath.Join(home, ".volt"), nil
+	}
+	return filepath.Join(configDir, appName), nil
+}
+
 func NewPluginStore() (*PluginStore, error) {
-	home, err := os.UserHomeDir()
+	configDir, err := getConfigDir()
 	if err != nil {
 		return nil, err
 	}
 
-	pluginsDir := filepath.Join(home, pluginConfigDir, pluginsSubDir)
+	pluginsDir := filepath.Join(configDir, pluginsSubDir)
 	if err := os.MkdirAll(pluginsDir, 0755); err != nil {
 		return nil, err
 	}
 
-	sf := filepath.Join(home, pluginConfigDir, stateFile)
+	sf := filepath.Join(configDir, stateFile)
 
 	return &PluginStore{
 		pluginsDir: pluginsDir,
