@@ -13,6 +13,15 @@
   user-select: none;
   touch-action: none;
 
+  &::before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: -8px;
+    right: -8px;
+    bottom: -8px;
+  }
+
   &:hover {
     color: var(--color-text-primary);
     background: var(--color-bg-hover);
@@ -43,4 +52,15 @@
 .dragActiveBody {
   cursor: grabbing;
   user-select: none;
+}
+
+:global(.dragLiftedBlock) {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 1px 4px rgba(0, 0, 0, 0.1);
+  transform: scale(1.01);
+  opacity: 0.85;
+  transition: box-shadow 0.15s, transform 0.15s, opacity 0.15s;
+  position: relative;
+  z-index: 4;
+  border-radius: var(--radius-md);
+  background: var(--color-bg-primary);
 }

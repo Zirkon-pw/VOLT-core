@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTabStore, type FileTab } from '@entities/tab';
+import { useNavigationStore } from '@entities/navigation';
 import { SearchPopup } from '@features/workspace-search';
 import { PluginPageHost } from '@widgets/plugin-page';
 import { SIDEBAR } from '@shared/config/constants';
+import { Breadcrumbs } from './breadcrumbs/Breadcrumbs';
 import { FileTabs } from './file-tabs/FileTabs';
 import { FileViewHost } from './file-view-host/FileViewHost';
 import { Sidebar } from './sidebar/Sidebar';
@@ -58,6 +60,14 @@ export function WorkspaceShell({ voltId, voltPath }: WorkspaceShellProps) {
   const isPluginTab = activeTab?.type === 'plugin';
   const activeFilePath = activeTab?.type === 'file' ? activeTab.filePath : null;
 
+  const pushNavigation = useNavigationStore((state) => state.push);
+
+  useEffect(() => {
+    if (activeFilePath) {
+      pushNavigation(voltId, activeFilePath);
+    }
+  }, [activeFilePath, voltId, pushNavigation]);
+
   return (
     <div className={styles.layout}>
       <Sidebar
@@ -70,6 +80,7 @@ export function WorkspaceShell({ voltId, voltPath }: WorkspaceShellProps) {
       <div className={styles.main}>
         <FileTabs voltId={voltId} />
         <WorkspaceToolbar />
+        <Breadcrumbs voltId={voltId} />
         <div className={styles.content}>
           {isPluginTab ? (
             <PluginPageHost

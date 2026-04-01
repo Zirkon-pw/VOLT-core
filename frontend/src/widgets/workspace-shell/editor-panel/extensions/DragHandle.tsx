@@ -42,6 +42,7 @@ interface DragSession {
   nodePos: number;
   node: ProseMirrorNode;
   dropPos: number | null;
+  domElement: HTMLElement | null;
 }
 
 export function DragHandle({ editor, scrollContainer }: DragHandleProps) {
@@ -51,12 +52,15 @@ export function DragHandle({ editor, scrollContainer }: DragHandleProps) {
   const handleRef = useRef<HTMLDivElement>(null);
   const dragSessionRef = useRef<DragSession | null>(null);
   const isDragging = useRef(false);
+  const hideTimeoutRef = useRef<number>(0);
 
   const hideHandle = useCallback(() => {
     setHandle((current) => (current.visible ? { ...current, visible: false } : current));
   }, []);
 
   const clearDragState = useCallback(() => {
+    const session = dragSessionRef.current;
+    session?.domElement?.classList.remove('dragLiftedBlock');
     dragSessionRef.current = null;
     isDragging.current = false;
     setDropIndicator(null);
@@ -81,6 +85,10 @@ export function DragHandle({ editor, scrollContainer }: DragHandleProps) {
 
       const pos = view.posAtCoords({ left: clientX, top: clientY });
       if (!pos) {
+        const editorRect = view.dom.getBoundingClientRect();
+        if (clientX >= editorRect.left - 40 && clientX <= editorRect.left + 10) {
+          return;
+        }
         hideHandle();
         return;
       }
@@ -216,6 +224,8 @@ export function DragHandle({ editor, scrollContainer }: DragHandleProps) {
     const eventTarget = container ?? editor.view.dom;
 
     const onMouseMove = (event: PointerEvent) => {
+      clearTimeout(hideTimeoutRef.current);
+
       if (handleRef.current?.contains(event.target as Node)) {
         return;
       }
@@ -229,7 +239,8 @@ export function DragHandle({ editor, scrollContainer }: DragHandleProps) {
         return;
       }
 
-      hideHandle();
+      clearTimeout(hideTimeoutRef.current);
+      hideTimeoutRef.current = window.setTimeout(hideHandle, 150);
     };
 
     const onWindowMouseMove = (event: PointerEvent) => {
@@ -272,6 +283,7 @@ export function DragHandle({ editor, scrollContainer }: DragHandleProps) {
       window.removeEventListener('pointerup', onWindowMouseUp);
       container?.removeEventListener('scroll', handleScroll);
       cancelAnimationFrame(rafRef.current);
+      clearTimeout(hideTimeoutRef.current);
       clearDragState();
     };
   }, [
@@ -299,10 +311,15 @@ export function DragHandle({ editor, scrollContainer }: DragHandleProps) {
       return;
     }
 
+    const dom = view.nodeDOM(handle.nodePos);
+    const domElement = dom instanceof HTMLElement ? dom : null;
+    domElement?.classList.add('dragLiftedBlock');
+
     dragSessionRef.current = {
       nodePos: handle.nodePos,
       node,
       dropPos: null,
+      domElement,
     };
     isDragging.current = true;
     document.body.classList.add(styles.dragActiveBody);

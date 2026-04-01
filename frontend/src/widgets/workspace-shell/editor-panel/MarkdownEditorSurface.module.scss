@@ -258,10 +258,23 @@
         font-size: 0.9em;
       }
 
+      .tableWrapper {
+        overflow-x: auto;
+        margin: 1em 0;
+
+        &::-webkit-scrollbar {
+          height: 4px;
+        }
+
+        &::-webkit-scrollbar-thumb {
+          background: var(--color-border-strong);
+          border-radius: 2px;
+        }
+      }
+
       table {
         border-collapse: collapse;
-        width: 100%;
-        margin: 1em 0;
+        min-width: 100%;
         border-radius: var(--radius-md);
         overflow: hidden;
 

@@ -27,3 +27,6 @@ Thumbs.db
 
 # Other
 .claude/
+.qwen/
+.codex/
+
