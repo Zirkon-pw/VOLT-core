@@ -25,6 +25,16 @@ export function installPlaywrightBootstrap() {
         GetLocalization: async () => localization,
         SetLocale: async () => localization,
       },
+      PluginCatalogHandler: {
+        ListPlugins: async () => [],
+        GetPluginsDirectory: async () => '',
+        PickPluginArchive: async () => '',
+        ImportPluginArchive: async () => {
+          throw new Error('Import is not available in Playwright bootstrap');
+        },
+        DeletePlugin: async () => undefined,
+        SetPluginEnabled: async () => undefined,
+      },
     },
   };
 

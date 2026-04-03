@@ -24,7 +24,10 @@ function AppLayout() {
           <Route path="/settings/plugin/:pluginId" element={<PluginSettingsHostPage />} />
           <Route path="/settings/about" element={<SettingsPage section="about" />} />
           {import.meta.env.DEV && (
-            <Route path="/__playwright__/editor" element={<PlaywrightEditorHarness />} />
+            <>
+              <Route path="/__playwright__/editor" element={<PlaywrightEditorHarness />} />
+              <Route path="/__playwright__/settings/shortcuts" element={<SettingsPage section="shortcuts" />} />
+            </>
           )}
         </Routes>
       </div>
