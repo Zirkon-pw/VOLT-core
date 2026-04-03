@@ -4,6 +4,8 @@ import type { FileEntry } from '@shared/api/file/types';
 import { getEditor } from '@shared/lib/plugin-runtime';
 import { FileTree } from '@widgets/workspace-shell/file-tree/FileTree';
 import { EditorPanel } from '@widgets/workspace-shell/editor-panel/EditorPanel';
+import { FileTabs } from '@widgets/workspace-shell/file-tabs/FileTabs';
+import { Breadcrumbs } from '@widgets/workspace-shell/breadcrumbs/Breadcrumbs';
 import { useFileTreeStore } from '@entities/file-tree';
 import { useTabStore } from '@entities/tab';
 import { useWorkspaceHotkeys } from '@widgets/workspace-shell/model/useWorkspaceHotkeys';
@@ -21,6 +23,7 @@ declare global {
       getSelectionRange: () => { from: number; to: number } | null;
       insertMathBlock: () => void;
       insertMathInline: () => void;
+      insertCodeBlock: () => void;
       reset: () => void;
     };
   }
@@ -76,8 +79,21 @@ Beta paragraph
 | Two | 2 |
 `;
 
-const savedFiles = new Map<string, string>([[FILE_PATH, INITIAL_MARKDOWN]]);
+const INITIAL_FILES = new Map<string, string>([
+  [FILE_PATH, INITIAL_MARKDOWN],
+  ['notes/target.md', '# Target note\n\nSecondary target content.\n'],
+  ['docs/guide.md', '# Guide\n\nLinked guide.\n'],
+]);
+
+const savedFiles = new Map<string, string>(INITIAL_FILES);
 let lastOpenedUrl: string | null = null;
+
+function resetSavedFiles() {
+  savedFiles.clear();
+  INITIAL_FILES.forEach((value, key) => {
+    savedFiles.set(key, value);
+  });
+}
 
 function cloneTree(entries: FileEntry[]): FileEntry[] {
   return entries.map((entry) => ({
@@ -126,8 +142,12 @@ function PlaywrightHotkeysLayer() {
 }
 
 export function PlaywrightEditorHarness() {
+  const activeTabId = useTabStore((state) => state.activeTabs[VOLT_ID] ?? FILE_PATH);
+  const activeTab = useTabStore((state) => (state.tabs[VOLT_ID] ?? []).find((tab) => tab.id === activeTabId) ?? null);
+  const activeFilePath = activeTab?.type === 'file' ? activeTab.filePath : FILE_PATH;
+
   useEffect(() => {
-    savedFiles.set(FILE_PATH, INITIAL_MARKDOWN);
+    resetSavedFiles();
     lastOpenedUrl = null;
 
     window.go = {
@@ -208,8 +228,11 @@ export function PlaywrightEditorHarness() {
       insertMathInline: () => {
         getEditor()?.chain().focus('end').insertContent({ type: 'mathInline', attrs: { latex: '' } }).run();
       },
+      insertCodeBlock: () => {
+        getEditor()?.chain().focus('end').toggleCodeBlock().run();
+      },
       reset: () => {
-        savedFiles.set(FILE_PATH, INITIAL_MARKDOWN);
+        resetSavedFiles();
         lastOpenedUrl = null;
       },
     };
@@ -231,8 +254,10 @@ export function PlaywrightEditorHarness() {
       <div style={{ minWidth: 0, borderRight: '1px solid var(--color-border)' }}>
         <FileTree voltId={VOLT_ID} voltPath={VOLT_PATH} />
       </div>
-      <div style={{ minWidth: 0 }}>
-        <EditorPanel voltId={VOLT_ID} voltPath={VOLT_PATH} filePath={FILE_PATH} />
+      <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', background: 'var(--color-bg-secondary)' }}>
+        <FileTabs voltId={VOLT_ID} />
+        <Breadcrumbs voltId={VOLT_ID} />
+        <EditorPanel voltId={VOLT_ID} voltPath={VOLT_PATH} filePath={activeFilePath} />
       </div>
       <PlaywrightHotkeysLayer />
     </div>

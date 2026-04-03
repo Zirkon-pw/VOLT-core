@@ -24,29 +24,81 @@ export function useAutoSave({
   transformMarkdown,
 }: UseAutoSaveOptions) {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const trackingSuppressionsRef = useRef(0);
+  const persistedMarkdownRef = useRef<string | null>(null);
   const setDirty = useTabStore((s) => s.setDirty);
+
+  const getSerializedMarkdown = useCallback(() => {
+    if (!editor) {
+      return null;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const markdownStorage = (editor.storage as any).markdown;
+    const getMarkdown = markdownStorage?.getMarkdown;
+    if (typeof getMarkdown !== 'function') {
+      return null;
+    }
+
+    const nextMarkdown = getMarkdown.call(markdownStorage) as string;
+    return transformMarkdown ? transformMarkdown(nextMarkdown) : nextMarkdown;
+  }, [editor, transformMarkdown]);
+
+  const markPersisted = useCallback((markdown: string | null) => {
+    persistedMarkdownRef.current = markdown;
+
+    if (filePath) {
+      setDirty(voltId, filePath, false);
+    }
+  }, [filePath, setDirty, voltId]);
+
+  const withTrackingSuppressed = useCallback((mutate: () => void) => {
+    trackingSuppressionsRef.current += 1;
+
+    try {
+      mutate();
+    } finally {
+      requestAnimationFrame(() => {
+        trackingSuppressionsRef.current = Math.max(0, trackingSuppressionsRef.current - 1);
+      });
+    }
+  }, []);
 
   const save = useCallback(async () => {
     if (!editor || !filePath) return;
 
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      let markdown = (editor.storage as any).markdown.getMarkdown();
-      if (transformMarkdown) {
-        markdown = transformMarkdown(markdown);
+      const markdown = getSerializedMarkdown();
+      if (markdown == null) {
+        return;
       }
+
+      if (markdown === persistedMarkdownRef.current) {
+        setDirty(voltId, filePath, false);
+        return;
+      }
+
       await writeFile(voltPath, filePath, markdown);
-      setDirty(voltId, filePath, false);
+      markPersisted(markdown);
       emit('file-save', filePath);
     } catch (e) {
       console.error('Auto-save failed:', e);
     }
-  }, [editor, voltPath, filePath, voltId, setDirty, transformMarkdown]);
+  }, [editor, filePath, getSerializedMarkdown, markPersisted, setDirty, voltId, voltPath]);
 
   useEffect(() => {
     if (!editor || !filePath) return;
 
     const handleUpdate = () => {
+      if (trackingSuppressionsRef.current > 0) {
+        return;
+      }
+
       setDirty(voltId, filePath, true);
       emit('editor-change', undefined);
 
@@ -54,7 +106,7 @@ export function useAutoSave({
         clearTimeout(timerRef.current);
       }
       timerRef.current = setTimeout(() => {
-        save();
+        void save();
       }, delay);
     };
 
@@ -64,9 +116,19 @@ export function useAutoSave({
       editor.off('update', handleUpdate);
       if (timerRef.current) {
         clearTimeout(timerRef.current);
+        timerRef.current = null;
+        void save();
       }
     };
   }, [editor, filePath, voltId, delay, save, setDirty]);
 
-  return { save };
+  useEffect(() => {
+    persistedMarkdownRef.current = null;
+  }, [filePath]);
+
+  return {
+    save,
+    markPersisted,
+    withTrackingSuppressed,
+  };
 }

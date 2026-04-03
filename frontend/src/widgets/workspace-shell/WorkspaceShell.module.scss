@@ -2,6 +2,7 @@
   display: flex;
   height: 100%;
   overflow: hidden;
+  background: color-mix(in srgb, var(--color-bg-secondary) 92%, var(--color-bg-primary));
 }
 
 .main {
@@ -10,6 +11,7 @@
   flex: 1;
   min-width: 0;
   overflow: hidden;
+  background: color-mix(in srgb, var(--color-bg-secondary) 90%, var(--color-bg-primary));
 }
 
 .content {
@@ -17,6 +19,7 @@
   flex: 1;
   min-width: 0;
   min-height: 0;
+  background: var(--color-bg-secondary);
 }
 
 .plugin-page {
@@ -24,4 +27,5 @@
   min-width: 0;
   min-height: 0;
   overflow: auto;
+  background: var(--color-bg-primary);
 }

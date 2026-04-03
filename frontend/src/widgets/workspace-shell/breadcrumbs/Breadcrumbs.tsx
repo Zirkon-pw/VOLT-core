@@ -53,7 +53,7 @@ export function Breadcrumbs({ voltId }: BreadcrumbsProps) {
   if (!filePath) return null;
 
   return (
-    <div className={styles.bar}>
+    <div className={styles.bar} data-testid="breadcrumbs">
       <div className={styles.navButtons}>
         <button
           className={styles.navBtn}
@@ -76,7 +76,11 @@ export function Breadcrumbs({ voltId }: BreadcrumbsProps) {
         {segments.map((segment, i) => (
           <Fragment key={i}>
             {i > 0 && <Icon name="chevronRight" size={10} className={styles.separator} />}
-            <span className={i === segments.length - 1 ? styles.activeCrumb : styles.crumb}>
+            <span
+              className={i === segments.length - 1 ? styles.activeCrumb : styles.crumb}
+              data-testid={i === segments.length - 1 ? 'breadcrumb-active' : 'breadcrumb-segment'}
+              title={segment}
+            >
               {segment}
             </span>
           </Fragment>

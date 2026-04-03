@@ -114,11 +114,12 @@ test('opens external links and internal note links', async ({ page }) => {
   await page.locator('.ProseMirror a[href="https://example.com"]').click();
   await expect.poll(async () => page.evaluate(() => window.__VOLT_PLAYWRIGHT__?.getOpenedUrl() ?? null)).toBe('https://example.com');
 
-  await page.locator('.ProseMirror a[href="../docs/guide.md"]').click();
-  await expect.poll(async () => page.evaluate(() => window.__VOLT_PLAYWRIGHT__?.getActiveTab() ?? null)).toBe('docs/guide.md');
-
   await page.locator('.ProseMirror a[href="../files/spec.pdf"]').click();
   await expect.poll(async () => page.evaluate(() => window.__VOLT_PLAYWRIGHT__?.getActiveTab() ?? null)).toBe('files/spec.pdf');
+
+  await page.locator('[data-testid="file-tab"][data-path="notes/test.md"]').click();
+  await page.locator('.ProseMirror a[href="../docs/guide.md"]').click();
+  await expect.poll(async () => page.evaluate(() => window.__VOLT_PLAYWRIGHT__?.getActiveTab() ?? null)).toBe('docs/guide.md');
 });
 
 test('inserts a file link once from the picker', async ({ page }) => {
@@ -138,6 +139,46 @@ test('inserts a file link once from the picker', async ({ page }) => {
   await expect(link).toHaveCount(1);
   await link.click();
   await expect.poll(async () => page.evaluate(() => window.__VOLT_PLAYWRIGHT__?.getActiveTab() ?? null)).toBe('notes/target.md');
+});
+
+test('restores the editor selection after closing the link picker', async ({ page }) => {
+  const editor = page.locator('.ProseMirror');
+
+  await editor.click();
+  await page.keyboard.press(`${modKey}+End`);
+  await page.keyboard.press('Enter');
+  await page.evaluate(() => {
+    window.dispatchEvent(new CustomEvent('volt:pick-link'));
+  });
+
+  await expect(page.getByTestId('link-file-picker')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.getByTestId('link-file-picker')).toBeHidden();
+
+  await page.keyboard.type('Cursor restored');
+  await expect.poll(async () => page.evaluate(() => window.__VOLT_PLAYWRIGHT__?.getMarkdown() ?? null)).toContain('Cursor restored');
+});
+
+test('closes slash commands on escape and inserts math blocks from the slash menu', async ({ page }) => {
+  const editor = page.locator('.ProseMirror');
+
+  await editor.click();
+  await page.keyboard.press(`${modKey}+End`);
+  await page.keyboard.press('Enter');
+  await page.keyboard.type('/');
+  await expect(page.getByTestId('slash-command-menu')).toBeVisible();
+
+  await page.keyboard.press('Escape');
+  await expect(page.getByTestId('slash-command-menu')).toBeHidden();
+
+  await page.keyboard.press('Enter');
+  await page.keyboard.type('/math');
+  await expect(page.getByTestId('slash-command-menu')).toBeVisible();
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('Enter');
+
+  await expect(page.locator('.math-block-node')).toBeVisible();
+  await expect.poll(async () => page.evaluate(() => window.__VOLT_PLAYWRIGHT__?.getMarkdown() ?? null)).toContain('$$');
 });
 
 test('does not show table toolbar on hover only, but shows notion-like controls on selection', async ({ page }) => {
@@ -216,4 +257,42 @@ test('keeps the drag handle visible and reorders blocks', async ({ page }) => {
   const alphaIndex = paragraphs.findIndex((text) => text.includes('Alpha paragraph'));
   const betaIndex = paragraphs.findIndex((text) => text.includes('Beta paragraph'));
   expect(alphaIndex).toBeGreaterThan(betaIndex);
+});
+
+test('flushes pending autosave before switching files and updates shell chrome', async ({ page }) => {
+  const editor = page.locator('.ProseMirror');
+
+  await editor.click();
+  await page.keyboard.press(`${modKey}+End`);
+  await page.keyboard.press('Enter');
+  await page.keyboard.type('Pending save survives file switch');
+
+  await page.locator('[data-testid="file-tree-item"][data-path="notes/target.md"]').click();
+
+  await expect.poll(async () => page.evaluate(() => window.__VOLT_PLAYWRIGHT__?.getSavedFile('notes/test.md') ?? null)).toContain('Pending save survives file switch');
+  await expect.poll(async () => page.evaluate(() => window.__VOLT_PLAYWRIGHT__?.getActiveTab() ?? null)).toBe('notes/target.md');
+  await expect(page.locator('[data-testid="file-tab"][data-path="notes/target.md"]')).toBeVisible();
+  await expect(page.getByTestId('breadcrumb-active')).toHaveText('target.md');
+});
+
+test('sets the code block language from the floating selector and closes it on escape', async ({ page }) => {
+  await page.evaluate(() => {
+    window.__VOLT_PLAYWRIGHT__?.insertCodeBlock();
+  });
+
+  const languageButton = page.getByTestId('codeblock-language-button');
+  await expect(languageButton).toBeVisible();
+
+  await languageButton.click();
+  const dropdown = page.getByTestId('codeblock-language-dropdown');
+  await expect(dropdown).toBeVisible();
+
+  await page.getByTestId('codeblock-language-search').fill('javascript');
+  await page.locator('[data-testid="codeblock-language-item"][data-language="javascript"]').click();
+  await expect.poll(async () => page.evaluate(() => window.__VOLT_PLAYWRIGHT__?.getMarkdown() ?? null)).toContain('```javascript');
+
+  await languageButton.click();
+  await expect(dropdown).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(dropdown).toBeHidden();
 });

@@ -6,6 +6,10 @@
   --color-bg-tertiary: #f0f0ee;
   --color-bg-hover: rgba(55, 53, 47, 0.04);
   --color-bg-active: rgba(55, 53, 47, 0.08);
+  --color-surface-elevated: rgba(255, 255, 255, 0.94);
+  --color-surface-overlay: rgba(255, 255, 255, 0.9);
+  --color-selection-bg: rgba(46, 170, 220, 0.18);
+  --color-selection-border: rgba(46, 170, 220, 0.42);
 
   --color-text-primary: #37352f;
   --color-text-secondary: #787774;
@@ -31,6 +35,8 @@
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
   --shadow-popup: 0 4px 16px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.04);
+  --shadow-floating: 0 14px 34px rgba(15, 23, 42, 0.12), 0 0 0 1px rgba(15, 23, 42, 0.05);
+  --overlay-backdrop: rgba(15, 23, 42, 0.26);
 
   --code-color-text: #1f2937;
   --code-color-comment: #6b7280;
@@ -48,6 +54,10 @@
   --color-bg-tertiary: #2f2f2f;
   --color-bg-hover: rgba(255, 255, 255, 0.06);
   --color-bg-active: rgba(255, 255, 255, 0.1);
+  --color-surface-elevated: rgba(25, 25, 25, 0.92);
+  --color-surface-overlay: rgba(32, 32, 32, 0.9);
+  --color-selection-bg: rgba(82, 156, 202, 0.24);
+  --color-selection-border: rgba(82, 156, 202, 0.44);
 
   --color-text-primary: rgba(255, 255, 255, 0.81);
   --color-text-secondary: rgba(255, 255, 255, 0.45);
@@ -73,6 +83,8 @@
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3);
   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.4);
   --shadow-popup: 0 4px 16px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.06);
+  --shadow-floating: 0 18px 42px rgba(0, 0, 0, 0.38), 0 0 0 1px rgba(255, 255, 255, 0.06);
+  --overlay-backdrop: rgba(0, 0, 0, 0.42);
 
   --code-color-text: #f3f4f6;
   --code-color-comment: #8b949e;

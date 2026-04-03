@@ -34,10 +34,10 @@
   position: absolute;
   top: var(--space-1);
   right: var(--space-2);
-  z-index: 100;
+  z-index: var(--z-editor-chrome);
   padding: 4px var(--space-2);
   border: 1px solid transparent;
-  background: var(--color-bg-tertiary);
+  background: color-mix(in srgb, var(--color-bg-tertiary) 92%, var(--color-bg-primary));
   color: var(--color-text-tertiary);
   font-size: var(--font-size-xs);
   cursor: pointer;
@@ -89,15 +89,16 @@
 
 .codeblock-lang-dropdown {
   position: fixed;
-  z-index: 9999;
+  z-index: var(--z-dialog-surface);
   width: 250px;
   max-height: 280px;
   display: flex;
   flex-direction: column;
-  background-color: var(--color-bg-primary);
+  background-color: var(--color-surface-elevated);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  box-shadow: var(--shadow-popup);
+  box-shadow: var(--shadow-floating);
+  backdrop-filter: blur(14px);
   overflow: hidden;
   opacity: 0;
   pointer-events: none;

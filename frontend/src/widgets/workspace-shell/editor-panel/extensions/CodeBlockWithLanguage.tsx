@@ -73,6 +73,7 @@ function createLanguageSelector(
   button.setAttribute('aria-haspopup', 'dialog');
   button.setAttribute('aria-expanded', 'false');
   button.setAttribute('aria-label', translate('common.language'));
+  button.dataset.testid = 'codeblock-language-button';
   button.dataset.open = 'false';
 
   const buttonText = document.createElement('span');
@@ -90,6 +91,7 @@ function createLanguageSelector(
   const dropdown = document.createElement('div');
   dropdown.className = 'codeblock-lang-dropdown';
   dropdown.contentEditable = 'false';
+  dropdown.dataset.testid = 'codeblock-language-dropdown';
   dropdown.style.position = 'fixed';
   dropdown.style.top = '0';
   dropdown.style.left = '0';
@@ -101,6 +103,7 @@ function createLanguageSelector(
   searchInput.type = 'text';
   searchInput.className = 'codeblock-lang-search';
   searchInput.placeholder = getSearchPlaceholder();
+  searchInput.dataset.testid = 'codeblock-language-search';
   dropdown.appendChild(searchInput);
 
   const list = document.createElement('div');
@@ -129,6 +132,8 @@ function createLanguageSelector(
       const item = document.createElement('button');
       item.type = 'button';
       item.className = 'codeblock-lang-item';
+      item.dataset.testid = 'codeblock-language-item';
+      item.dataset.language = option.value || 'plain-text';
       if (option.value === currentLanguage) {
         item.classList.add('codeblock-lang-item-active');
       }

@@ -5,6 +5,8 @@
   min-height: 0;
   min-width: 0;
   overflow: hidden;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--color-bg-secondary) 88%, var(--color-bg-primary)), var(--color-bg-secondary));
 }
 
 .editor-content {
@@ -14,44 +16,62 @@
   overflow-y: auto;
 
   position: relative;
+  scroll-padding-top: calc(var(--space-10) + 32px);
 
   :global {
     .tiptap {
       max-width: var(--content-max-width);
       margin: 0 auto;
-      padding: var(--space-10) var(--space-16) var(--space-10) calc(var(--space-16) + 24px);
+      padding:
+        var(--space-10)
+        min(max(var(--space-4), 6vw), var(--editor-side-padding))
+        calc(var(--space-12) + 24px)
+        calc(min(max(var(--space-4), 6vw), var(--editor-side-padding)) + 24px);
     }
 
     .ProseMirror {
       outline: none;
       min-height: calc(100vh - 200px);
+      color: var(--color-text-primary);
+
+      ::selection {
+        background: var(--color-selection-bg);
+      }
 
       > * + * {
-        margin-top: 0.75em;
+        margin-top: 0.85em;
       }
 
       h1 {
         font-size: var(--font-size-3xl);
-        margin-top: 2em;
+        letter-spacing: -0.03em;
+        line-height: 1.1;
+        margin-top: 1.7em;
+        margin-bottom: 0.2em;
       }
 
       h2 {
         font-size: var(--font-size-2xl);
-        margin-top: 1.5em;
+        letter-spacing: -0.024em;
+        line-height: 1.2;
+        margin-top: 1.35em;
+        margin-bottom: 0.2em;
       }
 
       h3 {
         font-size: var(--font-size-xl);
-        margin-top: 1.2em;
+        line-height: 1.25;
+        margin-top: 1.1em;
+        margin-bottom: 0.18em;
       }
 
       p {
-        line-height: 1.7;
+        line-height: 1.78;
       }
 
       code {
-        background: var(--color-bg-tertiary);
-        padding: 2px 4px;
+        background: color-mix(in srgb, var(--color-bg-tertiary) 86%, var(--color-bg-primary));
+        padding: 2px 5px;
         border-radius: var(--radius-sm);
         font-size: 0.9em;
       }
@@ -59,7 +79,7 @@
       pre {
         background: var(--color-bg-tertiary);
         padding: var(--space-4);
-        border-radius: var(--radius-md);
+        border-radius: var(--radius-lg);
 
         code {
           background: none;
@@ -71,6 +91,7 @@
         border-left: 3px solid var(--color-border-strong);
         padding-left: var(--space-4);
         color: var(--color-text-secondary);
+        margin-left: 2px;
       }
 
       ul:not([data-type="taskList"]) {
@@ -187,10 +208,11 @@
       img {
         max-width: 100%;
         height: auto;
-        border-radius: var(--radius-md);
+        border-radius: var(--radius-lg);
         cursor: default;
         display: block;
         margin: 0.5em 0;
+        box-shadow: var(--shadow-sm);
 
         &.ProseMirror-selectednode {
           outline: 2px solid var(--color-accent);
@@ -231,8 +253,9 @@
       .math-block-node {
         margin: 1em 0;
         padding: var(--space-4);
-        border-radius: var(--radius-md);
-        background: var(--color-bg-tertiary);
+        border-radius: var(--radius-lg);
+        background: color-mix(in srgb, var(--color-bg-tertiary) 90%, var(--color-bg-primary));
+        border: 1px solid color-mix(in srgb, var(--color-border) 88%, transparent);
         cursor: pointer;
         text-align: center;
         transition: background-color var(--transition-fast);
@@ -271,6 +294,7 @@
       .tableWrapper {
         overflow-x: auto;
         margin: 1em 0;
+        border-radius: var(--radius-lg);
 
         &::-webkit-scrollbar {
           height: 4px;
@@ -285,13 +309,15 @@
       table {
         border-collapse: collapse;
         min-width: 100%;
-        border-radius: var(--radius-md);
+        border-radius: var(--radius-lg);
         overflow: hidden;
+        background: var(--color-bg-primary);
+        box-shadow: 0 1px 0 color-mix(in srgb, var(--color-border) 80%, transparent);
 
         th,
         td {
           border: 1px solid var(--color-border);
-          padding: var(--space-2) var(--space-3);
+          padding: 10px var(--space-3);
           text-align: left;
           min-width: 80px;
           vertical-align: top;

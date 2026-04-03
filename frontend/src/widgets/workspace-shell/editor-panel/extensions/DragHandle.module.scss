@@ -8,8 +8,8 @@
   cursor: grab;
   color: var(--color-text-tertiary);
   border-radius: var(--radius-sm);
-  transition: color 0.15s, background-color 0.15s;
-  z-index: 5;
+  transition: color 0.15s, background-color 0.15s, box-shadow 0.15s;
+  z-index: var(--z-editor-chrome);
   user-select: none;
   touch-action: none;
 
@@ -24,7 +24,8 @@
 
   &:hover {
     color: var(--color-text-primary);
-    background: var(--color-bg-hover);
+    background: var(--color-surface-elevated);
+    box-shadow: var(--shadow-md);
   }
 
   &:active {
@@ -35,7 +36,8 @@
 .dragHandleActive {
   cursor: grabbing;
   color: var(--color-text-primary);
-  background: var(--color-bg-hover);
+  background: var(--color-surface-elevated);
+  box-shadow: var(--shadow-md);
 }
 
 .dropIndicator {
@@ -46,7 +48,7 @@
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-accent) 18%, transparent);
   transform: translateY(-1px);
   pointer-events: none;
-  z-index: 6;
+  z-index: calc(var(--z-editor-chrome) + 1);
 }
 
 .dragActiveBody {
@@ -55,12 +57,12 @@
 }
 
 :global(.dragLiftedBlock) {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 1px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-floating);
   transform: scale(1.01);
   opacity: 0.85;
   transition: box-shadow 0.15s, transform 0.15s, opacity 0.15s;
   position: relative;
-  z-index: 4;
+  z-index: var(--z-editor-chrome);
   border-radius: var(--radius-md);
   background: var(--color-bg-primary);
 }

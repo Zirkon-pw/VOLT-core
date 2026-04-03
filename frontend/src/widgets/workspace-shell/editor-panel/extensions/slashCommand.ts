@@ -226,7 +226,7 @@ export const SlashCommand = Extension.create({
 
             onKeyDown: (props: any) => {
               if (props.event.key === 'Escape') {
-                return true;
+                return false;
               }
               return menuRef.current?.onKeyDown(props.event) ?? false;
             },

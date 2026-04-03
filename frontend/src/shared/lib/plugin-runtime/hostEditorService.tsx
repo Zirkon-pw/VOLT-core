@@ -416,11 +416,15 @@ function MarkdownEditorDriver({
   const setDirty = useTabStore((state) => state.setDirty);
   const [embeddedDirty, setEmbeddedDirty] = useState(false);
 
-  const { save: saveFileTab } = useAutoSave({
+  const {
+    save: saveFileTab,
+    markPersisted,
+    withTrackingSuppressed,
+  } = useAutoSave({
     editor,
     voltId: voltId ?? '',
     voltPath,
-    filePath,
+    filePath: mode === 'file-tab' ? filePath : null,
     transformMarkdown: unresolveAll,
   });
   const { handleDrop, handleDragOver, handlePaste } = useImageHandlers({
@@ -562,8 +566,11 @@ function MarkdownEditorDriver({
         if (cancelled) {
           return;
         }
-        editor.commands.setContent(content);
-        editor.commands.setTextSelection(1);
+        withTrackingSuppressed(() => {
+          editor.commands.setContent(content);
+          editor.commands.setTextSelection(1);
+        });
+        markPersisted(raw);
         loadedPathRef.current = filePath;
         if (mode === 'file-tab' && voltId) {
           setDirty(voltId, filePath, false);
@@ -580,7 +587,22 @@ function MarkdownEditorDriver({
     return () => {
       cancelled = true;
     };
-  }, [clear, consumePendingRename, controller, editor, filePath, mode, pendingRename, resolveAll, saveFileTab, setDirty, voltId, voltPath]);
+  }, [
+    clear,
+    consumePendingRename,
+    controller,
+    editor,
+    filePath,
+    markPersisted,
+    mode,
+    pendingRename,
+    resolveAll,
+    saveFileTab,
+    setDirty,
+    voltId,
+    voltPath,
+    withTrackingSuppressed,
+  ]);
 
   useEffect(() => {
     if (mode === 'file-tab') {

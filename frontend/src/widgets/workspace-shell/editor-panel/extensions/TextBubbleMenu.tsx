@@ -71,13 +71,35 @@ export function TextBubbleMenu({ editor }: TextBubbleMenuProps) {
     event.preventDefault();
   };
 
-  const closeTransientPanels = useCallback(() => {
+  const rememberSelection = useCallback(() => {
+    const { from, to } = editor.state.selection;
+    savedSelectionRef.current = { from, to };
+  }, [editor]);
+
+  const restoreSelection = useCallback(() => {
+    const saved = savedSelectionRef.current;
+    if (!saved) {
+      editor.chain().focus().run();
+      return;
+    }
+
+    try {
+      editor.chain().focus().setTextSelection(saved).run();
+    } catch {
+      editor.chain().focus().run();
+    }
+  }, [editor]);
+
+  const closeTransientPanels = useCallback(({ restoreEditorFocus = false }: { restoreEditorFocus?: boolean } = {}) => {
     setShowColors(false);
     setShowHighlight(false);
     setShowLinkInput(false);
     setLinkUrl('');
+    if (restoreEditorFocus) {
+      restoreSelection();
+    }
     savedSelectionRef.current = null;
-  }, []);
+  }, [restoreSelection]);
 
   useEffect(() => {
     if (!showLinkInput && !showColors && !showHighlight) {
@@ -88,13 +110,13 @@ export function TextBubbleMenu({ editor }: TextBubbleMenuProps) {
       if (menuRef.current?.contains(event.target as Node)) {
         return;
       }
-      closeTransientPanels();
+      closeTransientPanels({ restoreEditorFocus: true });
     };
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         event.preventDefault();
-        closeTransientPanels();
+        closeTransientPanels({ restoreEditorFocus: true });
       }
     };
 
@@ -113,8 +135,7 @@ export function TextBubbleMenu({ editor }: TextBubbleMenuProps) {
   const toggleStrike = () => editor.chain().focus().toggleStrike().run();
 
   const openLinkInput = () => {
-    const { from, to } = editor.state.selection;
-    savedSelectionRef.current = { from, to };
+    rememberSelection();
     const existingUrl = editor.getAttributes('link').href ?? '';
     setLinkUrl(existingUrl);
     setShowLinkInput(true);
@@ -159,9 +180,7 @@ export function TextBubbleMenu({ editor }: TextBubbleMenuProps) {
       applyLink();
     } else if (e.key === 'Escape') {
       e.preventDefault();
-      savedSelectionRef.current = null;
-      setShowLinkInput(false);
-      setLinkUrl('');
+      closeTransientPanels({ restoreEditorFocus: true });
     }
   };
 
@@ -182,12 +201,18 @@ export function TextBubbleMenu({ editor }: TextBubbleMenuProps) {
   };
 
   const toggleColorsPanel = () => {
+    if (!showColors) {
+      rememberSelection();
+    }
     setShowColors((v) => !v);
     setShowHighlight(false);
     setShowLinkInput(false);
   };
 
   const toggleHighlightPanel = () => {
+    if (!showHighlight) {
+      rememberSelection();
+    }
     setShowHighlight((v) => !v);
     setShowColors(false);
     setShowLinkInput(false);

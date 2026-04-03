@@ -46,9 +46,12 @@ export function TableControls({ editor, scrollContainer }: TableControlsProps) {
     event.stopPropagation();
   }, []);
 
-  const closeColorPicker = useCallback(() => {
+  const closeColorPicker = useCallback((restoreEditorFocus = false) => {
     setShowColors(false);
-  }, []);
+    if (restoreEditorFocus) {
+      editor.chain().focus().run();
+    }
+  }, [editor]);
 
   const getContainer = useCallback(
     () => scrollContainer ?? editor.view.dom.parentElement,
@@ -96,9 +99,16 @@ export function TableControls({ editor, scrollContainer }: TableControlsProps) {
       return;
     }
 
+    const toolbarWidth = toolbarRef.current?.offsetWidth ?? 308;
+    const toolbarHeight = toolbarRef.current?.offsetHeight ?? 48;
+    const containerWidth = container?.clientWidth ?? window.innerWidth;
+    const minAnchorLeft = toolbarWidth + 12;
+    const maxAnchorLeft = Math.max(minAnchorLeft, containerWidth - 12);
+    const anchorLeft = tableRect.right - containerLeft + scrollOffset.x;
+
     setToolbarPos({
-      left: tableRect.right - containerLeft + scrollOffset.x,
-      top: tableRect.top - containerTop + scrollOffset.y,
+      left: Math.min(Math.max(anchorLeft, minAnchorLeft), maxAnchorLeft),
+      top: Math.max(toolbarHeight + 12, tableRect.top - containerTop + scrollOffset.y),
     });
   }, [editor, getContainer]);
 
@@ -162,13 +172,13 @@ export function TableControls({ editor, scrollContainer }: TableControlsProps) {
       if (toolbarRef.current?.contains(event.target as Node)) {
         return;
       }
-      closeColorPicker();
+      closeColorPicker(true);
     };
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         event.preventDefault();
-        closeColorPicker();
+        closeColorPicker(true);
       }
     };
 
@@ -323,7 +333,7 @@ export function TableControls({ editor, scrollContainer }: TableControlsProps) {
               <ColorPicker
                 value={currentCellColor}
                 onChange={applyColor}
-                onPresetClick={closeColorPicker}
+                onPresetClick={() => closeColorPicker()}
                 presets={CELL_COLORS}
               />
             </div>

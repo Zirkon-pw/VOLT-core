@@ -3,17 +3,17 @@
   width: 20px;
   height: 20px;
   border-radius: 999px;
-  background: var(--color-bg-primary);
+  background: var(--color-surface-elevated);
   border: 1px solid var(--color-border);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  z-index: 10;
+  z-index: var(--z-editor-chrome);
   color: var(--color-text-tertiary);
   transition: opacity 0.15s, background-color 0.15s, color 0.15s, border-color 0.15s;
   padding: 0;
-  box-shadow: var(--shadow-popup, 0 8px 20px rgba(0, 0, 0, 0.1));
+  box-shadow: var(--shadow-floating);
 
   &:hover {
     background: var(--color-accent);
@@ -32,16 +32,16 @@
 
 .toolbar {
   position: absolute;
-  z-index: 11;
+  z-index: calc(var(--z-editor-chrome) + 1);
   display: flex;
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-2);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  background: color-mix(in srgb, var(--color-bg-primary) 92%, transparent);
-  box-shadow: var(--shadow-popup, 0 10px 24px rgba(0, 0, 0, 0.12));
-  backdrop-filter: blur(10px);
+  background: var(--color-surface-overlay);
+  box-shadow: var(--shadow-floating);
+  backdrop-filter: blur(12px);
   transform: translate(-100%, calc(-100% - 10px));
 }
 

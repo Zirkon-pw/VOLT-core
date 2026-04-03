@@ -94,7 +94,13 @@ export function EditorPanel({ voltId, voltPath, filePath }: EditorPanelProps) {
     return voltTabs.find((tab) => tab.id === filePath) ?? null;
   });
 
-  const { save } = useAutoSave({ editor, voltId, voltPath, filePath, transformMarkdown: unresolveAll });
+  const { save, markPersisted, withTrackingSuppressed } = useAutoSave({
+    editor,
+    voltId,
+    voltPath,
+    filePath,
+    transformMarkdown: unresolveAll,
+  });
   const { handleDrop, handleDragOver, handlePaste } = useImageHandlers({
     editor, voltId, voltPath, filePath, imageDir, resolve, register, notifyFsMutation,
   });
@@ -286,8 +292,11 @@ export function EditorPanel({ voltId, voltPath, filePath }: EditorPanelProps) {
         if (cancelled) return;
         const content = await resolveAll(raw);
         if (cancelled) return;
-        editor.commands.setContent(content);
-        editor.commands.setTextSelection(1);
+        withTrackingSuppressed(() => {
+          editor.commands.setContent(content);
+          editor.commands.setTextSelection(1);
+        });
+        markPersisted(raw);
         loadedPathRef.current = filePath;
         emit('file-open', filePath);
       } catch (e) {
@@ -296,7 +305,19 @@ export function EditorPanel({ voltId, voltPath, filePath }: EditorPanelProps) {
     })();
 
     return () => { cancelled = true; };
-  }, [clear, consumePendingRename, editor, filePath, pendingRename, resolveAll, save, voltId, voltPath]);
+  }, [
+    clear,
+    consumePendingRename,
+    editor,
+    filePath,
+    markPersisted,
+    pendingRename,
+    resolveAll,
+    save,
+    voltId,
+    voltPath,
+    withTrackingSuppressed,
+  ]);
 
   useEffect(() => {
     if (!filePath) return;

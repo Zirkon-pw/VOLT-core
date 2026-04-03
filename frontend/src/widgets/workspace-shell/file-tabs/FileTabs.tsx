@@ -28,13 +28,15 @@ export function FileTabs({ voltId }: FileTabsProps) {
   };
 
   return (
-    <div className={styles.bar}>
+    <div className={styles.bar} data-testid="file-tabs">
       {voltTabs.map((tab, index) => {
         const tabLabel = tab.fileName;
 
         return (
           <div
             key={tab.id}
+            data-testid="file-tab"
+            data-path={tab.id}
             className={`${styles.tab} ${tab.id === activeTabId ? styles.active : ''} ${dragIndex === index ? styles.dragging : ''} ${dragOverIndex === index ? styles.dragOver : ''}`}
             onClick={() => setActiveTab(voltId, tab.id)}
             onMouseDown={(e) => handleMouseDown(e, tab.id)}
@@ -61,7 +63,7 @@ export function FileTabs({ voltId }: FileTabsProps) {
               setDragOverIndex(null);
             }}
           >
-            <span className={styles.label}>
+            <span className={styles.label} title={tabLabel}>
               {tab.isDirty && <span className={styles.dirty} />}
               {tabLabel}
             </span>

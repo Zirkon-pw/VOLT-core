@@ -59,12 +59,19 @@ export const SlashCommandMenu = forwardRef<
   if (items.length === 0) return null;
 
   return (
-    <div ref={containerRef} className={styles.menu}>
+    <div
+      ref={containerRef}
+      className={styles.menu}
+      data-testid="slash-command-menu"
+      role="listbox"
+    >
       {items.map((item, index) => (
         <button
           key={item.title}
           data-index={index}
+          data-testid="slash-command-item"
           className={`${styles.item} ${index === selectedIndex ? styles.selected : ''}`}
+          aria-selected={index === selectedIndex}
           onMouseDown={(event) => {
             event.preventDefault();
           }}
