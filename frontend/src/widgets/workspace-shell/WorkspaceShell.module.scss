@@ -1,37 +1,85 @@
 .layout {
   display: flex;
+  gap: var(--space-2);
   height: 100%;
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  background:
-    radial-gradient(circle at top left, color-mix(in srgb, var(--color-tint-sage) 46%, transparent), transparent 30%),
-    linear-gradient(180deg, color-mix(in srgb, var(--color-bg-secondary) 88%, var(--color-bg-primary)), var(--color-bg-primary));
+  background: transparent;
 }
 
 .main {
+  position: relative;
   display: flex;
   flex-direction: column;
   flex: 1;
+  gap: 0;
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  background:
-    linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--color-surface-raised) 44%, transparent),
-      color-mix(in srgb, var(--color-bg-secondary) 90%, var(--color-bg-primary))
-    );
+  border-radius: 28px;
+  background: color-mix(in srgb, var(--color-surface-elevated) 92%, var(--color-surface-chrome));
+  border: 1px solid color-mix(in srgb, var(--color-border) 72%, transparent);
+  box-shadow: none;
+  backdrop-filter: blur(var(--chrome-blur)) saturate(116%);
+  isolation: isolate;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--chrome-hairline) 42%, transparent);
+  }
+}
+
+.chromeStack {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 0;
+  padding: var(--space-3) var(--space-3) 0;
+  background: transparent;
+  overflow: visible;
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: var(--space-4);
+    right: var(--space-4);
+    bottom: 0;
+    height: 1px;
+    pointer-events: none;
+    background: color-mix(in srgb, var(--chrome-border) 74%, transparent);
+  }
 }
 
 .content {
+  position: relative;
   display: flex;
   flex: 1;
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--color-bg-secondary) 84%, var(--color-bg-primary)), var(--color-bg-primary));
+  margin: var(--space-2) var(--space-3) var(--space-3);
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--color-surface-raised) 94%, var(--color-bg-primary));
+  border: 1px solid color-mix(in srgb, var(--color-border) 58%, transparent);
+}
+
+.breadcrumbsOverlay {
+  position: absolute;
+  top: var(--space-3);
+  left: var(--space-3);
+  right: var(--space-3);
+  z-index: 2;
+  pointer-events: none;
+
+  > * {
+    pointer-events: auto;
+  }
 }
 
 .plugin-page {
@@ -40,13 +88,25 @@
   min-height: 0;
   overflow: auto;
   overscroll-behavior: contain;
-  background: color-mix(in srgb, var(--color-surface-raised) 92%, var(--color-bg-primary));
+  background: color-mix(in srgb, var(--color-surface-raised) 96%, var(--color-bg-primary));
 }
 
 @media (max-width: 960px) {
   .layout {
-    background:
-      radial-gradient(circle at top left, color-mix(in srgb, var(--color-tint-sage) 34%, transparent), transparent 28%),
-      linear-gradient(180deg, color-mix(in srgb, var(--color-bg-secondary) 84%, var(--color-bg-primary)), var(--color-bg-primary));
+    gap: var(--space-2);
+  }
+
+  .chromeStack {
+    padding: var(--space-2) var(--space-3) 0;
+  }
+
+  .content {
+    margin: var(--space-2);
+  }
+
+  .breadcrumbsOverlay {
+    top: var(--space-2);
+    left: var(--space-3);
+    right: var(--space-3);
   }
 }

@@ -6,34 +6,41 @@
   align-items: flex-start;
   justify-content: center;
   padding-top: 20vh;
-  backdrop-filter: blur(14px);
+  backdrop-filter: blur(18px);
   background-color: var(--overlay-backdrop);
 }
 
 .picker {
+  position: relative;
   width: 420px;
   max-height: 400px;
   display: flex;
   flex-direction: column;
-  background:
-    linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--color-surface-elevated) 94%, var(--color-surface-raised)),
-      color-mix(in srgb, var(--color-surface-elevated) 84%, var(--color-surface-chrome))
-    );
-  border: 1px solid color-mix(in srgb, var(--color-border-strong) 72%, transparent);
+  isolation: isolate;
+  background: var(--color-surface-overlay);
+  border: 1px solid color-mix(in srgb, var(--chrome-border-strong) 88%, transparent);
   border-radius: var(--radius-2xl);
-  box-shadow: var(--shadow-floating);
+  box-shadow: var(--chrome-shadow-strong);
   overflow: hidden;
-  backdrop-filter: blur(18px);
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    box-shadow:
+      inset 0 1px 0 var(--chrome-highlight),
+      inset 0 0 0 1px color-mix(in srgb, var(--chrome-hairline) 54%, transparent);
+  }
 }
 
 .searchWrap {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  padding: var(--space-3) var(--space-4);
-  border-bottom: 1px solid color-mix(in srgb, var(--color-divider) 88%, transparent);
+  padding: var(--space-3);
+  border-bottom: 1px solid color-mix(in srgb, var(--chrome-border) 86%, transparent);
   color: var(--color-text-tertiary);
 }
 
@@ -61,33 +68,41 @@
   align-items: center;
   gap: var(--space-3);
   width: 100%;
-  padding: var(--space-2) var(--space-4);
+  padding: var(--space-2) var(--space-3);
   border: none;
+  border-radius: 16px;
   background: transparent;
   cursor: pointer;
   text-align: left;
   color: var(--color-text-secondary);
-  transition: background-color var(--transition-fast), box-shadow var(--transition-fast);
+  transition: background-color var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast);
 
   &:hover {
-    background-color: color-mix(in srgb, var(--color-surface-raised) 82%, var(--color-bg-hover));
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--chrome-surface-soft) 94%, transparent),
+        color-mix(in srgb, var(--chrome-surface) 76%, transparent)
+      );
   }
 }
 
 .itemSelected {
   background:
     linear-gradient(
-      90deg,
-      color-mix(in srgb, var(--color-tint-butter) 54%, transparent),
-      color-mix(in srgb, var(--color-surface-raised) 86%, var(--color-bg-hover))
+      180deg,
+      color-mix(in srgb, var(--chrome-surface-soft) 96%, transparent),
+      color-mix(in srgb, var(--chrome-surface) 82%, transparent)
     );
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-border) 30%, transparent);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--chrome-highlight) 84%, transparent),
+    inset 0 0 0 1px color-mix(in srgb, var(--chrome-border) 74%, transparent);
 }
 
 .itemText {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: var(--space-1);
   min-width: 0;
 }
 

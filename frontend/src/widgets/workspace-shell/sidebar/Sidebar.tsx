@@ -62,6 +62,8 @@ export function Sidebar({ voltId, voltPath, onSearchClick, collapsed, onToggleCo
   const sidebarButtons = usePluginRegistryStore((s) => s.sidebarButtons);
   const [width, setWidth] = useState(getInitialWidth);
   const dragging = useRef(false);
+  const sidebarRef = useRef<HTMLElement>(null);
+  const railRef = useRef<HTMLDivElement>(null);
 
   const builtInButtons = useMemo<SidebarButtonItem[]>(() => ([
     {
@@ -97,6 +99,7 @@ export function Sidebar({ voltId, voltPath, onSearchClick, collapsed, onToggleCo
 
   const onMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     dragging.current = true;
     document.body.style.cursor = 'col-resize';
     document.body.style.userSelect = 'none';
@@ -105,8 +108,23 @@ export function Sidebar({ voltId, voltPath, onSearchClick, collapsed, onToggleCo
   useEffect(() => {
     const onMouseMove = (e: MouseEvent) => {
       if (!dragging.current) return;
-      const next = Math.min(SIDEBAR.MAX_WIDTH, Math.max(SIDEBAR.MIN_WIDTH, e.clientX));
-      setWidth(next);
+      const sidebarEl = sidebarRef.current;
+      const railEl = railRef.current;
+      if (!sidebarEl || !railEl) {
+        return;
+      }
+
+      const sidebarRect = sidebarEl.getBoundingClientRect();
+      const railRect = railEl.getBoundingClientRect();
+      const computed = window.getComputedStyle(sidebarEl);
+      const gap = Number.parseFloat(computed.gap || '0') || 0;
+      const paddingLeft = Number.parseFloat(computed.paddingLeft || '0') || 0;
+      const paddingRight = Number.parseFloat(computed.paddingRight || '0') || 0;
+      const fixedWidth = railRect.width + gap + paddingLeft + paddingRight;
+      const next = e.clientX - sidebarRect.left - fixedWidth;
+      const clamped = Math.min(SIDEBAR.MAX_WIDTH, Math.max(SIDEBAR.MIN_WIDTH, next));
+
+      setWidth(clamped);
     };
 
     const onMouseUp = () => {
@@ -129,8 +147,8 @@ export function Sidebar({ voltId, voltPath, onSearchClick, collapsed, onToggleCo
   }, [width]);
 
   return (
-    <aside className={`${styles.sidebar} ${collapsed ? styles.collapsed : ''}`}>
-      <div className={styles.rail}>
+    <aside ref={sidebarRef} className={`${styles.sidebar} ${collapsed ? styles.collapsed : ''}`}>
+      <div ref={railRef} className={styles.rail}>
         <div className={styles.railActions}>
           {orderedButtons.map((button) => {
             const isDragging = dragHandlers.draggedId === button.id;
@@ -175,9 +193,9 @@ export function Sidebar({ voltId, voltPath, onSearchClick, collapsed, onToggleCo
               ))}
             </div>
           )}
-          <div className={styles.resizeHandle} onMouseDown={onMouseDown} />
         </div>
       )}
+      {!collapsed && <div className={styles.resizeHandle} onMouseDown={onMouseDown} />}
       <button
         type="button"
         className={styles.toggleButton}

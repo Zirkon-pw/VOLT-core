@@ -13,6 +13,7 @@ function AppLayout() {
   return (
     <div className={styles.root}>
       <WorkspaceTabs />
+      <div className={styles.headerDivider} aria-hidden="true" />
       <div className={styles.content}>
         <Routes>
           <Route path="/" element={<HomePage />} />

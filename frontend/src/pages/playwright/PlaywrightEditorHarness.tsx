@@ -256,8 +256,23 @@ export function PlaywrightEditorHarness() {
       </div>
       <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', background: 'var(--color-bg-secondary)' }}>
         <FileTabs voltId={VOLT_ID} />
-        <Breadcrumbs voltId={VOLT_ID} />
-        <EditorPanel voltId={VOLT_ID} voltPath={VOLT_PATH} filePath={activeFilePath} />
+        <div style={{ minWidth: 0, minHeight: 0, flex: 1, position: 'relative', display: 'flex' }}>
+          <div
+            style={{
+              position: 'absolute',
+              top: 10,
+              left: 12,
+              right: 12,
+              zIndex: 2,
+              pointerEvents: 'none',
+            }}
+          >
+            <div style={{ pointerEvents: 'auto' }}>
+              <Breadcrumbs voltId={VOLT_ID} />
+            </div>
+          </div>
+          <EditorPanel voltId={VOLT_ID} voltPath={VOLT_PATH} filePath={activeFilePath} />
+        </div>
       </div>
       <PlaywrightHotkeysLayer />
     </div>

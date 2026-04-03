@@ -4,12 +4,24 @@
   width: 280px;
   max-height: 320px;
   overflow-y: auto;
-  background-color: color-mix(in srgb, var(--color-surface-elevated) 94%, var(--color-surface-raised));
-  border: 1px solid color-mix(in srgb, var(--color-border-strong) 68%, transparent);
+  position: relative;
+  isolation: isolate;
+  background: var(--color-surface-overlay);
+  border: 1px solid color-mix(in srgb, var(--chrome-border-strong) 88%, transparent);
   border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-floating);
-  backdrop-filter: blur(14px);
+  box-shadow: var(--chrome-shadow);
   padding: var(--space-1) 0;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    box-shadow:
+      inset 0 1px 0 var(--chrome-highlight),
+      inset 0 0 0 1px color-mix(in srgb, var(--chrome-hairline) 48%, transparent);
+  }
 }
 
 .item {
@@ -25,18 +37,25 @@
   transition: background-color var(--transition-fast), box-shadow var(--transition-fast);
 
   &:hover {
-    background-color: color-mix(in srgb, var(--color-surface-raised) 80%, var(--color-bg-hover));
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--chrome-surface-soft) 96%, transparent),
+        color-mix(in srgb, var(--chrome-surface) 76%, transparent)
+      );
   }
 }
 
 .selected {
   background:
     linear-gradient(
-      90deg,
-      color-mix(in srgb, var(--color-tint-butter) 52%, transparent),
-      color-mix(in srgb, var(--color-surface-raised) 86%, var(--color-bg-hover))
+      180deg,
+      color-mix(in srgb, var(--chrome-surface-soft) 98%, transparent),
+      color-mix(in srgb, var(--chrome-surface) 82%, transparent)
     );
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-border) 32%, transparent);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--chrome-highlight) 86%, transparent),
+    inset 0 0 0 1px color-mix(in srgb, var(--chrome-border) 76%, transparent);
 }
 
 .iconWrap {
@@ -46,15 +65,15 @@
   width: 28px;
   height: 28px;
   flex-shrink: 0;
-  border-radius: var(--radius-sm);
-  background-color: color-mix(in srgb, var(--color-surface-chrome) 82%, var(--color-bg-secondary));
+  border-radius: 12px;
+  background-color: color-mix(in srgb, var(--chrome-surface-soft) 88%, transparent);
   color: var(--color-text-secondary);
 }
 
 .text {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: var(--space-1);
   min-width: 0;
 }
 

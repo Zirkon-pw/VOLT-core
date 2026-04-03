@@ -1,15 +1,15 @@
 .picker {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 10px;
+  gap: var(--space-3);
+  padding: var(--space-3);
   width: 240px;
 }
 
 .presets {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: var(--space-1);
 }
 
 .presetSwatch {
@@ -126,7 +126,7 @@
 .inputRow {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-2);
 }
 
 .preview {
@@ -139,7 +139,7 @@
 
 .fieldGroup {
   display: flex;
-  gap: 4px;
+  gap: var(--space-1);
   flex: 1;
   min-width: 0;
 }
@@ -148,7 +148,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
+  gap: var(--space-1);
   flex: 1;
   min-width: 0;
 
@@ -161,7 +161,7 @@
   input {
     width: 100%;
     min-width: 0;
-    padding: 2px 3px;
+    padding: 2px var(--space-1);
     font-size: var(--font-size-xs);
     text-align: center;
     border: 1px solid var(--color-border);

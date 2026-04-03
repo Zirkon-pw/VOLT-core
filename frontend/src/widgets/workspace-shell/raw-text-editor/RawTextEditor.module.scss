@@ -12,7 +12,7 @@
   border: 0;
   outline: none;
   resize: none;
-  padding: 24px 28px;
+  padding: var(--space-6) calc(var(--space-6) + var(--space-1));
   background: transparent;
   color: inherit;
   font: 500 14px/1.7 var(--font-mono);

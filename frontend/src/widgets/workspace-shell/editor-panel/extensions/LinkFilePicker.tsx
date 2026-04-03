@@ -17,19 +17,24 @@ interface LinkFilePickerProps {
   editor: Editor;
   voltId: string;
   filePath: string;
-  onClose: () => void;
+  selection: {
+    from: number;
+    to: number;
+  };
+  onClose: (restoreSelection?: boolean) => void;
 }
 
-export function LinkFilePicker({ editor, voltId, filePath, onClose }: LinkFilePickerProps) {
+export function LinkFilePicker({
+  editor,
+  voltId,
+  filePath,
+  selection,
+  onClose,
+}: LinkFilePickerProps) {
   const [search, setSearch] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
-  const initialSelectionRef = useRef({
-    from: editor.state.selection.from,
-    to: editor.state.selection.to,
-  });
-  const committedRef = useRef(false);
 
   const tree = useFileTreeStore((state) => state.trees[voltId] ?? []);
   const allFiles = useMemo(() => collectMarkdownFiles(tree), [tree]);
@@ -50,36 +55,15 @@ export function LinkFilePicker({ editor, voltId, filePath, onClose }: LinkFilePi
     inputRef.current?.focus();
   }, []);
 
-  const restoreEditorSelection = useCallback(() => {
-    if (committedRef.current) {
-      return;
-    }
-
-    const selection = initialSelectionRef.current;
-    const restore = () => {
-      try {
-        editor.chain().focus().setTextSelection(selection).run();
-      } catch {
-        editor.chain().focus().run();
-      }
-    };
-
-    restore();
-    window.requestAnimationFrame(restore);
-  }, [editor]);
-
   const requestClose = useCallback(() => {
-    restoreEditorSelection();
-    onClose();
-  }, [onClose, restoreEditorSelection]);
+    onClose(true);
+  }, [onClose]);
 
   const insertLink = useCallback(
     (targetPath: string) => {
       const currentDir = getParentPath(filePath);
       const relativePath = computeRelativePath(currentDir, targetPath);
       const displayName = getEntryDisplayName(getPathBasename(targetPath), false);
-      const selection = initialSelectionRef.current;
-      committedRef.current = true;
 
       editor
         .chain()
@@ -92,9 +76,9 @@ export function LinkFilePicker({ editor, voltId, filePath, onClose }: LinkFilePi
         })
         .run();
 
-      onClose();
+      onClose(false);
     },
-    [editor, filePath, onClose],
+    [editor, filePath, onClose, selection],
   );
 
   const handleKeyDown = useCallback(

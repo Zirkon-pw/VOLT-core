@@ -5,12 +5,7 @@
   min-width: 280px;
   max-width: 400px;
   padding: var(--space-3) var(--space-4);
-  background:
-    linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--color-surface-overlay) 92%, var(--color-surface-raised)),
-      color-mix(in srgb, var(--color-surface-overlay) 84%, var(--color-surface-chrome))
-    );
+  background: var(--color-surface-overlay);
   border: 1px solid color-mix(in srgb, var(--color-border-strong) 72%, transparent);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-md);

@@ -3,8 +3,8 @@
   width: 18px;
   height: 18px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--color-surface-elevated) 88%, var(--color-surface-raised));
-  border: 1px solid color-mix(in srgb, var(--color-border) 72%, transparent);
+  background: var(--color-surface-overlay);
+  border: 1px solid color-mix(in srgb, var(--chrome-border) 80%, transparent);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -20,11 +20,11 @@
     transform 0.15s;
   padding: 0;
   box-shadow:
-    0 10px 22px -18px color-mix(in srgb, var(--color-shadow, #020617) 40%, transparent),
-    inset 0 1px 0 color-mix(in srgb, var(--color-bg-primary) 75%, transparent);
+    var(--chrome-shadow-sm),
+    inset 0 1px 0 color-mix(in srgb, var(--chrome-highlight) 84%, transparent);
 
   &:hover {
-    background: color-mix(in srgb, var(--color-accent) 10%, var(--color-surface-elevated));
+    background: color-mix(in srgb, var(--color-accent) 10%, var(--chrome-surface-strong));
     border-color: color-mix(in srgb, var(--color-accent) 26%, var(--color-border));
     color: var(--color-text-primary);
     box-shadow:
@@ -47,13 +47,13 @@
   align-items: center;
   justify-content: center;
   padding: 0;
-  border: 1px solid color-mix(in srgb, var(--color-border) 76%, transparent);
+  border: 1px solid color-mix(in srgb, var(--chrome-border) 82%, transparent);
   border-radius: 999px;
-  background: color-mix(in srgb, var(--color-surface-overlay) 90%, var(--color-surface-raised));
+  background: var(--color-surface-overlay);
   color: var(--color-text-secondary);
   box-shadow:
-    0 12px 26px -22px color-mix(in srgb, var(--color-shadow, #020617) 46%, transparent),
-    inset 0 1px 0 color-mix(in srgb, var(--color-bg-primary) 70%, transparent);
+    var(--chrome-shadow-sm),
+    inset 0 1px 0 color-mix(in srgb, var(--chrome-highlight) 84%, transparent);
   cursor: pointer;
   z-index: calc(var(--z-editor-chrome) + 3);
   transition:
@@ -64,7 +64,7 @@
     transform var(--transition-fast);
 
   &:hover {
-    background: color-mix(in srgb, var(--color-accent) 9%, var(--color-surface-overlay));
+    background: color-mix(in srgb, var(--color-accent) 9%, var(--chrome-surface));
     border-color: color-mix(in srgb, var(--color-accent) 24%, var(--color-border));
     color: var(--color-text-primary);
     transform: translateY(-1px);
@@ -80,7 +80,7 @@
 }
 
 .selectionTargetActive {
-  background: color-mix(in srgb, var(--color-accent) 12%, var(--color-surface-overlay));
+  background: color-mix(in srgb, var(--color-accent) 12%, var(--chrome-surface));
   border-color: color-mix(in srgb, var(--color-accent) 30%, var(--color-border));
   color: var(--color-accent);
   box-shadow:
@@ -93,16 +93,15 @@
   z-index: calc(var(--z-editor-chrome) + 1);
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  padding: calc(var(--space-1) + 2px);
-  border: 1px solid color-mix(in srgb, var(--color-border-strong) 66%, transparent);
+  gap: var(--space-1);
+  padding: var(--space-1);
+  border: 1px solid color-mix(in srgb, var(--chrome-border-strong) 88%, transparent);
   border-radius: calc(var(--radius-xl) - 2px);
-  background: color-mix(in srgb, var(--color-surface-overlay) 92%, var(--color-surface-raised));
+  background: var(--color-surface-overlay);
   box-shadow:
-    0 20px 38px -30px color-mix(in srgb, var(--color-shadow, #020617) 58%, transparent),
-    inset 0 1px 0 color-mix(in srgb, var(--color-bg-primary) 68%, transparent);
-  backdrop-filter: blur(14px);
-  transform: translate(-100%, calc(-100% - 10px));
+    var(--chrome-shadow),
+    inset 0 1px 0 color-mix(in srgb, var(--chrome-highlight) 86%, transparent);
+  transform: translate(-100%, calc(-100% - var(--space-2)));
 }
 
 .toolbarGroup {
@@ -114,7 +113,7 @@
 .toolbarDivider {
   width: 1px;
   align-self: stretch;
-  background: color-mix(in srgb, var(--color-divider) 76%, transparent);
+  background: color-mix(in srgb, var(--chrome-border) 76%, transparent);
 }
 
 .actionBtn,
@@ -122,7 +121,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: var(--space-1);
   min-height: 30px;
   padding: 0 var(--space-2);
   border: none;
@@ -136,9 +135,14 @@
   transition: background-color 0.15s, color 0.15s, box-shadow 0.15s;
 
   &:hover {
-    background: color-mix(in srgb, var(--color-surface-raised) 80%, var(--color-bg-hover));
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--chrome-surface-soft) 96%, transparent),
+        color-mix(in srgb, var(--chrome-surface) 76%, transparent)
+      );
     color: var(--color-text-primary);
-    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-border) 74%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--chrome-border) 78%, transparent);
   }
 }
 
@@ -148,7 +152,7 @@
 }
 
 .iconBtnActive {
-  background: color-mix(in srgb, var(--color-accent) 9%, var(--color-surface-raised));
+  background: color-mix(in srgb, var(--color-accent) 9%, var(--chrome-surface-soft));
   color: var(--color-accent);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-accent) 18%, transparent);
 }
@@ -162,14 +166,13 @@
 
 .colorPanel {
   position: absolute;
-  top: calc(100% + 8px);
+  top: calc(100% + var(--space-2));
   right: 0;
   border-radius: var(--radius-xl);
-  border: 1px solid color-mix(in srgb, var(--color-border-strong) 66%, transparent);
-  background: color-mix(in srgb, var(--color-surface-overlay) 94%, var(--color-surface-raised));
+  border: 1px solid color-mix(in srgb, var(--chrome-border-strong) 88%, transparent);
+  background: var(--color-surface-overlay);
   box-shadow:
-    0 20px 38px -28px color-mix(in srgb, var(--color-shadow, #020617) 58%, transparent),
-    inset 0 1px 0 color-mix(in srgb, var(--color-bg-primary) 70%, transparent);
-  backdrop-filter: blur(14px);
+    var(--chrome-shadow),
+    inset 0 1px 0 color-mix(in srgb, var(--chrome-highlight) 86%, transparent);
   overflow: hidden;
 }

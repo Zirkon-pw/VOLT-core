@@ -8,17 +8,23 @@
   position: fixed;
   z-index: var(--z-dialog-surface);
   min-width: 160px;
-  padding: 6px;
-  background:
-    linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--color-surface-overlay) 92%, var(--color-surface-raised)),
-      color-mix(in srgb, var(--color-surface-overlay) 84%, var(--color-surface-chrome))
-    );
-  border: 1px solid color-mix(in srgb, var(--color-border-strong) 70%, transparent);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-floating);
-  backdrop-filter: blur(16px);
+  padding: var(--space-1);
+  isolation: isolate;
+  background: var(--color-surface-overlay);
+  border: 1px solid color-mix(in srgb, var(--chrome-border-strong) 88%, transparent);
+  border-radius: 18px;
+  box-shadow: var(--chrome-shadow);
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    box-shadow:
+      inset 0 1px 0 var(--chrome-highlight),
+      inset 0 0 0 1px color-mix(in srgb, var(--chrome-hairline) 54%, transparent);
+  }
 }
 
 .item {
@@ -26,8 +32,9 @@
   align-items: center;
   gap: var(--space-2);
   width: 100%;
-  padding: 8px 12px;
+  padding: var(--space-2) var(--space-3);
   border: none;
+  border-radius: 12px;
   background: none;
   color: var(--color-text-primary);
   font-family: var(--font-family);
@@ -37,7 +44,12 @@
   white-space: nowrap;
 
   &:hover:not(:disabled) {
-    background: color-mix(in srgb, var(--color-bg-hover) 84%, var(--color-surface-raised));
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--chrome-surface-soft) 94%, transparent),
+        color-mix(in srgb, var(--chrome-surface) 78%, transparent)
+      );
   }
 
   &:disabled {
@@ -65,6 +77,6 @@
 
 .separator {
   height: 1px;
-  margin: 6px 2px;
-  background: color-mix(in srgb, var(--color-divider) 88%, transparent);
+  margin: var(--space-1);
+  background: color-mix(in srgb, var(--chrome-border) 86%, transparent);
 }

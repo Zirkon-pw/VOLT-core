@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Editor } from '@tiptap/react';
 import { TextSelection } from '@tiptap/pm/state';
+import { flushSync } from 'react-dom';
 import { useAppSettingsStore } from '@entities/app-settings';
 import { useActiveFileStore } from '@entities/editor-session';
 import { useFileTreeStore } from '@entities/file-tree';
@@ -113,7 +114,36 @@ export function EditorPanel({ voltId, voltPath, filePath }: EditorPanelProps) {
   const findInputRef = useRef<HTMLInputElement>(null);
   const findQueryRef = useRef('');
   const activeFindMatchRef = useRef<FindInFileMatch | null>(null);
-  const closeLinkPicker = useCallback(() => setShowLinkPicker(false), []);
+  const linkPickerSelectionRef = useRef<{ from: number; to: number } | null>(null);
+  const restoreLinkSelection = useCallback(() => {
+    if (!editor) {
+      return;
+    }
+
+    const selection = linkPickerSelectionRef.current;
+
+    try {
+      editor.view.focus();
+
+      if (selection) {
+        editor.chain().focus().setTextSelection(selection).run();
+        return;
+      }
+
+      editor.chain().focus().run();
+    } catch {
+      editor.chain().focus().run();
+    }
+  }, [editor]);
+  const closeLinkPicker = useCallback((restoreSelection = true) => {
+    flushSync(() => {
+      setShowLinkPicker(false);
+    });
+
+    if (restoreSelection) {
+      restoreLinkSelection();
+    }
+  }, [restoreLinkSelection]);
 
   const closeFindInFile = useCallback(() => {
     setShowFindInFile(false);
@@ -185,7 +215,15 @@ export function EditorPanel({ voltId, voltPath, filePath }: EditorPanelProps) {
 
   useEffect(() => {
     if (!editor) return;
-    const handler = () => setShowLinkPicker(true);
+
+    const handler = () => {
+      linkPickerSelectionRef.current = {
+        from: editor.state.selection.from,
+        to: editor.state.selection.to,
+      };
+      setShowLinkPicker(true);
+    };
+
     window.addEventListener('volt:pick-link', handler);
     return () => window.removeEventListener('volt:pick-link', handler);
   }, [editor]);
@@ -228,6 +266,7 @@ export function EditorPanel({ voltId, voltPath, filePath }: EditorPanelProps) {
     if (filePath) return;
     loadedPathRef.current = null;
     clear();
+    linkPickerSelectionRef.current = null;
     setShowFindInFile(false);
     setFindQuery('');
     setFindMatches([]);
@@ -412,6 +451,10 @@ export function EditorPanel({ voltId, voltPath, filePath }: EditorPanelProps) {
           editor={editor}
           voltId={voltId}
           filePath={filePath}
+          selection={linkPickerSelectionRef.current ?? {
+            from: editor.state.selection.from,
+            to: editor.state.selection.to,
+          }}
           onClose={closeLinkPicker}
         />
       )}

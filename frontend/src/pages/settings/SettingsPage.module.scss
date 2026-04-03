@@ -4,18 +4,16 @@
   height: 100%;
   min-height: 0;
   width: 100%;
-  padding: var(--space-6) var(--space-5);
+  padding: var(--space-5);
   box-sizing: border-box;
-  background:
-    radial-gradient(circle at top right, color-mix(in srgb, var(--color-tint-butter) 54%, transparent), transparent 34%),
-    linear-gradient(180deg, color-mix(in srgb, var(--color-bg-secondary) 82%, var(--color-bg-primary)), var(--color-bg-primary));
+  background: transparent;
 }
 
 .header {
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  margin-bottom: var(--space-5);
+  margin-bottom: var(--space-4);
   flex-shrink: 0;
 
   h1 {
@@ -32,7 +30,7 @@
   display: inline-flex;
   align-items: center;
   gap: var(--space-1);
-  padding: 8px 12px;
+  padding: var(--space-2) var(--space-3);
   border: 1px solid color-mix(in srgb, var(--color-border) 90%, transparent);
   border-radius: var(--radius-md);
   background: color-mix(in srgb, var(--color-surface-raised) 86%, var(--color-bg-secondary));
@@ -48,7 +46,7 @@
 
 .layout {
   display: flex;
-  gap: var(--space-6);
+  gap: var(--space-5);
   flex: 1;
   min-height: 0;
   overflow: hidden;
@@ -61,15 +59,26 @@
   min-height: 0;
   flex-shrink: 0;
   overflow-y: auto;
-  padding: var(--space-2) var(--space-5) 0 0;
-  box-shadow: inset -1px 0 0 color-mix(in srgb, var(--color-divider) 84%, transparent);
+  padding: var(--space-1) var(--space-4) 0 0;
+  box-shadow: none;
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: var(--space-2);
+    bottom: var(--space-2);
+    right: 0;
+    width: 1px;
+    background: color-mix(in srgb, var(--chrome-border) 74%, transparent);
+  }
 }
 
 .tab,
 .active-tab {
   display: block;
   width: 100%;
-  padding: 11px 0 11px 14px;
+  padding: var(--space-2) 0 var(--space-2) var(--space-3);
   border: none;
   border-left: 2px solid transparent;
   border-radius: 0;
@@ -98,19 +107,19 @@
   min-width: 0;
   min-height: 0;
   overflow-y: auto;
-  padding-right: var(--space-2);
+  padding-right: var(--space-3);
 }
 
 .section {
   max-width: 920px;
-  padding: 0 var(--space-2) 0 0;
+  padding: 0 var(--space-3) 0 0;
   border-radius: 0;
   background: transparent;
   border: none;
   box-shadow: none;
 
   h2 {
-    margin: 0 0 var(--space-4);
+    margin: 0 0 var(--space-3);
     font-size: var(--font-size-lg);
     font-family: var(--font-display);
     font-weight: 600;
@@ -142,7 +151,7 @@
 }
 
 .section-title {
-  margin-top: var(--space-8) !important;
+  margin-top: var(--space-6) !important;
 }
 
 .setting-row,
@@ -150,7 +159,7 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: var(--space-3);
+  gap: var(--space-4);
   padding: var(--space-3) 0;
   border-bottom: 1px solid color-mix(in srgb, var(--color-divider) 86%, transparent);
 
@@ -168,8 +177,8 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: var(--space-3);
-  margin-bottom: var(--space-4);
+  gap: var(--space-4);
+  margin-bottom: var(--space-3);
 }
 
 .plugin-list {
@@ -267,7 +276,7 @@
 select {
   width: 100%;
   min-width: 220px;
-  padding: 10px 12px;
+  padding: var(--space-2) var(--space-3);
   border: 1px solid color-mix(in srgb, var(--color-border) 90%, transparent);
   border-radius: var(--radius-md);
   background: color-mix(in srgb, var(--color-surface-raised) 88%, var(--color-bg-primary));
@@ -301,7 +310,7 @@ select {
   display: inline-flex;
   align-items: center;
   border-radius: 999px;
-  padding: 6px 12px;
+  padding: var(--space-1) var(--space-3);
   font-size: var(--font-size-xs);
   font-weight: 600;
   flex-shrink: 0;

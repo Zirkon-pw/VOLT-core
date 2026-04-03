@@ -14,7 +14,7 @@
   --color-bg-active: rgba(98, 84, 70, 0.12);
   --color-surface-raised: #fbf8f3;
   --color-surface-elevated: rgba(250, 247, 242, 0.94);
-  --color-surface-overlay: rgba(247, 243, 238, 0.92);
+  --color-surface-overlay: #f7f3ee;
   --color-surface-chrome: #e8e1d7;
   --color-surface-sunken: #ddd4c8;
   --color-selection-bg: rgba(198, 123, 98, 0.16);
@@ -62,6 +62,18 @@
   --shadow-lg: 0 28px 60px -36px rgba(67, 55, 46, 0.36), 0 14px 28px -20px rgba(67, 55, 46, 0.14);
   --shadow-popup: 0 24px 48px -30px rgba(67, 55, 46, 0.34), 0 0 0 1px rgba(212, 200, 186, 0.64);
   --shadow-floating: 0 34px 72px -42px rgba(67, 55, 46, 0.38), 0 0 0 1px rgba(212, 200, 186, 0.52);
+  --chrome-surface-soft: rgba(255, 252, 248, 0.3);
+  --chrome-surface: rgba(250, 246, 240, 0.42);
+  --chrome-surface-strong: rgba(248, 244, 238, 0.58);
+  --chrome-border: rgba(212, 200, 186, 0.52);
+  --chrome-border-strong: rgba(192, 179, 162, 0.64);
+  --chrome-highlight: rgba(255, 252, 248, 0.3);
+  --chrome-hairline: rgba(255, 255, 255, 0.18);
+  --chrome-shadow-sm: 0 10px 18px -20px rgba(67, 55, 46, 0.12), 0 2px 6px rgba(67, 55, 46, 0.03);
+  --chrome-shadow: 0 16px 28px -28px rgba(67, 55, 46, 0.16), 0 6px 12px -12px rgba(67, 55, 46, 0.06);
+  --chrome-shadow-strong: 0 22px 36px -32px rgba(67, 55, 46, 0.18), 0 8px 16px -16px rgba(67, 55, 46, 0.08);
+  --chrome-blur: 16px;
+  --chrome-blur-strong: 24px;
   --overlay-backdrop: rgba(36, 29, 23, 0.18);
 
   --code-color-text: #3e332c;
@@ -88,7 +100,7 @@
   --color-bg-active: rgba(245, 220, 195, 0.08);
   --color-surface-raised: #282523;
   --color-surface-elevated: rgba(39, 36, 34, 0.94);
-  --color-surface-overlay: rgba(45, 41, 38, 0.92);
+  --color-surface-overlay: #2d2926;
   --color-surface-chrome: #252220;
   --color-surface-sunken: #171615;
   --color-selection-bg: rgba(221, 161, 115, 0.16);
@@ -136,6 +148,18 @@
   --shadow-lg: 0 30px 60px -30px rgba(0, 0, 0, 0.52), 0 16px 30px -22px rgba(0, 0, 0, 0.33);
   --shadow-popup: 0 24px 50px -28px rgba(0, 0, 0, 0.58), 0 0 0 1px rgba(235, 223, 210, 0.08);
   --shadow-floating: 0 34px 80px -36px rgba(0, 0, 0, 0.66), 0 0 0 1px rgba(235, 223, 210, 0.1);
+  --chrome-surface-soft: rgba(49, 45, 42, 0.3);
+  --chrome-surface: rgba(45, 41, 38, 0.42);
+  --chrome-surface-strong: rgba(52, 47, 44, 0.56);
+  --chrome-border: rgba(235, 223, 210, 0.12);
+  --chrome-border-strong: rgba(235, 223, 210, 0.18);
+  --chrome-highlight: rgba(255, 246, 236, 0.05);
+  --chrome-hairline: rgba(255, 246, 236, 0.03);
+  --chrome-shadow-sm: 0 12px 20px -22px rgba(0, 0, 0, 0.28), 0 2px 6px rgba(0, 0, 0, 0.12);
+  --chrome-shadow: 0 18px 30px -28px rgba(0, 0, 0, 0.34), 0 6px 12px -12px rgba(0, 0, 0, 0.14);
+  --chrome-shadow-strong: 0 24px 38px -32px rgba(0, 0, 0, 0.38), 0 8px 16px -14px rgba(0, 0, 0, 0.16);
+  --chrome-blur: 16px;
+  --chrome-blur-strong: 24px;
   --overlay-backdrop: rgba(0, 0, 0, 0.46);
 
   --code-color-text: #efe6dd;

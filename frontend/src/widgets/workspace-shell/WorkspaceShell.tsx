@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useTabStore, type FileTab } from '@entities/tab';
 import { useNavigationStore } from '@entities/navigation';
 import { SearchPopup } from '@features/workspace-search';
+import { usePluginRegistryStore } from '@entities/plugin';
 import { PluginPageHost } from '@widgets/plugin-page';
 import { SIDEBAR } from '@shared/config/constants';
 import { Breadcrumbs } from './breadcrumbs/Breadcrumbs';
@@ -26,6 +27,7 @@ export function WorkspaceShell({ voltId, voltPath }: WorkspaceShellProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(
     () => localStorage.getItem(SIDEBAR.COLLAPSED_STORAGE_KEY) === 'true',
   );
+  const hasToolbarButtons = usePluginRegistryStore((state) => state.toolbarButtons.length > 0);
 
   const openSearch = useCallback((initialQuery = '') => {
     setSearchInitialQuery(initialQuery);
@@ -68,6 +70,7 @@ export function WorkspaceShell({ voltId, voltPath }: WorkspaceShellProps) {
 
   const isPluginTab = activeTab?.type === 'plugin';
   const activeFilePath = activeTab?.type === 'file' ? activeTab.filePath : null;
+  const hasChromeStack = voltTabs.length > 0 || hasToolbarButtons || Boolean(activeFilePath);
 
   const pushNavigation = useNavigationStore((state) => state.push);
 
@@ -87,10 +90,16 @@ export function WorkspaceShell({ voltId, voltPath }: WorkspaceShellProps) {
         onToggleCollapse={toggleSidebar}
       />
       <div className={styles.main}>
-        <FileTabs voltId={voltId} />
-        <WorkspaceToolbar />
-        <Breadcrumbs voltId={voltId} />
+        {hasChromeStack ? (
+          <div className={styles.chromeStack}>
+            <FileTabs voltId={voltId} />
+            <WorkspaceToolbar />
+          </div>
+        ) : null}
         <div className={styles.content}>
+          <div className={styles.breadcrumbsOverlay}>
+            <Breadcrumbs voltId={voltId} />
+          </div>
           {isPluginTab ? (
             <PluginPageHost
               pageId={activeTab?.pluginPageId ?? ''}

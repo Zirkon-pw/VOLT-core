@@ -34,7 +34,7 @@
 
 .searchInput {
   width: min(420px, 100%);
-  padding: 10px 14px;
+  padding: var(--space-2) var(--space-3);
   border: 1px solid color-mix(in srgb, var(--color-border) 92%, transparent);
   border-radius: var(--radius-md);
   background: color-mix(in srgb, var(--color-surface-raised) 90%, var(--color-bg-primary));
@@ -84,7 +84,7 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--space-2);
 }
 
 .label {
@@ -106,7 +106,7 @@
   display: inline-flex;
   align-items: center;
   border-radius: 999px;
-  padding: 4px 8px;
+  padding: var(--space-1) var(--space-2);
   background: color-mix(in srgb, var(--color-surface-chrome) 90%, var(--color-bg-secondary));
   color: var(--color-text-secondary);
 }

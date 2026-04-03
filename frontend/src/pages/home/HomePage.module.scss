@@ -5,13 +5,10 @@
   flex: 1;
   min-width: 0;
   min-height: 0;
-  padding: var(--space-12) var(--space-6) var(--space-10);
+  padding: var(--space-10) var(--space-6) var(--space-8);
   overflow-y: auto;
   overflow-x: hidden;
-  background:
-    radial-gradient(circle at top left, color-mix(in srgb, var(--color-tint-sage) 44%, transparent), transparent 32%),
-    radial-gradient(circle at top right, color-mix(in srgb, var(--color-tint-blue) 28%, transparent), transparent 34%),
-    linear-gradient(180deg, color-mix(in srgb, var(--color-bg-secondary) 64%, var(--color-bg-primary)), var(--color-bg-primary));
+  background: transparent;
 }
 
 .container {
@@ -24,9 +21,9 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: var(--space-4);
-  margin-bottom: var(--space-8);
-  padding-bottom: var(--space-5);
+  gap: var(--space-5);
+  margin-bottom: var(--space-6);
+  padding-bottom: var(--space-4);
   border-bottom: 1px solid color-mix(in srgb, var(--color-divider) 82%, transparent);
 }
 
@@ -62,8 +59,8 @@
 .action-cluster {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-2);
-  margin-left: var(--space-3);
+  gap: var(--space-1);
+  margin-left: var(--space-2);
 }
 
 .action-button {
@@ -112,7 +109,7 @@
   flex-direction: column;
   align-items: flex-start;
   gap: var(--space-2);
-  padding: var(--space-5) 0;
+  padding: var(--space-4) 0;
 }
 
 .empty-text {
@@ -192,13 +189,13 @@
 
 @media (max-width: 1200px) {
   .page {
-    padding-top: var(--space-10);
+    padding-top: var(--space-8);
   }
 }
 
 @media (max-width: 960px) {
   .page {
-    padding: var(--space-10) var(--space-5) var(--space-8);
+    padding: var(--space-8) var(--space-5) var(--space-8);
   }
 
   .header {
@@ -208,7 +205,7 @@
 
 @media (max-width: 800px) {
   .page {
-    padding: var(--space-8) var(--space-4) var(--space-8);
+    padding: var(--space-6) var(--space-4) var(--space-8);
   }
 
   .header {

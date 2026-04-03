@@ -2,17 +2,28 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  background: color-mix(in srgb, var(--color-surface-elevated) 94%, var(--color-surface-raised));
-  border: 1px solid color-mix(in srgb, var(--color-border-strong) 68%, transparent);
+  isolation: isolate;
+  background: var(--color-surface-overlay);
+  border: 1px solid color-mix(in srgb, var(--chrome-border-strong) 88%, transparent);
   border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-floating);
-  backdrop-filter: blur(14px);
+  box-shadow: var(--chrome-shadow);
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    box-shadow:
+      inset 0 1px 0 var(--chrome-highlight),
+      inset 0 0 0 1px color-mix(in srgb, var(--chrome-hairline) 48%, transparent);
+  }
 }
 
 .toolbar {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: var(--space-1);
   padding: var(--space-1) var(--space-2);
 }
 
@@ -31,14 +42,19 @@
   transition: background var(--transition-fast), color var(--transition-fast), box-shadow var(--transition-fast);
 
   &:hover {
-    background: color-mix(in srgb, var(--color-surface-raised) 82%, var(--color-bg-hover));
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--chrome-surface-soft) 96%, transparent),
+        color-mix(in srgb, var(--chrome-surface) 76%, transparent)
+      );
     color: var(--color-text-primary);
-    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-border) 84%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--chrome-border) 84%, transparent);
   }
 }
 
 .btnActive {
-  background: color-mix(in srgb, var(--color-accent) 10%, var(--color-surface-raised));
+  background: color-mix(in srgb, var(--color-accent) 10%, var(--chrome-surface-soft));
   color: var(--color-accent);
 }
 
@@ -70,8 +86,8 @@
 .divider {
   width: 1px;
   height: 18px;
-  background: var(--color-border);
-  margin: 0 2px;
+  background: color-mix(in srgb, var(--chrome-border) 82%, transparent);
+  margin: 0 var(--space-1);
 }
 
 .linkInput {
@@ -79,16 +95,16 @@
   align-items: center;
   gap: var(--space-1);
   padding: var(--space-1) var(--space-2);
-  border-top: 1px solid color-mix(in srgb, var(--color-divider) 88%, transparent);
+  border-top: 1px solid color-mix(in srgb, var(--chrome-border) 84%, transparent);
 }
 
 .linkField {
   flex: 1;
   min-width: 200px;
-  padding: 6px 10px;
-  border: 1px solid var(--color-border);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid color-mix(in srgb, var(--chrome-border) 86%, transparent);
   border-radius: var(--radius-sm);
-  background: color-mix(in srgb, var(--color-surface-raised) 88%, var(--color-bg-primary));
+  background: color-mix(in srgb, var(--color-surface-raised) 92%, var(--color-bg-primary));
   color: var(--color-text-primary);
   font-size: var(--font-size-sm);
   outline: none;
@@ -134,9 +150,9 @@
 
 .colorPicker {
   display: flex;
-  gap: 4px;
+  gap: var(--space-1);
   padding: var(--space-1) var(--space-2);
-  border-top: 1px solid color-mix(in srgb, var(--color-divider) 88%, transparent);
+  border-top: 1px solid color-mix(in srgb, var(--chrome-border) 84%, transparent);
   flex-wrap: wrap;
 }
 
@@ -146,9 +162,9 @@
   justify-content: center;
   width: 24px;
   height: 24px;
-  border: 1px solid var(--color-border);
+  border: 1px solid color-mix(in srgb, var(--chrome-border) 86%, transparent);
   border-radius: var(--radius-sm);
-  background: transparent;
+  background: var(--color-surface-raised);
   font-weight: 700;
   font-size: 13px;
   cursor: pointer;
@@ -171,8 +187,9 @@
   justify-content: center;
   width: 24px;
   height: 24px;
-  border: 1px solid var(--color-border);
+  border: 1px solid color-mix(in srgb, var(--chrome-border) 86%, transparent);
   border-radius: var(--radius-sm);
+  background: var(--color-surface-raised);
   cursor: pointer;
   transition: transform var(--transition-fast);
 

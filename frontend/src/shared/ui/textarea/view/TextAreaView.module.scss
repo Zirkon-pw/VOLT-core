@@ -2,38 +2,38 @@
   width: 100%;
   min-width: 220px;
   min-height: 72px;
-  padding: 12px 14px;
+  padding: var(--space-3);
   font-family: var(--font-family);
   font-size: var(--font-size-base);
   color: var(--color-text-primary);
   background:
     linear-gradient(
       180deg,
-      color-mix(in srgb, var(--color-surface-raised) 94%, var(--color-bg-primary)),
-      color-mix(in srgb, var(--color-bg-secondary) 42%, var(--color-surface-raised))
+      color-mix(in srgb, var(--chrome-surface-soft) 96%, transparent),
+      color-mix(in srgb, var(--chrome-surface) 78%, transparent)
     );
-  border: 1px solid color-mix(in srgb, var(--color-border) 94%, transparent);
+  border: 1px solid color-mix(in srgb, var(--chrome-border) 88%, transparent);
   border-radius: var(--radius-md);
   outline: none;
   resize: vertical;
   transition: border-color var(--transition-fast),
     box-shadow var(--transition-fast),
     background-color var(--transition-fast);
-  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--color-bg-primary) 44%, transparent);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--chrome-highlight) 84%, transparent);
 
   &::placeholder {
     color: var(--color-text-tertiary);
   }
 
   &:hover:not(:disabled) {
-    border-color: var(--color-border-strong);
+    border-color: var(--chrome-border-strong);
   }
 
   &:focus {
     border-color: var(--color-accent);
     box-shadow:
       0 0 0 3px var(--color-focus-ring),
-      inset 0 1px 0 color-mix(in srgb, var(--color-bg-primary) 60%, transparent);
+      inset 0 1px 0 color-mix(in srgb, var(--chrome-highlight) 88%, transparent);
   }
 
   &:disabled {
