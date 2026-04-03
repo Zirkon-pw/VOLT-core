@@ -1,24 +1,35 @@
 .addHandle {
   position: absolute;
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
-  background: var(--color-surface-elevated);
-  border: 1px solid var(--color-border);
+  background: color-mix(in srgb, var(--color-surface-elevated) 82%, var(--color-bg-primary));
+  border: 1px solid color-mix(in srgb, var(--color-border) 78%, transparent);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   z-index: var(--z-editor-chrome);
-  color: var(--color-text-tertiary);
-  transition: opacity 0.15s, background-color 0.15s, color 0.15s, border-color 0.15s;
+  color: var(--color-text-secondary);
+  transition:
+    opacity 0.15s,
+    background-color 0.15s,
+    color 0.15s,
+    border-color 0.15s,
+    box-shadow 0.15s,
+    transform 0.15s;
   padding: 0;
-  box-shadow: var(--shadow-floating);
+  box-shadow:
+    0 10px 22px -18px color-mix(in srgb, var(--color-shadow, #020617) 40%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--color-bg-primary) 75%, transparent);
 
   &:hover {
-    background: var(--color-accent);
-    border-color: var(--color-accent);
-    color: var(--color-text-inverse, #fff);
+    background: color-mix(in srgb, var(--color-accent) 12%, var(--color-surface-elevated));
+    border-color: color-mix(in srgb, var(--color-accent) 26%, var(--color-border));
+    color: var(--color-text-primary);
+    box-shadow:
+      0 14px 26px -20px color-mix(in srgb, var(--color-shadow, #020617) 42%, transparent),
+      inset 0 0 0 1px color-mix(in srgb, var(--color-accent) 14%, transparent);
   }
 }
 
@@ -30,18 +41,67 @@
   transform: translate(-50%, 6px);
 }
 
+.selectionTarget {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--color-border) 80%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-surface-overlay) 84%, var(--color-bg-secondary));
+  color: var(--color-text-secondary);
+  box-shadow:
+    0 12px 26px -22px color-mix(in srgb, var(--color-shadow, #020617) 46%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--color-bg-primary) 70%, transparent);
+  cursor: pointer;
+  z-index: calc(var(--z-editor-chrome) + 3);
+  transition:
+    background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    transform var(--transition-fast);
+
+  &:hover {
+    background: color-mix(in srgb, var(--color-accent) 10%, var(--color-surface-overlay));
+    border-color: color-mix(in srgb, var(--color-accent) 24%, var(--color-border));
+    color: var(--color-text-primary);
+    transform: translateY(-1px);
+  }
+}
+
+.selectionTargetCol {
+  min-width: 24px;
+}
+
+.selectionTargetRow {
+  min-height: 24px;
+}
+
+.selectionTargetActive {
+  background: color-mix(in srgb, var(--color-accent) 14%, var(--color-surface-overlay));
+  border-color: color-mix(in srgb, var(--color-accent) 30%, var(--color-border));
+  color: var(--color-accent);
+  box-shadow:
+    0 12px 24px -20px color-mix(in srgb, var(--color-shadow, #020617) 44%, transparent),
+    inset 0 0 0 1px color-mix(in srgb, var(--color-accent) 14%, transparent);
+}
+
 .toolbar {
   position: absolute;
   z-index: calc(var(--z-editor-chrome) + 1);
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  padding: var(--space-2);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  background: var(--color-surface-overlay);
-  box-shadow: var(--shadow-floating);
-  backdrop-filter: blur(12px);
+  padding: calc(var(--space-1) + 2px);
+  border: 1px solid color-mix(in srgb, var(--color-border) 78%, transparent);
+  border-radius: calc(var(--radius-lg) + 2px);
+  background: color-mix(in srgb, var(--color-surface-overlay) 88%, var(--color-bg-secondary));
+  box-shadow:
+    0 20px 38px -30px color-mix(in srgb, var(--color-shadow, #020617) 58%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--color-bg-primary) 68%, transparent);
+  backdrop-filter: blur(14px);
   transform: translate(-100%, calc(-100% - 10px));
 }
 
@@ -54,7 +114,7 @@
 .toolbarDivider {
   width: 1px;
   align-self: stretch;
-  background: var(--color-divider);
+  background: color-mix(in srgb, var(--color-divider) 76%, transparent);
 }
 
 .actionBtn,
@@ -63,7 +123,7 @@
   align-items: center;
   justify-content: center;
   gap: 4px;
-  min-height: 28px;
+  min-height: 30px;
   padding: 0 var(--space-2);
   border: none;
   border-radius: var(--radius-md);
@@ -73,22 +133,24 @@
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
-  transition: background-color 0.15s, color 0.15s;
+  transition: background-color 0.15s, color 0.15s, box-shadow 0.15s;
 
   &:hover {
-    background: var(--color-bg-hover);
+    background: color-mix(in srgb, var(--color-bg-hover) 82%, var(--color-bg-primary));
     color: var(--color-text-primary);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-border) 74%, transparent);
   }
 }
 
 .iconBtn {
-  width: 28px;
+  width: 30px;
   padding: 0;
 }
 
 .iconBtnActive {
-  background: var(--color-bg-hover);
+  background: color-mix(in srgb, var(--color-accent) 10%, var(--color-bg-hover));
   color: var(--color-accent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-accent) 18%, transparent);
 }
 
 .actionBtnDanger {
@@ -102,4 +164,12 @@
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
+  border-radius: var(--radius-lg);
+  border: 1px solid color-mix(in srgb, var(--color-border) 74%, transparent);
+  background: color-mix(in srgb, var(--color-surface-overlay) 92%, var(--color-bg-secondary));
+  box-shadow:
+    0 20px 38px -28px color-mix(in srgb, var(--color-shadow, #020617) 58%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--color-bg-primary) 70%, transparent);
+  backdrop-filter: blur(14px);
+  overflow: hidden;
 }

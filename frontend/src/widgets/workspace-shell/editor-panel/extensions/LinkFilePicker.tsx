@@ -55,12 +55,16 @@ export function LinkFilePicker({ editor, voltId, filePath, onClose }: LinkFilePi
     }
 
     const selection = initialSelectionRef.current;
+    const restore = () => {
+      try {
+        editor.chain().focus().setTextSelection(selection).run();
+      } catch {
+        editor.chain().focus().run();
+      }
+    };
 
-    try {
-      editor.chain().focus().setTextSelection(selection).run();
-    } catch {
-      editor.chain().focus().run();
-    }
+    restore();
+    window.requestAnimationFrame(restore);
   }, [editor]);
 
   const requestClose = useCallback(() => {

@@ -1,6 +1,8 @@
 .layout {
   display: flex;
   height: 100%;
+  min-width: 0;
+  min-height: 0;
   overflow: hidden;
   background: color-mix(in srgb, var(--color-bg-secondary) 92%, var(--color-bg-primary));
 }
@@ -10,6 +12,7 @@
   flex-direction: column;
   flex: 1;
   min-width: 0;
+  min-height: 0;
   overflow: hidden;
   background: color-mix(in srgb, var(--color-bg-secondary) 90%, var(--color-bg-primary));
 }
@@ -19,6 +22,7 @@
   flex: 1;
   min-width: 0;
   min-height: 0;
+  overflow: hidden;
   background: var(--color-bg-secondary);
 }
 
@@ -27,5 +31,6 @@
   min-width: 0;
   min-height: 0;
   overflow: auto;
+  overscroll-behavior: contain;
   background: var(--color-bg-primary);
 }

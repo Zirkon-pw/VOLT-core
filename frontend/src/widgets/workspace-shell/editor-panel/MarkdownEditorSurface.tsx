@@ -1,4 +1,4 @@
-import { useCallback, useRef, type ClipboardEventHandler, type DragEventHandler } from 'react';
+import { useCallback, useState, type ClipboardEventHandler, type DragEventHandler } from 'react';
 import { EditorContent, type Editor } from '@tiptap/react';
 import { useFileTreeStore } from '@entities/file-tree';
 import { useTabStore } from '@entities/tab';
@@ -40,7 +40,8 @@ export function MarkdownEditorSurface({
   onDragOver,
   onPaste,
 }: MarkdownEditorSurfaceProps) {
-  const editorContentRef = useRef<HTMLDivElement>(null);
+  const [editorContentElement, setEditorContentElement] = useState<HTMLDivElement | null>(null);
+  const [overlayElement, setOverlayElement] = useState<HTMLDivElement | null>(null);
 
   const handleLinkClick = useCallback(
     (e: React.MouseEvent) => {
@@ -100,17 +101,25 @@ export function MarkdownEditorSurface({
       onPaste={onPaste}
       onClickCapture={handleLinkClick}
     >
+      {!readOnly && editor && <TextBubbleMenu editor={editor} />}
       {showTaskStatusBanner && <PluginTaskStatusBanner voltPath={voltPath} filePath={filePath} />}
-      <div ref={editorContentRef} className={styles.editorContent}>
-        {!readOnly && editor && <TextBubbleMenu editor={editor} />}
-        {!readOnly && editor && (
-          <TableControls editor={editor} scrollContainer={editorContentRef.current} />
-        )}
-        {!readOnly && editor && (
-          <DragHandle editor={editor} scrollContainer={editorContentRef.current} />
-        )}
+      <div ref={setEditorContentElement} className={styles.editorContent}>
         <EditorContent editor={editor} />
       </div>
+      {!readOnly && editor && (
+        <div ref={setOverlayElement} className={styles.editorOverlay}>
+          <TableControls
+            editor={editor}
+            scrollContainer={editorContentElement}
+            overlayContainer={overlayElement}
+          />
+          <DragHandle
+            editor={editor}
+            scrollContainer={editorContentElement}
+            overlayContainer={overlayElement}
+          />
+        </div>
+      )}
     </div>
   );
 }

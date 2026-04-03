@@ -8,6 +8,18 @@ async function gotoHarness(page: import('@playwright/test').Page) {
   await expect(page.locator('.ProseMirror')).toContainText('Alpha paragraph');
 }
 
+async function expectNoAppOverflow(page: import('@playwright/test').Page) {
+  await expect.poll(async () => page.evaluate(() => {
+    const root = document.documentElement;
+    return (
+      root.scrollWidth - root.clientWidth <= 1
+      && root.scrollHeight - root.clientHeight <= 1
+      && window.scrollX === 0
+      && window.scrollY === 0
+    );
+  })).toBe(true);
+}
+
 test.beforeEach(async ({ page }) => {
   await gotoHarness(page);
 });
@@ -181,20 +193,55 @@ test('closes slash commands on escape and inserts math blocks from the slash men
   await expect.poll(async () => page.evaluate(() => window.__VOLT_PLAYWRIGHT__?.getMarkdown() ?? null)).toContain('$$');
 });
 
-test('does not show table toolbar on hover only, but shows notion-like controls on selection', async ({ page }) => {
+test('shows quiet table controls, lets you target rows and columns, and keeps the toolbar stable', async ({ page }) => {
   const firstCell = page.locator('.ProseMirror td').first();
 
   await firstCell.hover();
   await expect(page.getByTestId('table-add-col')).toBeVisible();
   await expect(page.getByTestId('table-add-row')).toBeVisible();
+  await expect(page.getByTestId('table-select-col')).toBeVisible();
+  await expect(page.getByTestId('table-select-row')).toBeVisible();
   await expect(page.getByTestId('table-toolbar')).toBeHidden();
 
-  await firstCell.click();
-
+  await page.getByTestId('table-select-row').click();
+  await expect(page.locator('.ProseMirror .selectedCell')).toHaveCount(2);
   await expect(page.getByTestId('table-toolbar')).toBeVisible();
   await expect(page.getByTestId('table-toolbar-color-picker')).toBeHidden();
+
+  await page.getByTestId('table-select-col').click();
+  await expect(page.locator('.ProseMirror .selectedCell')).toHaveCount(3);
+
+  await firstCell.click();
   await page.getByTestId('table-toolbar-cell-color').click();
   await expect(page.getByTestId('table-toolbar-color-picker')).toBeVisible();
+});
+
+test('keeps root overflow locked while editing and opening editor overlays', async ({ page }) => {
+  const editor = page.locator('.ProseMirror');
+  const firstCell = page.locator('.ProseMirror td').first();
+  const alpha = page.locator('.ProseMirror p', { hasText: 'Alpha paragraph' }).first();
+
+  await expectNoAppOverflow(page);
+
+  await editor.click();
+  await page.keyboard.press(`${modKey}+End`);
+  await page.keyboard.press('Enter');
+  await page.keyboard.type('Regular editing should stay inside the editor canvas.');
+
+  await alpha.hover();
+  await expect(page.getByTestId('editor-drag-handle')).toBeVisible();
+
+  await firstCell.hover();
+  await firstCell.click();
+  await expect(page.getByTestId('table-toolbar')).toBeVisible();
+  await page.getByTestId('table-toolbar-cell-color').click();
+  await expect(page.getByTestId('table-toolbar-color-picker')).toBeVisible();
+
+  await page.evaluate(() => {
+    window.scrollTo(120, 120);
+  });
+
+  await expectNoAppOverflow(page);
 });
 
 test('opens empty math block for typing instead of deleting it', async ({ page }) => {
