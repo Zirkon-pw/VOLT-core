@@ -5,6 +5,7 @@ import {
   ensureExtension,
   getHiddenDisplayExtension,
   isMarkdownName,
+  isMarkdownPath,
   stripHiddenDisplayExtension,
 } from './fileTypes';
 
@@ -179,4 +180,65 @@ export function findEntryByPath(entries: FileEntry[], targetPath: string): FileE
   }
 
   return null;
+}
+
+export function ensureExplicitRelativePath(path: string): string {
+  if (!path) {
+    return path;
+  }
+
+  if (
+    path.startsWith('./')
+    || path.startsWith('../')
+    || path.startsWith('#')
+    || path.startsWith('/')
+    || path.startsWith('?')
+  ) {
+    return path;
+  }
+
+  return `./${path}`;
+}
+
+export function computeRelativePath(fromDir: string, toPath: string): string {
+  const fromParts = fromDir ? fromDir.split('/') : [];
+  const toParts = toPath.split('/');
+  let common = 0;
+  while (common < fromParts.length && common < toParts.length && fromParts[common] === toParts[common]) {
+    common++;
+  }
+  const ups = fromParts.length - common;
+  const result = [...Array(ups).fill('..'), ...toParts.slice(common)].join('/');
+  return ensureExplicitRelativePath(result || toPath);
+}
+
+export function resolveRelativePath(baseDir: string, relativePath: string): string {
+  const parts = baseDir ? baseDir.split('/') : [];
+  for (const seg of relativePath.split('/')) {
+    if (seg === '..') {
+      parts.pop();
+    } else if (seg !== '.' && seg !== '') {
+      parts.push(seg);
+    }
+  }
+  return parts.join('/');
+}
+
+export function collectFiles(entries: FileEntry[], filter?: (entry: FileEntry) => boolean): FileEntry[] {
+  const result: FileEntry[] = [];
+  for (const entry of entries) {
+    if (!entry.isDir) {
+      if (!filter || filter(entry)) {
+        result.push(entry);
+      }
+    }
+    if (entry.isDir && entry.children) {
+      result.push(...collectFiles(entry.children, filter));
+    }
+  }
+  return result;
+}
+
+export function collectMarkdownFiles(entries: FileEntry[]): FileEntry[] {
+  return collectFiles(entries, (e) => isMarkdownPath(e.path));
 }

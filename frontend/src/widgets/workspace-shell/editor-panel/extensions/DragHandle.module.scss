@@ -1,0 +1,66 @@
+.dragHandle {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  color: var(--color-text-tertiary);
+  border-radius: var(--radius-sm);
+  transition: color 0.15s, background-color 0.15s;
+  z-index: 5;
+  user-select: none;
+  touch-action: none;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: -8px;
+    right: -8px;
+    bottom: -8px;
+  }
+
+  &:hover {
+    color: var(--color-text-primary);
+    background: var(--color-bg-hover);
+  }
+
+  &:active {
+    cursor: grabbing;
+  }
+}
+
+.dragHandleActive {
+  cursor: grabbing;
+  color: var(--color-text-primary);
+  background: var(--color-bg-hover);
+}
+
+.dropIndicator {
+  position: absolute;
+  height: 2px;
+  background: var(--color-accent);
+  border-radius: 999px;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-accent) 18%, transparent);
+  transform: translateY(-1px);
+  pointer-events: none;
+  z-index: 6;
+}
+
+.dragActiveBody {
+  cursor: grabbing;
+  user-select: none;
+}
+
+:global(.dragLiftedBlock) {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 1px 4px rgba(0, 0, 0, 0.1);
+  transform: scale(1.01);
+  opacity: 0.85;
+  transition: box-shadow 0.15s, transform 0.15s, opacity 0.15s;
+  position: relative;
+  z-index: 4;
+  border-radius: var(--radius-md);
+  background: var(--color-bg-primary);
+}

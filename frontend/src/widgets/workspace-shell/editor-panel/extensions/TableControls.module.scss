@@ -1,0 +1,105 @@
+.addHandle {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  color: var(--color-text-tertiary);
+  transition: opacity 0.15s, background-color 0.15s, color 0.15s, border-color 0.15s;
+  padding: 0;
+  box-shadow: var(--shadow-popup, 0 8px 20px rgba(0, 0, 0, 0.1));
+
+  &:hover {
+    background: var(--color-accent);
+    border-color: var(--color-accent);
+    color: var(--color-text-inverse, #fff);
+  }
+}
+
+.addHandleCol {
+  transform: translate(6px, -50%);
+}
+
+.addHandleRow {
+  transform: translate(-50%, 6px);
+}
+
+.toolbar {
+  position: absolute;
+  z-index: 11;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--color-bg-primary) 92%, transparent);
+  box-shadow: var(--shadow-popup, 0 10px 24px rgba(0, 0, 0, 0.12));
+  backdrop-filter: blur(10px);
+  transform: translate(-100%, calc(-100% - 10px));
+}
+
+.toolbarGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.toolbarDivider {
+  width: 1px;
+  align-self: stretch;
+  background: var(--color-divider);
+}
+
+.actionBtn,
+.iconBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 28px;
+  padding: 0 var(--space-2);
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.15s, color 0.15s;
+
+  &:hover {
+    background: var(--color-bg-hover);
+    color: var(--color-text-primary);
+  }
+}
+
+.iconBtn {
+  width: 28px;
+  padding: 0;
+}
+
+.iconBtnActive {
+  background: var(--color-bg-hover);
+  color: var(--color-accent);
+}
+
+.actionBtnDanger {
+  &:hover {
+    background: color-mix(in srgb, var(--color-error) 10%, transparent);
+    color: var(--color-error);
+  }
+}
+
+.colorPanel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+}

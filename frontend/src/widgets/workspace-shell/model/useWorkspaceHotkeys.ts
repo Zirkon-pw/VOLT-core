@@ -13,14 +13,16 @@ import { matchesShortcutBinding } from '@shared/lib/hotkeys';
 
 interface UseWorkspaceHotkeysOptions {
   voltId: string;
-  onToggleSearch: () => void;
+  onOpenSearch: (initialQuery?: string) => void;
   onToggleSidebar: () => void;
+  onOpenFindInFile: () => void;
 }
 
 export function useWorkspaceHotkeys({
   voltId,
-  onToggleSearch,
+  onOpenSearch,
   onToggleSidebar,
+  onOpenFindInFile,
 }: UseWorkspaceHotkeysOptions) {
   const commands = usePluginRegistryStore((state) => state.commands);
   const { byActionId } = useResolvedShortcuts();
@@ -34,10 +36,10 @@ export function useWorkspaceHotkeys({
     return voltTabs.find((tab) => tab.id === activeTabId) ?? null;
   };
 
-  useShortcutAction(BUILTIN_SHORTCUT_ACTIONS.workspaceSearchToggle, onToggleSearch, {
+  useShortcutAction(BUILTIN_SHORTCUT_ACTIONS.workspaceSearchToggle, () => onOpenSearch('>'), {
     allowInEditable: true,
   });
-  useShortcutAction(BUILTIN_SHORTCUT_ACTIONS.workspaceSearchDoubleShift, onToggleSearch);
+  useShortcutAction(BUILTIN_SHORTCUT_ACTIONS.workspaceSearchDoubleShift, () => onOpenSearch(''));
   useShortcutAction(BUILTIN_SHORTCUT_ACTIONS.workspaceSidebarToggle, onToggleSidebar, {
     allowInEditable: true,
   });
@@ -57,6 +59,9 @@ export function useWorkspaceHotkeys({
   useShortcutAction(BUILTIN_SHORTCUT_ACTIONS.fileCreate, () => {
     useFileTreeStore.getState().startCreate(voltId, '', false);
   }, {
+    allowInEditable: true,
+  });
+  useShortcutAction(BUILTIN_SHORTCUT_ACTIONS.fileFind, onOpenFindInFile, {
     allowInEditable: true,
   });
 

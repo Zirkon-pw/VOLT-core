@@ -31,6 +31,14 @@
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
   --shadow-popup: 0 4px 16px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.04);
+
+  --code-color-text: #1f2937;
+  --code-color-comment: #6b7280;
+  --code-color-keyword: #a61e4d;
+  --code-color-function: #0f766e;
+  --code-color-string: #b45309;
+  --code-color-number: #7c3aed;
+  --code-color-class: #0c4a6e;
 }
 
 // Dark theme
@@ -65,4 +73,12 @@
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3);
   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.4);
   --shadow-popup: 0 4px 16px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.06);
+
+  --code-color-text: #f3f4f6;
+  --code-color-comment: #8b949e;
+  --code-color-keyword: #ff7ab2;
+  --code-color-function: #7ee787;
+  --code-color-string: #f6c177;
+  --code-color-number: #c792ea;
+  --code-color-class: #7dd3fc;
 }

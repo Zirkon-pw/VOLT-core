@@ -1,6 +1,9 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Editor } from '@tiptap/react';
 import { BubbleMenu } from '@tiptap/react/menus';
+import { useI18n } from '@app/providers/I18nProvider';
+import { ensureExplicitRelativePath } from '@shared/lib/fileTree';
+import { ColorPicker } from '@shared/ui/color-picker';
 import { Icon } from '@shared/ui/icon';
 import styles from './TextBubbleMenu.module.scss';
 
@@ -30,20 +33,79 @@ interface TextBubbleMenuProps {
   editor: Editor;
 }
 
+function normalizeUrl(raw: string): string {
+  const trimmed = raw.trim();
+  if (!trimmed) return '';
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  if (/^[a-zA-Z][\w-]*(\.[a-zA-Z]{2,})(\/.*)?$/.test(trimmed)) {
+    return `https://${trimmed}`;
+  }
+  if (/^(?:[a-z][a-z0-9+.-]*:)?\/\//i.test(trimmed) || /^[a-z][a-z0-9+.-]*:/i.test(trimmed)) {
+    return trimmed;
+  }
+  return ensureExplicitRelativePath(trimmed);
+}
+
 export function TextBubbleMenu({ editor }: TextBubbleMenuProps) {
+  const { t } = useI18n();
   const [showLinkInput, setShowLinkInput] = useState(false);
   const [linkUrl, setLinkUrl] = useState('');
   const [showColors, setShowColors] = useState(false);
   const [showHighlight, setShowHighlight] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
   const linkInputRef = useRef<HTMLInputElement>(null);
+  const savedSelectionRef = useRef<{ from: number; to: number } | null>(null);
 
-  const shouldShow = useCallback(({ editor: ed }: { editor: Editor }) => {
-    return ed.state.selection.content().size > 0 && !ed.isActive('table');
-  }, []);
+  const shouldShow = useCallback(({ editor: ed, element }: { editor: Editor; element: HTMLElement }) => {
+    if (ed.isActive('table')) {
+      return false;
+    }
+
+    const hasSelection = ed.state.selection.content().size > 0;
+    const isInteractingWithMenu = element.contains(document.activeElement);
+
+    return hasSelection || showLinkInput || showColors || showHighlight || isInteractingWithMenu;
+  }, [showColors, showHighlight, showLinkInput]);
 
   const handleToolbarMouseDown = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
   };
+
+  const closeTransientPanels = useCallback(() => {
+    setShowColors(false);
+    setShowHighlight(false);
+    setShowLinkInput(false);
+    setLinkUrl('');
+    savedSelectionRef.current = null;
+  }, []);
+
+  useEffect(() => {
+    if (!showLinkInput && !showColors && !showHighlight) {
+      return undefined;
+    }
+
+    const handlePointerDown = (event: MouseEvent) => {
+      if (menuRef.current?.contains(event.target as Node)) {
+        return;
+      }
+      closeTransientPanels();
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeTransientPanels();
+      }
+    };
+
+    document.addEventListener('mousedown', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [closeTransientPanels, showColors, showHighlight, showLinkInput]);
 
   const toggleBold = () => editor.chain().focus().toggleBold().run();
   const toggleItalic = () => editor.chain().focus().toggleItalic().run();
@@ -51,6 +113,8 @@ export function TextBubbleMenu({ editor }: TextBubbleMenuProps) {
   const toggleStrike = () => editor.chain().focus().toggleStrike().run();
 
   const openLinkInput = () => {
+    const { from, to } = editor.state.selection;
+    savedSelectionRef.current = { from, to };
     const existingUrl = editor.getAttributes('link').href ?? '';
     setLinkUrl(existingUrl);
     setShowLinkInput(true);
@@ -60,19 +124,31 @@ export function TextBubbleMenu({ editor }: TextBubbleMenuProps) {
   };
 
   const applyLink = () => {
-    const url = linkUrl.trim();
+    const url = normalizeUrl(linkUrl);
     if (!url) {
       removeLink();
       return;
     }
 
-    editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+    const saved = savedSelectionRef.current;
+    if (saved) {
+      editor.chain().focus().setTextSelection(saved).setLink({ href: url }).run();
+    } else {
+      editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+    }
+    savedSelectionRef.current = null;
     setShowLinkInput(false);
     setLinkUrl('');
   };
 
   const removeLink = () => {
-    editor.chain().focus().unsetLink().run();
+    const saved = savedSelectionRef.current;
+    if (saved) {
+      editor.chain().focus().setTextSelection(saved).unsetLink().run();
+    } else {
+      editor.chain().focus().unsetLink().run();
+    }
+    savedSelectionRef.current = null;
     setShowLinkInput(false);
     setLinkUrl('');
   };
@@ -83,6 +159,7 @@ export function TextBubbleMenu({ editor }: TextBubbleMenuProps) {
       applyLink();
     } else if (e.key === 'Escape') {
       e.preventDefault();
+      savedSelectionRef.current = null;
       setShowLinkInput(false);
       setLinkUrl('');
     }
@@ -94,7 +171,6 @@ export function TextBubbleMenu({ editor }: TextBubbleMenuProps) {
     } else {
       editor.chain().focus().unsetColor().run();
     }
-    setShowColors(false);
   };
 
   const setHighlight = (color: string | null) => {
@@ -103,7 +179,6 @@ export function TextBubbleMenu({ editor }: TextBubbleMenuProps) {
     } else {
       editor.chain().focus().unsetHighlight().run();
     }
-    setShowHighlight(false);
   };
 
   const toggleColorsPanel = () => {
@@ -122,8 +197,8 @@ export function TextBubbleMenu({ editor }: TextBubbleMenuProps) {
   const currentHighlight = editor.getAttributes('highlight').color ?? null;
 
   return (
-    <BubbleMenu editor={editor} shouldShow={shouldShow}>
-      <div className={styles.menu}>
+    <BubbleMenu editor={editor} shouldShow={shouldShow} updateDelay={0}>
+      <div ref={menuRef} className={styles.menu} data-testid="text-bubble-menu">
         <div className={styles.toolbar}>
           <button
             type="button"
@@ -225,46 +300,29 @@ export function TextBubbleMenu({ editor }: TextBubbleMenuProps) {
                 onMouseDown={handleToolbarMouseDown}
                 onClick={removeLink}
               >
-                Убрать ссылку
+                {t('editor.link.remove')}
               </button>
             )}
           </div>
         )}
 
         {showColors && (
-          <div className={styles.colorPicker}>
-            {TEXT_COLORS.map((c) => (
-              <button
-                type="button"
-                key={c.label}
-                className={`${styles.colorSwatch} ${currentColor === c.value ? styles.colorSwatchActive : ''}`}
-                style={{ color: c.value ?? 'var(--color-text-primary)' }}
-                onMouseDown={handleToolbarMouseDown}
-                onClick={() => setColor(c.value)}
-                title={c.label}
-              >
-                A
-              </button>
-            ))}
-          </div>
+          <ColorPicker
+            value={currentColor}
+            onChange={setColor}
+            onPresetClick={() => setShowColors(false)}
+            presets={TEXT_COLORS}
+          />
         )}
 
         {showHighlight && (
-          <div className={styles.colorPicker}>
-            {HIGHLIGHT_COLORS.map((c) => (
-              <button
-                type="button"
-                key={c.label}
-                className={`${styles.highlightSwatch} ${currentHighlight === c.value ? styles.highlightSwatchActive : ''}`}
-                style={{ background: c.value ?? 'transparent' }}
-                onMouseDown={handleToolbarMouseDown}
-                onClick={() => setHighlight(c.value)}
-                title={c.label}
-              >
-                {c.value == null && <Icon name="close" size={10} />}
-              </button>
-            ))}
-          </div>
+          <ColorPicker
+            value={currentHighlight}
+            onChange={setHighlight}
+            onPresetClick={() => setShowHighlight(false)}
+            presets={HIGHLIGHT_COLORS}
+            showAlpha
+          />
         )}
       </div>
     </BubbleMenu>

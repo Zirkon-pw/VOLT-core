@@ -187,6 +187,8 @@ export interface CommandPaletteItem {
 
 export function useSearchPopup(
   isOpen: boolean,
+  initialQuery: string,
+  openToken: number,
   onClose: () => void,
   voltId: string,
   voltPath: string,
@@ -211,12 +213,12 @@ export function useSearchPopup(
 
   useEffect(() => {
     if (isOpen) {
-      setQuery('');
+      setQuery(initialQuery);
       setResults([]);
       setActiveIndex(0);
       setTimeout(() => inputRef.current?.focus(), 0);
     }
-  }, [isOpen]);
+  }, [initialQuery, isOpen, openToken]);
 
   useEffect(() => {
     if (!isOpen) return;

@@ -427,6 +427,7 @@ function MarkdownEditorDriver({
     editor,
     voltId: voltId ?? '',
     voltPath,
+    filePath,
     imageDir,
     resolve,
     register,
@@ -562,6 +563,7 @@ function MarkdownEditorDriver({
           return;
         }
         editor.commands.setContent(content);
+        editor.commands.setTextSelection(1);
         loadedPathRef.current = filePath;
         if (mode === 'file-tab' && voltId) {
           setDirty(voltId, filePath, false);
@@ -578,7 +580,7 @@ function MarkdownEditorDriver({
     return () => {
       cancelled = true;
     };
-  }, [activeFileTab?.isDirty, clear, consumePendingRename, controller, editor, filePath, mode, pendingRename, resolveAll, saveFileTab, setDirty, voltId, voltPath]);
+  }, [clear, consumePendingRename, controller, editor, filePath, mode, pendingRename, resolveAll, saveFileTab, setDirty, voltId, voltPath]);
 
   useEffect(() => {
     if (mode === 'file-tab') {

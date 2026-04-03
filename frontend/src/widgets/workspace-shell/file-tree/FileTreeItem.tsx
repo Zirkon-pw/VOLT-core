@@ -76,6 +76,8 @@ export const FileTreeItem = memo(function FileTreeItem({ voltId, voltPath, entry
         />
       ) : (
         <div
+          data-testid="file-tree-item"
+          data-path={entry.path}
           className={[
             styles.item,
             state.isSelected ? styles.itemSelected : '',

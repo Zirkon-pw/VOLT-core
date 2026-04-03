@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   BUILTIN_SHORTCUT_ACTIONS,
   useAppSettingsStore,
@@ -119,11 +119,12 @@ export function ShortcutSettingsSection() {
     setShortcutOverride(actionId, binding);
   }, [descriptors, overrides, resetShortcutOverride, setShortcutOverride, t]);
 
-  const handleCaptureKeyDown = useCallback((actionId: ShortcutActionId, event: React.KeyboardEvent<HTMLButtonElement>) => {
+  const commitCapturedBinding = useCallback((actionId: ShortcutActionId, event: KeyboardEvent) => {
     event.preventDefault();
     event.stopPropagation();
+    event.stopImmediatePropagation();
 
-    const { binding, nextShiftTimestamp } = captureShortcutBinding(event.nativeEvent, lastShiftTimestamp.current);
+    const { binding, nextShiftTimestamp } = captureShortcutBinding(event, lastShiftTimestamp.current);
     lastShiftTimestamp.current = nextShiftTimestamp;
     if (!binding) {
       return;
@@ -133,6 +134,21 @@ export function ShortcutSettingsSection() {
     setCapturingActionId(null);
     lastShiftTimestamp.current = null;
   }, [saveBinding]);
+
+  useEffect(() => {
+    if (!capturingActionId) {
+      return undefined;
+    }
+
+    const handleWindowKeyDown = (event: KeyboardEvent) => {
+      commitCapturedBinding(capturingActionId, event);
+    };
+
+    window.addEventListener('keydown', handleWindowKeyDown, true);
+    return () => {
+      window.removeEventListener('keydown', handleWindowKeyDown, true);
+    };
+  }, [capturingActionId, commitCapturedBinding]);
 
   return (
     <div className={styles.section}>
@@ -199,16 +215,17 @@ export function ShortcutSettingsSection() {
                   </div>
                   <button
                     type="button"
+                    data-testid="shortcut-binding-button"
+                    data-action-id={item.actionId}
+                    data-binding={item.binding ?? ''}
+                    data-capturing={isCapturing ? 'true' : 'false'}
                     className={`${styles.bindingButton} ${isCapturing ? styles.bindingButtonActive : ''} ${
                       !item.binding ? styles.bindingButtonEmpty : ''
                     }`}
+                    aria-pressed={isCapturing}
                     onClick={() => {
                       setCapturingActionId((current) => current === item.actionId ? null : item.actionId);
                       lastShiftTimestamp.current = null;
-                    }}
-                    onKeyDown={(event) => {
-                      if (capturingActionId !== item.actionId) return;
-                      handleCaptureKeyDown(item.actionId, event);
                     }}
                   >
                     {bindingLabel}

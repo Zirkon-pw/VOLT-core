@@ -34,8 +34,9 @@ export function TableBubbleMenu({ editor }: TableBubbleMenuProps) {
     <BubbleMenu
       editor={editor}
       shouldShow={({ editor: ed }) => ed.isActive('table')}
+      updateDelay={0}
     >
-      <div className={styles.menu}>
+      <div className={styles.menu} data-testid="table-bubble-menu">
         <div className={styles.group}>
           <span className={styles.groupLabel}>{t('editor.table.short.addColumnBefore').replace('←', '')}</span>
           <button

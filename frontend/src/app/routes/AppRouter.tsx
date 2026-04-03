@@ -5,6 +5,7 @@ import { WorkspacePage } from '@pages/workspace/WorkspacePage';
 import { PluginSettingsPage } from '@pages/settings/PluginSettingsPage';
 import { PluginSettingsHostPage } from '@pages/settings/PluginSettingsHostPage';
 import { SettingsPage } from '@pages/settings/SettingsPage';
+import { PlaywrightEditorHarness } from '@pages/playwright/PlaywrightEditorHarness';
 import { WorkspaceTabs } from '@widgets/workspace-tabs';
 import styles from './AppRouter.module.scss';
 
@@ -22,6 +23,12 @@ function AppLayout() {
           <Route path="/settings/plugins" element={<PluginSettingsPage />} />
           <Route path="/settings/plugin/:pluginId" element={<PluginSettingsHostPage />} />
           <Route path="/settings/about" element={<SettingsPage section="about" />} />
+          {import.meta.env.DEV && (
+            <>
+              <Route path="/__playwright__/editor" element={<PlaywrightEditorHarness />} />
+              <Route path="/__playwright__/settings/shortcuts" element={<SettingsPage section="shortcuts" />} />
+            </>
+          )}
         </Routes>
       </div>
     </div>

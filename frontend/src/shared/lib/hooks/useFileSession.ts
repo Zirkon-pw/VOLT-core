@@ -98,7 +98,7 @@ export function useFileSession({
     })();
 
     return () => { cancelled = true; };
-  }, [activeFileTab?.isDirty, consumePendingRename, filePath, onClear, pendingRename, save, setContent, setDirty, transformAfterLoad, voltId, voltPath]);
+  }, [consumePendingRename, filePath, onClear, pendingRename, save, setContent, setDirty, transformAfterLoad, voltId, voltPath]);
 
   // Register save handler
   useEffect(() => {
