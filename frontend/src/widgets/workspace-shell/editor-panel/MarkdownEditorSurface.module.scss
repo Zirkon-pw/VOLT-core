@@ -17,7 +17,7 @@
   overflow-x: hidden;
   overflow-y: auto;
   position: relative;
-  scroll-padding-top: calc(var(--space-8) + 40px);
+  scroll-padding-top: calc(var(--space-12) + 32px);
   overscroll-behavior: contain;
 }
 
@@ -39,7 +39,7 @@
     min-height: 100%;
     margin: 0 auto;
     padding:
-      var(--space-8)
+      calc(var(--space-10) + var(--space-4))
       min(max(var(--space-4), 6vw), var(--editor-side-padding))
       calc(var(--space-10) + var(--space-4))
       calc(min(max(var(--space-4), 6vw), var(--editor-side-padding)) + var(--space-6));

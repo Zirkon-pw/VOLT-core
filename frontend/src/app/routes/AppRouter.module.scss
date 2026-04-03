@@ -25,7 +25,7 @@
 
 :global([data-theme='dark']) {
   .root {
-    background: color-mix(in srgb, var(--color-surface-chrome) 72%, var(--color-bg-secondary));
+    background: color-mix(in srgb, var(--color-surface-elevated) 78%, var(--color-bg-secondary));
   }
 }
 
