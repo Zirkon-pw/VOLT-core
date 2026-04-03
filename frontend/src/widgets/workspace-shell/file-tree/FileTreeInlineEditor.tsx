@@ -1,10 +1,10 @@
 import { useEffect, useRef } from 'react';
-import { Icon, type IconName } from '@shared/ui/icon';
+import { Icon, type IconSource } from '@shared/ui/icon';
 import styles from './FileTree.module.scss';
 
 interface FileTreeInlineEditorProps {
   depth: number;
-  iconName: IconName;
+  iconName: IconSource;
   value: string;
   placeholder: string;
   onChange: (value: string) => void;
@@ -35,7 +35,7 @@ export function FileTreeInlineEditor({
       style={{ paddingLeft: `${depth * 16 + 8}px` }}
     >
       <span className={styles.icon}>
-        <Icon name={iconName} size={16} />
+        <Icon name={iconName} size={18} />
       </span>
       <input
         ref={inputRef}

@@ -1,6 +1,7 @@
 import { memo, useState } from 'react';
 import type { FileEntry } from '@shared/api/file/types';
-import { getEntryDisplayName, isMarkdownName } from '@shared/lib/fileTree';
+import { getEntryDisplayName } from '@shared/lib/fileTree';
+import { getFileIconSource } from '@shared/lib/fileIcons';
 import { useI18n } from '@app/providers/I18nProvider';
 import { Icon } from '@shared/ui/icon';
 import { ContextMenu } from '@shared/ui/context-menu';
@@ -26,7 +27,7 @@ export const FileTreeItem = memo(function FileTreeItem({ voltId, voltPath, entry
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
 
   const displayName = getEntryDisplayName(entry.name, entry.isDir);
-  const iconName = entry.isDir ? (state.expanded ? 'folderOpen' : 'folder') : (isMarkdownName(entry.name) ? 'fileText' : 'file');
+  const iconName = getFileIconSource(entry.name, entry.isDir, state.expanded);
 
   const handleClick = () => {
     actions.setSelectedPath(voltId, entry.path);
@@ -97,7 +98,7 @@ export const FileTreeItem = memo(function FileTreeItem({ voltId, voltPath, entry
           onDragEnd={() => dragDrop.handleDragEnd(entry.path)}
         >
           <span className={styles.icon}>
-            <Icon name={iconName} size={16} />
+            <Icon name={iconName} size={18} />
           </span>
           <span className={styles.name}>{displayName}</span>
         </div>
@@ -116,7 +117,10 @@ export const FileTreeItem = memo(function FileTreeItem({ voltId, voltPath, entry
           {state.isPendingCreateParent && state.pendingCreate ? (
             <FileTreeInlineEditor
               depth={depth + 1}
-              iconName={state.pendingCreate.isDir ? 'folder' : 'fileText'}
+              iconName={getFileIconSource(
+                state.pendingCreate.isDir ? `${state.pendingCreate.value || 'folder'}/` : state.pendingCreate.value || 'untitled.md',
+                state.pendingCreate.isDir,
+              )}
               value={state.pendingCreate.value}
               placeholder={state.pendingCreate.isDir ? t('fileTree.placeholder.folder') : t('fileTree.placeholder.note')}
               onChange={(value) => actions.updatePendingCreateValue(voltId, value)}

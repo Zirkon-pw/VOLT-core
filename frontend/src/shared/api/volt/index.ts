@@ -1,2 +1,2 @@
 export type { Volt } from './types';
-export { listVolts, createVolt, deleteVolt, selectDirectory } from './voltApi';
+export { listVolts, createVolt, createVoltInParent, deleteVolt, selectDirectory } from './voltApi';

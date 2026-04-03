@@ -1,0 +1,1 @@
+export { VoltLogo } from './VoltLogo';

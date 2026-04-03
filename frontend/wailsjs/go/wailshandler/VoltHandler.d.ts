@@ -4,6 +4,8 @@ import {volt} from '../models';
 
 export function CreateVolt(arg1:string,arg2:string):Promise<volt.Volt>;
 
+export function CreateVoltInParent(arg1:string,arg2:string,arg3:string):Promise<volt.Volt>;
+
 export function DeleteVolt(arg1:string):Promise<void>;
 
 export function ListVolts():Promise<Array<volt.Volt>>;

@@ -5,10 +5,11 @@ import { translate } from '@shared/i18n';
 import {
   collectMarkdownFiles,
   computeRelativePath,
+  getEntryDisplayName,
   getParentPath,
   getPathBasename,
-  getEntryDisplayName,
 } from '@shared/lib/fileTree';
+import { getFileIconSource } from '@shared/lib/fileIcons';
 import { Icon } from '@shared/ui/icon';
 import styles from './LinkFilePicker.module.scss';
 
@@ -148,7 +149,7 @@ export function LinkFilePicker({ editor, voltId, filePath, onClose }: LinkFilePi
               onClick={() => insertLink(file.path)}
               onMouseEnter={() => setSelectedIndex(i)}
             >
-              <Icon name="fileText" size={14} />
+              <Icon name={getFileIconSource(file.path, false)} size={16} />
               <div className={styles.itemText}>
                 <span className={styles.itemName}>
                   {getEntryDisplayName(getPathBasename(file.path), false)}

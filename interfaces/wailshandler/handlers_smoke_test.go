@@ -46,6 +46,35 @@ func TestVoltHandlerListVoltsUsesCommandManager(t *testing.T) {
 	}
 }
 
+func TestVoltHandlerCreateVoltInParentUsesCommandManager(t *testing.T) {
+	manager := commandbase.MustNewManager(handlerStubCommand{
+		name: commandvolt.CreateInParentName,
+		run: func(ctx context.Context, req any) (any, error) {
+			request, ok := req.(commandvolt.CreateInParentRequest)
+			if !ok {
+				t.Fatalf("unexpected request type %T", req)
+			}
+			if request.ParentPath != "/tmp/workspaces" || request.DirectoryName != "main-vault" {
+				t.Fatalf("request = %#v", request)
+			}
+
+			return commandvolt.CreateInParentResponse{
+				Volt: &corevolt.Volt{ID: "volt-2", Name: request.Name, Path: "/tmp/workspaces/main-vault"},
+			}, nil
+		},
+	})
+
+	handler := NewVoltHandler(manager, nil)
+	volt, err := handler.CreateVoltInParent("Main", "/tmp/workspaces", "main-vault")
+	if err != nil {
+		t.Fatalf("CreateVoltInParent() error = %v", err)
+	}
+
+	if volt == nil || volt.ID != "volt-2" {
+		t.Fatalf("volt = %#v, want ID %q", volt, "volt-2")
+	}
+}
+
 func TestFileHandlerReadFileUsesCommandManager(t *testing.T) {
 	manager := commandbase.MustNewManager(handlerStubCommand{
 		name: commandfile.ReadName,

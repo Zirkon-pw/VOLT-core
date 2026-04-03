@@ -72,7 +72,7 @@ export function Sidebar({ voltId, voltPath, onSearchClick, collapsed, onToggleCo
     },
     {
       id: 'builtin:new-note',
-      icon: 'plus',
+      icon: 'fileText',
       title: t('sidebar.newNote'),
       onClick: () => startCreate(voltId, '', false),
     },
@@ -140,6 +140,7 @@ export function Sidebar({ voltId, voltPath, onSearchClick, collapsed, onToggleCo
               <button
                 key={button.id}
                 type="button"
+                data-button-id={button.id}
                 className={[
                   styles.iconButton,
                   isDragging ? styles.iconButtonDragging : '',

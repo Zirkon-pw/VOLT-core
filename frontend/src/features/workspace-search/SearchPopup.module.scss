@@ -94,9 +94,12 @@
 
 .resultIcon {
   flex-shrink: 0;
-  width: 16px;
-  height: 16px;
-  margin-top: 2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
   color: var(--color-text-tertiary);
   font-size: 14px;
   line-height: 16px;

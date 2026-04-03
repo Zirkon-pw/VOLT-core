@@ -60,6 +60,7 @@ func NewContainer() *Container {
 	manager := commandbase.MustNewManager(
 		commandvolt.NewListCommand(voltStore),
 		commandvolt.NewCreateCommand(voltStore),
+		commandvolt.NewCreateInParentCommand(voltStore),
 		commandvolt.NewDeleteCommand(voltStore),
 		commandfile.NewReadCommand(fileRepo),
 		commandfile.NewSaveCommand(fileRepo),

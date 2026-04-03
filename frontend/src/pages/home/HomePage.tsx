@@ -1,60 +1,167 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useVoltStore } from '@entities/volt';
 import { useWorkspaceStore } from '@entities/workspace';
 import { Button } from '@shared/ui/button';
 import { TextInput } from '@shared/ui/text-input';
 import { Modal } from '@shared/ui/modal';
+import { Icon } from '@shared/ui/icon';
+import { VoltLogo } from '@shared/ui/volt-logo';
 import { useI18n } from '@app/providers/I18nProvider';
 import { VoltCard } from '@shared/ui/volt-card';
 import { selectDirectory } from '@shared/api/volt';
-import voltLogo from '@shared/assets/volt-logo.svg';
 import styles from './HomePage.module.scss';
+
+type HomeModalMode = 'create' | 'attach' | null;
+
+function sanitizeDirectoryName(value: string): string {
+  return value
+    .replace(/[\\/:*?"<>|]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function getPathBasename(path: string): string {
+  return path.split(/[\\/]/).filter(Boolean).at(-1) ?? path;
+}
+
+function joinPath(parentPath: string, childName: string): string {
+  if (!parentPath) return childName;
+  const separator = parentPath.includes('\\') && !parentPath.includes('/') ? '\\' : '/';
+  return `${parentPath.replace(/[\\/]+$/, '')}${separator}${childName}`;
+}
 
 export function HomePage() {
   const { t } = useI18n();
-  const { volts, loading, error, fetchVolts, createVolt, deleteVolt } =
-    useVoltStore();
+  const {
+    volts,
+    loading,
+    error,
+    fetchVolts,
+    createVolt,
+    createVoltInParent,
+    deleteVolt,
+    clearError,
+  } = useVoltStore();
   const openWorkspace = useWorkspaceStore((s) => s.openWorkspace);
   const navigate = useNavigate();
 
-  const [modalOpen, setModalOpen] = useState(false);
-  const [voltName, setVoltName] = useState('');
-  const [voltPath, setVoltPath] = useState('');
-  const [creating, setCreating] = useState(false);
+  const [modalMode, setModalMode] = useState<HomeModalMode>(null);
+  const [workspaceName, setWorkspaceName] = useState('');
+  const [directoryName, setDirectoryName] = useState('');
+  const [selectedPath, setSelectedPath] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [directoryNameEdited, setDirectoryNameEdited] = useState(false);
+  const [workspaceNameEdited, setWorkspaceNameEdited] = useState(false);
 
   useEffect(() => {
     fetchVolts();
   }, [fetchVolts]);
 
-  const handleOpenModal = () => {
-    setVoltName('');
-    setVoltPath('');
-    setModalOpen(true);
+  const previewPath = useMemo(() => {
+    if (modalMode !== 'create' || !selectedPath || !directoryName.trim()) {
+      return '';
+    }
+    return joinPath(selectedPath, sanitizeDirectoryName(directoryName));
+  }, [directoryName, modalMode, selectedPath]);
+
+  const resetModalState = () => {
+    clearError();
+    setWorkspaceName('');
+    setDirectoryName('');
+    setSelectedPath('');
+    setSubmitting(false);
+    setFormError(null);
+    setDirectoryNameEdited(false);
+    setWorkspaceNameEdited(false);
   };
 
-  const handleCloseModal = () => {
-    setModalOpen(false);
+  const openModal = (mode: Exclude<HomeModalMode, null>) => {
+    resetModalState();
+    setModalMode(mode);
   };
 
-  const handleSelectDirectory = async () => {
-    try {
-      const dir = await selectDirectory();
-      if (dir) {
-        setVoltPath(dir);
-      }
-    } catch {
-      // User cancelled or error
+  const closeModal = () => {
+    resetModalState();
+    setModalMode(null);
+  };
+
+  const handleWorkspaceNameChange = (value: string) => {
+    setWorkspaceName(value);
+    setWorkspaceNameEdited(true);
+
+    if (modalMode === 'create' && !directoryNameEdited) {
+      setDirectoryName(sanitizeDirectoryName(value));
     }
   };
 
-  const handleCreate = async () => {
-    if (!voltName.trim() || !voltPath.trim()) return;
-    setCreating(true);
-    const result = await createVolt(voltName.trim(), voltPath.trim());
-    setCreating(false);
-    if (result) {
-      setModalOpen(false);
+  const handleDirectorySelect = async () => {
+    try {
+      const dir = await selectDirectory();
+      if (!dir) return;
+
+      setSelectedPath(dir);
+      setFormError(null);
+      clearError();
+
+      if (modalMode === 'attach' && !workspaceNameEdited) {
+        setWorkspaceName(getPathBasename(dir));
+      }
+    } catch {
+      // User cancelled or dialog failed.
+    }
+  };
+
+  const validateForm = (): string | null => {
+    if (!workspaceName.trim()) {
+      return t('home.validation.nameRequired');
+    }
+
+    if (!selectedPath.trim()) {
+      return modalMode === 'create' ? t('home.validation.parentRequired') : t('home.validation.locationRequired');
+    }
+
+    if (modalMode === 'create') {
+      const nextDirectoryName = sanitizeDirectoryName(directoryName);
+      if (!nextDirectoryName) {
+        return t('home.validation.folderNameRequired');
+      }
+      if (/[\\/]/.test(directoryName)) {
+        return t('home.validation.folderNameInvalid');
+      }
+    }
+
+    return null;
+  };
+
+  const handleSubmit = async () => {
+    const validationError = validateForm();
+    if (validationError) {
+      setFormError(validationError);
+      return;
+    }
+
+    setSubmitting(true);
+    setFormError(null);
+    clearError();
+
+    try {
+      if (modalMode === 'create') {
+        await createVoltInParent(
+          workspaceName.trim(),
+          selectedPath.trim(),
+          sanitizeDirectoryName(directoryName),
+        );
+      } else if (modalMode === 'attach') {
+        await createVolt(workspaceName.trim(), selectedPath.trim());
+      }
+
+      closeModal();
+    } catch (e) {
+      setFormError((e as Error).message);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -71,36 +178,51 @@ export function HomePage() {
     navigate(`/workspace/${volt.id}`);
   };
 
+  const modalTitle = modalMode === 'create' ? t('home.modal.createTitle') : t('home.modal.attachTitle');
+  const submitLabel = modalMode === 'create'
+    ? (submitting ? t('home.modal.creating') : t('home.modal.create'))
+    : (submitting ? t('home.modal.adding') : t('home.modal.add'));
+
   return (
     <div className={styles.page}>
       <div className={styles.container}>
-        <div className={styles.header}>
+        <header className={styles.header}>
           <div className={styles.brand}>
-            <img className={styles.logo} src={voltLogo} alt={t('home.logoAlt')} />
-            <div className={styles.brandCopy}>
-              <span className={styles.kicker}>{t('home.kicker')}</span>
-              <h1 className={styles.title}>volt</h1>
-              <p className={styles.subtitle}>
-                {t('home.subtitle')}
-              </p>
+            <div className={styles.logoWrap}>
+              <VoltLogo className={styles.logo} title={t('home.logoAlt')} />
+            </div>
+            <div className={styles.brandTitle}>Volt</div>
+            <div className={styles.actionCluster}>
+              <button
+                type="button"
+                className={`${styles.actionButton} ${styles.actionCreate}`}
+                data-testid="home-create-workspace"
+                aria-label={t('home.actions.create.aria')}
+                title={t('home.actions.create.title')}
+                onClick={() => openModal('create')}
+              >
+                <Icon name="plus" size={18} />
+              </button>
+              <button
+                type="button"
+                className={`${styles.actionButton} ${styles.actionAttach}`}
+                data-testid="home-attach-workspace"
+                aria-label={t('home.actions.attach.aria')}
+                title={t('home.actions.attach.title')}
+                onClick={() => openModal('attach')}
+              >
+                <Icon name="folderOpen" size={18} />
+              </button>
             </div>
           </div>
-          <Button variant="primary" size="md" onClick={handleOpenModal}>
-            {t('home.newVolt')}
-          </Button>
-        </div>
+        </header>
 
-        {error && <div className={styles.error}>{error}</div>}
+        {error && modalMode == null && <div className={styles.error}>{error}</div>}
 
         {!loading && volts.length === 0 ? (
           <div className={styles.empty}>
             <span className={styles.emptyText}>{t('home.emptyTitle')}</span>
-            <span className={styles.emptyHint}>
-              {t('home.emptyHint')}
-            </span>
-            <Button variant="secondary" size="lg" onClick={handleOpenModal}>
-              {t('home.createFirstVolt')}
-            </Button>
+            <span className={styles.emptyHint}>{t('home.emptyHint')}</span>
           </div>
         ) : (
           <div className={styles.grid}>
@@ -116,41 +238,83 @@ export function HomePage() {
         )}
       </div>
 
-      <Modal isOpen={modalOpen} onClose={handleCloseModal} title={t('home.modal.title')}>
+      <Modal isOpen={modalMode != null} onClose={closeModal} title={modalTitle}>
         <TextInput
           label={t('home.modal.nameLabel')}
           placeholder={t('home.modal.namePlaceholder')}
-          value={voltName}
-          onChange={(e) => setVoltName(e.target.value)}
+          value={workspaceName}
+          onChange={(e) => handleWorkspaceNameChange(e.target.value)}
           autoFocus
         />
 
-        <div className={styles.modalField}>
-          <span className={styles.modalLabel}>{t('home.modal.locationLabel')}</span>
-          <div className={styles.directorySelector}>
-            <div
-              className={`${styles.directoryPath} ${voltPath ? styles.directoryPathSelected : ''}`}
-              title={voltPath}
-            >
-              {voltPath || t('home.modal.noDirectory')}
+        {modalMode === 'create' ? (
+          <>
+            <div className={styles.modalField}>
+              <span className={styles.modalLabel}>{t('home.modal.parentLabel')}</span>
+              <div className={styles.directorySelector}>
+                <div
+                  className={`${styles.directoryPath} ${selectedPath ? styles.directoryPathSelected : ''}`}
+                  title={selectedPath}
+                >
+                  {selectedPath || t('home.modal.noDirectory')}
+                </div>
+                <Button variant="secondary" size="sm" onClick={handleDirectorySelect}>
+                  {t('home.modal.browse')}
+                </Button>
+              </div>
             </div>
-            <Button variant="secondary" size="sm" onClick={handleSelectDirectory}>
-              {t('home.modal.browse')}
-            </Button>
+
+            <TextInput
+              label={t('home.modal.directoryNameLabel')}
+              placeholder={t('home.modal.directoryNamePlaceholder')}
+              value={directoryName}
+              onChange={(e) => {
+                setDirectoryNameEdited(true);
+                setDirectoryName(e.target.value);
+              }}
+            />
+
+            <div className={styles.modalField}>
+              <span className={styles.modalLabel}>{t('home.modal.previewLabel')}</span>
+              <div
+                className={`${styles.directoryPath} ${previewPath ? styles.directoryPathSelected : ''}`}
+                data-testid="home-modal-path-preview"
+                title={previewPath}
+              >
+                {previewPath || t('home.modal.noDirectory')}
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className={styles.modalField}>
+            <span className={styles.modalLabel}>{t('home.modal.locationLabel')}</span>
+            <div className={styles.directorySelector}>
+              <div
+                className={`${styles.directoryPath} ${selectedPath ? styles.directoryPathSelected : ''}`}
+                title={selectedPath}
+              >
+                {selectedPath || t('home.modal.noDirectory')}
+              </div>
+              <Button variant="secondary" size="sm" onClick={handleDirectorySelect}>
+                {t('home.modal.browse')}
+              </Button>
+            </div>
           </div>
-        </div>
+        )}
+
+        {(formError ?? error) && <div className={styles.inlineError}>{formError ?? error}</div>}
 
         <div className={styles.modalActions}>
-          <Button variant="ghost" size="md" onClick={handleCloseModal}>
+          <Button variant="ghost" size="md" onClick={closeModal}>
             {t('common.cancel')}
           </Button>
           <Button
             variant="primary"
             size="md"
-            onClick={handleCreate}
-            disabled={!voltName.trim() || !voltPath.trim() || creating}
+            onClick={handleSubmit}
+            disabled={submitting}
           >
-            {creating ? t('home.modal.creating') : t('home.modal.create')}
+            {submitLabel}
           </Button>
         </div>
       </Modal>

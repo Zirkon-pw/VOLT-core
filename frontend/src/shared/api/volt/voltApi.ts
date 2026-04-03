@@ -11,6 +11,14 @@ export async function createVolt(name: string, path: string): Promise<Volt> {
   return invokeWailsSafe(loadVoltHandler, (mod) => mod.CreateVolt(name, path), 'createVolt');
 }
 
+export async function createVoltInParent(name: string, parentPath: string, directoryName: string): Promise<Volt> {
+  return invokeWailsSafe(
+    loadVoltHandler,
+    (mod) => mod.CreateVoltInParent(name, parentPath, directoryName),
+    'createVoltInParent',
+  );
+}
+
 export async function deleteVolt(id: string): Promise<void> {
   return invokeWailsSafe(loadVoltHandler, (mod) => mod.DeleteVolt(id), 'deleteVolt');
 }

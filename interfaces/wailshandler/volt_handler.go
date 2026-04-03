@@ -51,6 +51,23 @@ func (h *VoltHandler) CreateVolt(name, path string) (*domain.Volt, error) {
 	return result.Volt, nil
 }
 
+func (h *VoltHandler) CreateVoltInParent(name, parentPath, directoryName string) (*domain.Volt, error) {
+	result, err := commandbase.Execute[commandvolt.CreateInParentResponse](
+		context.Background(),
+		h.manager,
+		commandvolt.CreateInParentName,
+		commandvolt.CreateInParentRequest{
+			Name:          name,
+			ParentPath:    parentPath,
+			DirectoryName: directoryName,
+		},
+	)
+	if err != nil {
+		return nil, localizedVoltError(h.localization, "backend.action.createVoltInParent", fmtKeyValue("name", name), err)
+	}
+	return result.Volt, nil
+}
+
 func (h *VoltHandler) DeleteVolt(id string) error {
 	_, err := commandbase.Execute[commandvolt.DeleteResponse](
 		context.Background(),

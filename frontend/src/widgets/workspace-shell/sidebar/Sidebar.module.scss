@@ -72,6 +72,18 @@
     color: var(--color-icon-hover);
     box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-border) 82%, transparent);
   }
+
+  &[data-button-id='builtin:search'] {
+    color: var(--color-icon-sky);
+  }
+
+  &[data-button-id='builtin:new-note'] {
+    color: var(--color-icon-coral);
+  }
+
+  &[data-button-id='builtin:new-folder'] {
+    color: var(--color-icon-sage);
+  }
 }
 
 .icon-button-dragging {

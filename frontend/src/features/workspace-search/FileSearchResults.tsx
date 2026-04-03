@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import type { SearchResult } from '@shared/api/search';
+import { getFileIconSource } from '@shared/lib/fileIcons';
 import { Icon } from '@shared/ui/icon';
 import styles from './SearchPopup.module.scss';
 
@@ -34,7 +35,7 @@ export function FileSearchResults({
           onMouseEnter={() => onHover(i)}
         >
           <span className={styles.resultIcon}>
-            {result.isName ? <Icon name="hash" size={14} /> : <Icon name="fileText" size={14} />}
+            <Icon name={getFileIconSource(result.filePath, false)} size={16} />
           </span>
           <div className={styles.resultContent}>
             <span
@@ -57,6 +58,9 @@ function SnippetText({ snippet, query }: { snippet: string; query: string }) {
   const parts = useMemo(() => {
     const lower = snippet.toLowerCase();
     const qLower = query.toLowerCase().trim();
+    if (!qLower) {
+      return [{ text: snippet, highlight: false }];
+    }
     const segments: { text: string; highlight: boolean }[] = [];
     let lastIndex = 0;
 

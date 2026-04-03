@@ -6,6 +6,10 @@ export function CreateVolt(arg1, arg2) {
   return window['go']['wailshandler']['VoltHandler']['CreateVolt'](arg1, arg2);
 }
 
+export function CreateVoltInParent(arg1, arg2, arg3) {
+  return window['go']['wailshandler']['VoltHandler']['CreateVoltInParent'](arg1, arg2, arg3);
+}
+
 export function DeleteVolt(arg1) {
   return window['go']['wailshandler']['VoltHandler']['DeleteVolt'](arg1);
 }

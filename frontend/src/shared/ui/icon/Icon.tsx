@@ -47,7 +47,7 @@ export function Icon({ name, size = 16, className }: IconProps) {
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth={2}
+      strokeWidth={2.35}
       strokeLinecap="round"
       strokeLinejoin="round"
     >

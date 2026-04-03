@@ -42,3 +42,11 @@
   overscroll-behavior: contain;
   background: color-mix(in srgb, var(--color-surface-raised) 92%, var(--color-bg-primary));
 }
+
+@media (max-width: 960px) {
+  .layout {
+    background:
+      radial-gradient(circle at top left, color-mix(in srgb, var(--color-tint-sage) 34%, transparent), transparent 28%),
+      linear-gradient(180deg, color-mix(in srgb, var(--color-bg-secondary) 84%, var(--color-bg-primary)), var(--color-bg-primary));
+  }
+}
