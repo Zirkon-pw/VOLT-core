@@ -28,6 +28,39 @@ async function expectNoAppOverflow(page: import('@playwright/test').Page) {
   })).toBe(true);
 }
 
+async function selectParagraphText(
+  page: import('@playwright/test').Page,
+  paragraphText: string,
+  from: number,
+  to: number,
+) {
+  await page.locator('.ProseMirror').click();
+  await page.evaluate(({ paragraphText: text, from: start, to: end }) => {
+    const paragraph = Array.from(document.querySelectorAll('.ProseMirror p'))
+      .find((node) => node.textContent?.includes(text));
+
+    if (!(paragraph instanceof HTMLElement)) {
+      throw new Error(`Paragraph not found: ${text}`);
+    }
+
+    const textNode = Array.from(paragraph.childNodes).find(
+      (node) => node.nodeType === Node.TEXT_NODE && (node.textContent?.length ?? 0) >= end,
+    );
+
+    if (!(textNode instanceof Text)) {
+      throw new Error(`Paragraph text node not found: ${text}`);
+    }
+
+    const selection = window.getSelection();
+    const range = document.createRange();
+    range.setStart(textNode, start);
+    range.setEnd(textNode, end);
+    selection?.removeAllRanges();
+    selection?.addRange(range);
+    document.dispatchEvent(new Event('selectionchange'));
+  }, { paragraphText, from, to });
+}
+
 test.beforeEach(async ({ page }) => {
   await gotoHarness(page);
 });
@@ -128,6 +161,21 @@ test('closes the color picker on outside click', async ({ page }) => {
 
   await editor.click({ position: { x: 12, y: 96 } });
   await expect(picker).toBeHidden();
+});
+
+test('applies inline code from the bubble menu and serializes markdown with backticks', async ({ page }) => {
+  await selectParagraphText(page, 'Alpha paragraph', 0, 5);
+
+  await expect(page.getByTestId('text-bubble-menu')).toBeVisible();
+  const inlineCodeButton = page.getByTestId('text-bubble-inline-code');
+  await inlineCodeButton.click();
+
+  await expect.poll(async () => page.evaluate(() => window.__VOLT_PLAYWRIGHT__?.getMarkdown() ?? null))
+    .toContain('`Alpha` paragraph');
+
+  await inlineCodeButton.click();
+  await expect.poll(async () => page.evaluate(() => window.__VOLT_PLAYWRIGHT__?.getMarkdown() ?? null))
+    .not.toContain('`Alpha` paragraph');
 });
 
 test('opens external links and internal note links', async ({ page }) => {
@@ -525,7 +573,7 @@ test('opens a custom context menu, closes it with escape and outside click, and 
   await expect(page.getByTestId('context-menu')).toHaveCount(0);
 });
 
-test('opens the editor context menu from the keyboard and launches the link picker', async ({ page }) => {
+test('opens the editor context menu from the keyboard without duplicating bubble actions', async ({ page }) => {
   const editor = page.locator('.ProseMirror');
 
   await editor.click();
@@ -535,10 +583,26 @@ test('opens the editor context menu from the keyboard and launches the link pick
 
   await expect(page.getByTestId('context-menu')).toBeVisible();
   await expect(page.getByRole('menuitem', { name: 'Undo' })).toBeVisible();
+  await expect(page.getByRole('menuitem', { name: 'Select all' })).toBeVisible();
+  await expect(page.getByTestId('context-menu-item')).toHaveCount(6);
+  await expect(page.getByRole('menuitem', { name: 'Bold' })).toHaveCount(0);
+  await expect(page.getByRole('menuitem', { name: 'Italic' })).toHaveCount(0);
+  await expect(page.getByRole('menuitem', { name: 'Underline' })).toHaveCount(0);
+  await expect(page.getByRole('menuitem', { name: 'Strikethrough' })).toHaveCount(0);
+  await expect(page.getByRole('menuitem', { name: 'Add link' })).toHaveCount(0);
   await expect(page.getByRole('menuitem', { name: 'Heading 1' })).toHaveCount(0);
   await expect(page.getByRole('menuitem', { name: 'Table' })).toHaveCount(0);
-  await page.getByRole('menuitem', { name: 'Add link' }).click();
-  await expect(page.getByTestId('link-file-picker')).toBeVisible();
+});
+
+test('shows only link navigation actions in the editor context menu for links', async ({ page }) => {
+  const link = page.locator('.ProseMirror a[href="https://example.com"]').first();
+
+  await link.click({ button: 'right' });
+  await expect(page.getByTestId('context-menu')).toBeVisible();
+  await expect(page.getByRole('menuitem', { name: 'Copy link' })).toBeVisible();
+  await expect(page.getByRole('menuitem', { name: 'Open link' })).toBeVisible();
+  await expect(page.getByRole('menuitem', { name: 'Add link' })).toHaveCount(0);
+  await expect(page.getByRole('menuitem', { name: 'Bold' })).toHaveCount(0);
 });
 
 test('opens editor table actions from the context menu', async ({ page }) => {
@@ -546,10 +610,12 @@ test('opens editor table actions from the context menu', async ({ page }) => {
 
   await firstCell.click({ button: 'right' });
   await expect(page.getByTestId('context-menu')).toBeVisible();
+  await expect(page.getByTestId('context-menu-item')).toHaveCount(9);
   await expect(page.getByRole('menuitem', { name: 'Select row' })).toBeVisible();
   await expect(page.getByRole('menuitem', { name: 'Select column' })).toBeVisible();
   await expect(page.getByRole('menuitem', { name: 'Select table' })).toBeVisible();
   await expect(page.getByRole('menuitem', { name: 'Heading 1' })).toHaveCount(0);
+  await expect(page.getByRole('menuitem', { name: 'Bold' })).toHaveCount(0);
 });
 
 test('keeps editor menus floating on small screens and still opens the touch context menu', async ({ page }) => {
@@ -596,6 +662,7 @@ test('keeps editor menus floating on small screens and still opens the touch con
 
   await expect(page.getByTestId('context-menu')).toBeVisible();
   await expect(page.getByRole('menuitem', { name: 'Undo' })).toBeVisible();
+  await expect(page.getByRole('menuitem', { name: 'Bold' })).toHaveCount(0);
   await expect(page.getByRole('menuitem', { name: 'Heading 1' })).toHaveCount(0);
 });
 

@@ -1,5 +1,6 @@
 import { useEditor, type Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
+import Code from '@tiptap/extension-code';
 import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
 import TaskList from '@tiptap/extension-task-list';
@@ -38,8 +39,10 @@ export function useEditorSetup({
     editable,
     extensions: [
       StarterKit.configure({
+        code: false,
         codeBlock: false,
       }),
+      Code,
       Link.configure({
         openOnClick: false,
         HTMLAttributes: {

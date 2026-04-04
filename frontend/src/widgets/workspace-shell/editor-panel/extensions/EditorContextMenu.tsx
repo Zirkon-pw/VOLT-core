@@ -7,14 +7,6 @@ import { formatShortcutBinding } from '@shared/lib/hotkeys';
 import { ContextMenu, type ContextMenuItem } from '@shared/ui/context-menu';
 import type { EditorMenuContext } from '../lib/editorContext';
 
-const TABLE_COLOR_PRESETS = [
-  { label: 'None', value: null },
-  { label: 'Gray', value: '#f3f4f6' },
-  { label: 'Blue', value: '#dbeafe' },
-  { label: 'Green', value: '#dcfce7' },
-  { label: 'Yellow', value: '#fef9c3' },
-];
-
 interface EditorContextMenuProps {
   editor: Editor;
   context: EditorMenuContext;
@@ -53,8 +45,8 @@ function buildEditorContextMenuItems(editor: Editor, context: EditorMenuContext)
   pushGroup(items, buildHistoryItems(editor));
   pushGroup(items, buildClipboardItems(editor));
 
-  if (context.canFormat || context.hasSelection || context.isInLink) {
-    pushGroup(items, buildFormattingItems(editor, context));
+  if (context.isInLink || context.nodeKind === 'link') {
+    pushGroup(items, buildLinkItems(context));
   }
 
   pushGroup(items, buildNodeSpecificItems(editor, context));
@@ -132,61 +124,10 @@ function buildClipboardItems(editor: Editor): ContextMenuItem[] {
   ];
 }
 
-function buildFormattingItems(editor: Editor, context: EditorMenuContext): ContextMenuItem[] {
+function buildLinkItems(context: EditorMenuContext): ContextMenuItem[] {
+  const href = context.linkHref ?? '';
   const items: ContextMenuItem[] = [
     {
-      label: translate('editor.context.bold'),
-      icon: 'bold',
-      shortcut: formatShortcutBinding('Mod+B'),
-      active: editor.isActive('bold'),
-      disabled: !editor.isEditable || !editor.can().chain().focus().toggleBold().run(),
-      onClick: () => {
-        editor.chain().focus().toggleBold().run();
-      },
-    },
-    {
-      label: translate('editor.context.italic'),
-      icon: 'italic',
-      shortcut: formatShortcutBinding('Mod+I'),
-      active: editor.isActive('italic'),
-      disabled: !editor.isEditable || !editor.can().chain().focus().toggleItalic().run(),
-      onClick: () => {
-        editor.chain().focus().toggleItalic().run();
-      },
-    },
-    {
-      label: translate('editor.context.underline'),
-      icon: {
-        svg: `
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.35" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M6 4v6a6 6 0 0 0 12 0V4" />
-            <path d="M4 20h16" />
-          </svg>
-        `,
-      },
-      shortcut: formatShortcutBinding('Mod+U'),
-      active: editor.isActive('underline'),
-      disabled: !editor.isEditable || !editor.can().chain().focus().toggleUnderline().run(),
-      onClick: () => {
-        editor.chain().focus().toggleUnderline().run();
-      },
-    },
-    {
-      label: translate('editor.context.strikethrough'),
-      icon: 'strikethrough',
-      active: editor.isActive('strike'),
-      disabled: !editor.isEditable || !editor.can().chain().focus().toggleStrike().run(),
-      onClick: () => {
-        editor.chain().focus().toggleStrike().run();
-      },
-    },
-  ];
-
-  if (context.isInLink || context.nodeKind === 'link') {
-    const href = context.linkHref ?? '';
-    const isExternalLink = /^(?:[a-z][a-z0-9+.-]*:)?\/\//i.test(href) || /^[a-z][a-z0-9+.-]*:/i.test(href);
-
-    items.push({
       label: translate('editor.context.copyLink'),
       icon: 'link',
       disabled: href.length === 0 || !globalThis.navigator?.clipboard?.writeText,
@@ -196,37 +137,20 @@ function buildFormattingItems(editor: Editor, context: EditorMenuContext): Conte
         }
         void globalThis.navigator?.clipboard?.writeText(href);
       },
-    });
+    },
+  ];
 
-    if (isExternalLink) {
-      items.push({
-        label: translate('editor.context.openLink'),
-        icon: 'arrowRight',
-        disabled: href.length === 0,
-        onClick: () => {
-          if (!href) {
-            return;
-          }
-          openExternalUrl(href);
-        },
-      });
-    }
-
+  const isExternalLink = /^(?:[a-z][a-z0-9+.-]*:)?\/\//i.test(href) || /^[a-z][a-z0-9+.-]*:/i.test(href);
+  if (isExternalLink) {
     items.push({
-      label: translate('editor.link.remove'),
-      icon: 'close',
-      disabled: !editor.isEditable || !editor.can().chain().focus().unsetLink().run(),
+      label: translate('editor.context.openLink'),
+      icon: 'arrowRight',
+      disabled: href.length === 0,
       onClick: () => {
-        editor.chain().focus().extendMarkRange('link').unsetLink().run();
-      },
-    });
-  } else {
-    items.push({
-      label: translate('editor.context.addLink'),
-      icon: 'link',
-      disabled: !editor.isEditable,
-      onClick: () => {
-        window.dispatchEvent(new CustomEvent('volt:pick-link'));
+        if (!href) {
+          return;
+        }
+        openExternalUrl(href);
       },
     });
   }
@@ -268,13 +192,8 @@ function buildNodeSpecificItems(editor: Editor, context: EditorMenuContext): Con
 }
 
 function buildTableItems(editor: Editor, context: EditorMenuContext): ContextMenuItem[] {
-  const items: ContextMenuItem[] = [];
   const targetPos = context.targetPos ?? editor.state.selection.from;
-  const currentColor = editor.getAttributes('tableCell').backgroundColor
-    ?? editor.getAttributes('tableHeader').backgroundColor
-    ?? null;
-
-  items.push(
+  return [
     {
       label: translate('editor.table.selectRow'),
       icon: 'rows',
@@ -299,89 +218,7 @@ function buildTableItems(editor: Editor, context: EditorMenuContext): ContextMen
         editor.chain().focus().selectParentNode().run();
       },
     },
-    { label: '', separator: true, onClick: () => {} },
-    {
-      label: translate('editor.table.addColumnBefore'),
-      icon: 'columns',
-      disabled: !editor.isEditable || !editor.can().chain().focus().addColumnBefore().run(),
-      onClick: () => {
-        editor.chain().focus().addColumnBefore().run();
-      },
-    },
-    {
-      label: translate('editor.table.addColumnAfter'),
-      icon: 'columns',
-      disabled: !editor.isEditable || !editor.can().chain().focus().addColumnAfter().run(),
-      onClick: () => {
-        editor.chain().focus().addColumnAfter().run();
-      },
-    },
-    {
-      label: translate('editor.table.addRowAbove'),
-      icon: 'rows',
-      disabled: !editor.isEditable || !editor.can().chain().focus().addRowBefore().run(),
-      onClick: () => {
-        editor.chain().focus().addRowBefore().run();
-      },
-    },
-    {
-      label: translate('editor.table.addRowBelow'),
-      icon: 'rows',
-      disabled: !editor.isEditable || !editor.can().chain().focus().addRowAfter().run(),
-      onClick: () => {
-        editor.chain().focus().addRowAfter().run();
-      },
-    },
-    {
-      label: translate('editor.table.deleteColumn'),
-      icon: 'columns',
-      danger: true,
-      disabled: !editor.isEditable || !editor.can().chain().focus().deleteColumn().run(),
-      onClick: () => {
-        editor.chain().focus().deleteColumn().run();
-      },
-    },
-    {
-      label: translate('editor.table.deleteRow'),
-      icon: 'rows',
-      danger: true,
-      disabled: !editor.isEditable || !editor.can().chain().focus().deleteRow().run(),
-      onClick: () => {
-        editor.chain().focus().deleteRow().run();
-      },
-    },
-  );
-
-  items.push({ label: '', separator: true, onClick: () => {} });
-
-  for (const preset of TABLE_COLOR_PRESETS) {
-    items.push({
-      label: preset.value == null
-        ? translate('editor.table.clearCellColor')
-        : `${translate('editor.table.cellColor')}: ${preset.label}`,
-      icon: 'paintBucket',
-      active: currentColor === preset.value,
-      disabled: !editor.isEditable,
-      onClick: () => {
-        editor.chain().focus().setCellAttribute('backgroundColor', preset.value).run();
-      },
-    });
-  }
-
-  items.push(
-    { label: '', separator: true, onClick: () => {} },
-    {
-      label: translate('editor.table.deleteTable'),
-      icon: 'trash',
-      danger: true,
-      disabled: !editor.isEditable || !editor.can().chain().focus().deleteTable().run(),
-      onClick: () => {
-        editor.chain().focus().deleteTable().run();
-      },
-    },
-  );
-
-  return items;
+  ];
 }
 
 function pushGroup(target: ContextMenuItem[], group: ContextMenuItem[]) {

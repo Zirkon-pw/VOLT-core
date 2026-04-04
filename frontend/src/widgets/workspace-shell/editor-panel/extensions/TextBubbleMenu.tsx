@@ -150,6 +150,7 @@ export function TextBubbleMenu({ editor, mode }: TextBubbleMenuProps) {
   const toggleItalic = () => editor.chain().focus().toggleItalic().run();
   const toggleUnderline = () => editor.chain().focus().toggleUnderline().run();
   const toggleStrike = () => editor.chain().focus().toggleStrike().run();
+  const toggleCode = () => editor.chain().focus().toggleCode().run();
 
   const openLinkInput = () => {
     rememberSelection();
@@ -281,6 +282,16 @@ export function TextBubbleMenu({ editor, mode }: TextBubbleMenuProps) {
           title="Strikethrough"
         >
           <Icon name="strikethrough" size={14} />
+        </button>
+        <button
+          type="button"
+          data-testid="text-bubble-inline-code"
+          className={`${styles.btn} ${editor.isActive('code') ? styles.btnActive : ''}`}
+          onMouseDown={handleToolbarMouseDown}
+          onClick={toggleCode}
+          title={t('editor.bubble.inlineCode')}
+        >
+          <Icon name="code" size={14} />
         </button>
 
         <div className={styles.divider} />
