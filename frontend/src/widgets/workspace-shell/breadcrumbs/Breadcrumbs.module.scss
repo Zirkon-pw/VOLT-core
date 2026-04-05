@@ -24,15 +24,16 @@
   justify-content: center;
   width: 26px;
   height: 26px;
-  border: none;
+  box-sizing: border-box;
   border-radius: 12px;
-  background: transparent;
+  border: none;
+  background: color-mix(in srgb, var(--chrome-surface-soft) 92%, var(--color-bg-primary));
   color: var(--color-text-secondary);
   cursor: pointer;
   transition: background-color var(--transition-fast), color var(--transition-fast);
 
   &:hover:not(:disabled) {
-    background: color-mix(in srgb, var(--surface-solid-secondary) 90%, var(--color-bg-hover));
+    background: color-mix(in srgb, var(--surface-solid-primary) 94%, var(--color-bg-hover));
     color: var(--color-text-primary);
   }
 
@@ -53,12 +54,12 @@
   max-width: min(100%, 920px);
   padding: var(--space-1);
   border-radius: 999px;
-  background: var(--surface-solid-secondary);
+  background: color-mix(in srgb, var(--chrome-surface) 94%, var(--color-bg-primary));
   border: none;
 }
 
 .separator {
-  color: var(--color-text-tertiary);
+  color: color-mix(in srgb, var(--color-text-tertiary) 84%, var(--color-text-secondary));
   flex-shrink: 0;
 }
 
@@ -67,6 +68,7 @@
   align-items: center;
   min-width: 0;
   height: 26px;
+  box-sizing: border-box;
   padding: 0 var(--space-2);
   font-size: var(--font-size-xs);
   color: var(--color-text-secondary);
@@ -80,11 +82,12 @@
   align-items: center;
   min-width: 0;
   height: 26px;
+  box-sizing: border-box;
   padding: 0 var(--space-2);
   border-radius: 999px;
-  background: var(--surface-solid-primary);
+  background: color-mix(in srgb, var(--color-accent) 18%, var(--surface-solid-primary));
   font-size: var(--font-size-xs);
-  color: var(--color-accent);
+  color: var(--color-accent-hover);
   font-weight: 600;
   white-space: nowrap;
   overflow: hidden;

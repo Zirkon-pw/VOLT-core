@@ -2,8 +2,8 @@
   display: flex;
   align-items: center;
   min-height: var(--tab-height);
-  padding: 0 0 var(--space-1);
-  gap: var(--space-1);
+  padding: 0 0 var(--space-2);
+  gap: var(--space-2);
   background: transparent;
   overflow-x: auto;
   flex-shrink: 0;
@@ -31,7 +31,8 @@
   color: var(--color-text-secondary, #776a61);
   cursor: pointer;
   border: none;
-  border-radius: 10px 10px 0 0;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--chrome-surface-soft) 88%, transparent);
   white-space: nowrap;
   transition: color var(--transition-fast),
     background-color var(--transition-fast),
@@ -40,16 +41,16 @@
   user-select: none;
 
   &:hover {
-    background: color-mix(in srgb, var(--surface-solid-secondary) 76%, var(--color-bg-hover));
+    background: color-mix(in srgb, var(--surface-solid-primary) 96%, var(--color-bg-hover));
     color: var(--color-text-primary);
     box-shadow: none;
   }
 }
 
 .active {
-  color: var(--color-accent, #df6f89);
-  background: transparent;
-  box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--color-accent, #df6f89) 74%, transparent);
+  color: var(--color-text-primary);
+  background: color-mix(in srgb, var(--color-accent) 12%, var(--surface-solid-primary));
+  box-shadow: none;
 }
 
 .label {
@@ -111,7 +112,7 @@
 
 @media (max-width: 800px) {
   .bar {
-    padding: 0 var(--space-1) var(--space-1);
+    padding: 0 var(--space-1) var(--space-2);
   }
 
   .tab {

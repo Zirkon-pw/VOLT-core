@@ -73,13 +73,47 @@ function updateFindHighlights(editor: Editor, matches: FindInFileMatch[], curren
   }));
 }
 
-function revealMatch(editor: Editor, match: FindInFileMatch | null) {
+function revealMatch(
+  editor: Editor,
+  match: FindInFileMatch | null,
+  scrollContainer: HTMLDivElement | null,
+) {
   if (!match) {
     return;
   }
 
   const selection = TextSelection.create(editor.state.doc, match.from, match.to);
-  editor.view.dispatch(editor.state.tr.setSelection(selection).scrollIntoView());
+  if (!scrollContainer) {
+    editor.view.dispatch(editor.state.tr.setSelection(selection).scrollIntoView());
+    return;
+  }
+
+  editor.view.dispatch(editor.state.tr.setSelection(selection));
+
+  requestAnimationFrame(() => {
+    if (!scrollContainer.isConnected) {
+      return;
+    }
+
+    try {
+      const start = editor.view.coordsAtPos(match.from);
+      const end = editor.view.coordsAtPos(match.to);
+      const containerRect = scrollContainer.getBoundingClientRect();
+      const top = Math.min(start.top, end.top) - containerRect.top + scrollContainer.scrollTop;
+      const bottom = Math.max(start.bottom, end.bottom) - containerRect.top + scrollContainer.scrollTop;
+      const matchCenter = (top + bottom) / 2;
+      const nextScrollTop = matchCenter - (scrollContainer.clientHeight / 2);
+      const maxScrollTop = Math.max(scrollContainer.scrollHeight - scrollContainer.clientHeight, 0);
+      const clampedScrollTop = Math.min(Math.max(nextScrollTop, 0), maxScrollTop);
+
+      scrollContainer.scrollTo({
+        top: clampedScrollTop,
+        behavior: 'smooth',
+      });
+    } catch {
+      editor.view.dispatch(editor.state.tr.setSelection(selection).scrollIntoView());
+    }
+  });
 }
 
 export function EditorPanel({ voltId, voltPath, filePath }: EditorPanelProps) {
@@ -359,8 +393,8 @@ export function EditorPanel({ voltId, voltPath, filePath }: EditorPanelProps) {
     }
 
     updateFindHighlights(editor, findMatches, activeFindIndex);
-    revealMatch(editor, findMatches[activeFindIndex] ?? null);
-  }, [activeFindIndex, editor, findMatches, findQuery, showFindInFile]);
+    revealMatch(editor, findMatches[activeFindIndex] ?? null, editorScrollContainer);
+  }, [activeFindIndex, editor, editorScrollContainer, findMatches, findQuery, showFindInFile]);
 
   // Load file content
   useEffect(() => {

@@ -31,9 +31,9 @@
   align-items: center;
   gap: var(--space-1);
   padding: var(--space-2) var(--space-3);
-  border: 1px solid color-mix(in srgb, var(--color-border) 90%, transparent);
+  border: none;
   border-radius: var(--radius-md);
-  background: color-mix(in srgb, var(--color-surface-raised) 86%, var(--color-bg-secondary));
+  background: color-mix(in srgb, var(--surface-solid-secondary) 92%, var(--color-bg-secondary));
   color: var(--color-text-secondary);
   font-size: var(--font-size-sm);
   cursor: pointer;
@@ -59,13 +59,10 @@
   min-height: 0;
   flex-shrink: 0;
   overflow-y: auto;
-  padding: 0 var(--space-5) 0 0;
-  border-right: 1px solid color-mix(in srgb, var(--color-divider) 88%, transparent);
+  gap: var(--space-1);
+  padding: 0 var(--space-4) 0 0;
   border-radius: 0;
   background: transparent;
-  border-top: none;
-  border-bottom: none;
-  border-left: none;
   box-shadow: none;
   position: relative;
 
@@ -80,24 +77,23 @@
   width: 100%;
   padding: var(--space-2) 0 var(--space-2) var(--space-3);
   border: none;
-  border-left: 2px solid transparent;
-  border-radius: 0;
+  border-left: none;
+  border-radius: 14px;
   background: transparent;
   color: var(--color-text-secondary);
   font-size: var(--font-size-sm);
   text-align: left;
   cursor: pointer;
-  transition: color var(--transition-fast), border-color var(--transition-fast);
+  transition: color var(--transition-fast), background-color var(--transition-fast);
 
   &:hover {
-    background: transparent;
+    background: color-mix(in srgb, var(--surface-solid-secondary) 78%, transparent);
     color: var(--color-text-primary);
   }
 }
 
 .active-tab {
-  background: transparent;
-  border-left-color: color-mix(in srgb, var(--color-accent) 58%, transparent);
+  background: color-mix(in srgb, var(--color-accent) 12%, var(--surface-solid-primary));
   color: var(--color-text-primary);
   font-weight: 650;
   box-shadow: none;
@@ -332,9 +328,9 @@ select {
 .plugin-settings-notice {
   margin-bottom: var(--space-4);
   padding: var(--space-3);
-  border-left: 2px solid color-mix(in srgb, var(--color-border-strong) 88%, transparent);
-  border-radius: 0;
-  background: transparent;
+  border-left: none;
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--surface-solid-secondary) 72%, transparent);
   box-shadow: none;
   color: var(--color-text-secondary);
   font-size: var(--font-size-sm);
@@ -385,9 +381,9 @@ select {
 }
 
 .clear-logs-button {
-  border: 1px solid color-mix(in srgb, var(--color-border) 88%, transparent);
+  border: none;
   border-radius: var(--radius-md);
-  background: color-mix(in srgb, var(--color-surface-raised) 80%, var(--color-bg-secondary));
+  background: color-mix(in srgb, var(--surface-solid-secondary) 88%, var(--color-bg-secondary));
   color: var(--color-text-secondary);
   padding: var(--space-1) var(--space-2);
   font-size: var(--font-size-sm);

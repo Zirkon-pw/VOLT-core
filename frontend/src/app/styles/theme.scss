@@ -7,41 +7,41 @@
   --font-mono: 'Source Serif 4', 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
 
   --color-bg-primary: #fdfcf8;
-  --color-bg-secondary: #f5f2eb;
-  --color-bg-tertiary: #ece8de;
+  --color-bg-secondary: #f4f0e6;
+  --color-bg-tertiary: #e7dfd1;
   --color-bg-hover: rgba(35, 157, 173, 0.08);
   --color-bg-active: rgba(35, 157, 173, 0.14);
-  --color-surface-raised: #f7f4ee;
-  --color-surface-elevated: rgba(247, 244, 238, 0.95);
+  --color-surface-raised: #f6f0e6;
+  --color-surface-elevated: rgba(246, 240, 230, 0.95);
   --color-surface-overlay: #fbfaf6;
-  --color-surface-chrome: #eeebe3;
-  --color-surface-sunken: #e7e2d7;
-  --surface-solid-primary: #f7f4ee;
-  --surface-solid-secondary: #f4f1ea;
-  --surface-solid-tertiary: #eeebe2;
+  --color-surface-chrome: #eee6da;
+  --color-surface-sunken: #e2d9c9;
+  --surface-solid-primary: #f6f0e6;
+  --surface-solid-secondary: #eee6da;
+  --surface-solid-tertiary: #e6ddce;
   --surface-shell-root: #fdfcf8;
-  --surface-shell-panel: #f6f2ea;
-  --surface-shell-pill: #ebe6dc;
-  --surface-border-primary: rgba(95, 102, 109, 0.24);
-  --surface-border-secondary: rgba(95, 102, 109, 0.16);
+  --surface-shell-panel: #f4ede2;
+  --surface-shell-pill: #e7decf;
+  --surface-border-primary: rgba(95, 102, 109, 0.18);
+  --surface-border-secondary: rgba(95, 102, 109, 0.12);
   --surface-translucent-primary: rgba(247, 244, 238, 0.86);
   --surface-translucent-secondary: rgba(244, 241, 234, 0.82);
-  --color-selection-bg: rgba(35, 157, 173, 0.16);
-  --color-selection-border: rgba(31, 135, 149, 0.36);
-  --color-focus-ring: rgba(35, 157, 173, 0.22);
+  --color-selection-bg: rgba(35, 157, 173, 0.22);
+  --color-selection-border: rgba(31, 135, 149, 0.48);
+  --color-focus-ring: rgba(35, 157, 173, 0.28);
 
   --color-text-primary: #1f2328;
   --color-text-secondary: #5f666d;
-  --color-text-tertiary: #899098;
+  --color-text-tertiary: #767f88;
   --color-text-inverse: #fdfcf8;
 
   --color-accent: #239dad;
   --color-accent-hover: #1f8795;
   --color-accent-text: #f7fbfc;
 
-  --color-border: #d4d0c5;
-  --color-border-strong: #b9b5aa;
-  --color-divider: rgba(31, 35, 40, 0.1);
+  --color-border: #d2cabd;
+  --color-border-strong: #b8ae9d;
+  --color-divider: rgba(31, 35, 40, 0.11);
 
   --color-icon: #7a838b;
   --color-icon-hover: #1f2328;
@@ -71,11 +71,11 @@
   --shadow-lg: 0 18px 48px rgba(31, 35, 40, 0.08);
   --shadow-popup: 0 18px 40px rgba(31, 35, 40, 0.12);
   --shadow-floating: 0 10px 26px rgba(31, 35, 40, 0.12);
-  --chrome-surface-soft: #f8f5ef;
-  --chrome-surface: #f3efe7;
-  --chrome-surface-strong: #ece7dc;
-  --chrome-border: rgba(95, 102, 109, 0.16);
-  --chrome-border-strong: rgba(95, 102, 109, 0.24);
+  --chrome-surface-soft: #f7f1e7;
+  --chrome-surface: #efe6d9;
+  --chrome-surface-strong: #e5dccd;
+  --chrome-border: rgba(95, 102, 109, 0.10);
+  --chrome-border-strong: rgba(95, 102, 109, 0.14);
   --chrome-highlight: rgba(255, 255, 255, 0.52);
   --chrome-hairline: rgba(255, 255, 255, 0.7);
   --chrome-shadow-sm: 0 1px 2px rgba(31, 35, 40, 0.03);
@@ -86,7 +86,7 @@
   --overlay-backdrop: rgba(20, 23, 25, 0.2);
 
   --code-color-text: #263039;
-  --code-color-comment: #7f878d;
+  --code-color-comment: #69727b;
   --code-color-keyword: #2a8792;
   --code-color-function: #4d706a;
   --code-color-string: #8a6e42;
