@@ -5,10 +5,11 @@
   min-width: 280px;
   max-width: 400px;
   padding: var(--space-3) var(--space-4);
-  background: var(--color-surface-overlay);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--color-surface-overlay) 96%, var(--surface-solid-primary)) 0%, var(--color-surface-overlay) 100%);
   border: 1px solid color-mix(in srgb, var(--color-border-strong) 72%, transparent);
   border-radius: var(--radius-lg);
-  box-shadow: none;
+  box-shadow: var(--shadow-floating);
   animation: slideIn 200ms ease forwards;
 
   &::before {

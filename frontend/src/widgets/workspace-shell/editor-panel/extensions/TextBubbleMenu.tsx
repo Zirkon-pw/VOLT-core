@@ -10,24 +10,24 @@ import styles from './TextBubbleMenu.module.scss';
 
 const TEXT_COLORS = [
   { label: 'Default', value: null },
-  { label: 'Red', value: '#ef4444' },
-  { label: 'Orange', value: '#f97316' },
-  { label: 'Yellow', value: '#eab308' },
-  { label: 'Green', value: '#22c55e' },
-  { label: 'Blue', value: '#3b82f6' },
-  { label: 'Purple', value: '#a855f7' },
-  { label: 'Pink', value: '#ec4899' },
-  { label: 'Gray', value: '#6b7280' },
+  { label: 'Graphite', value: '#2e343b' },
+  { label: 'Teal', value: '#239dad' },
+  { label: 'Blue', value: '#5d7f9f' },
+  { label: 'Sage', value: '#5f8778' },
+  { label: 'Gold', value: '#9b7a42' },
+  { label: 'Rose', value: '#9b6666' },
+  { label: 'Plum', value: '#7b7195' },
+  { label: 'Slate', value: '#6d767e' },
 ];
 
 const HIGHLIGHT_COLORS = [
   { label: 'None', value: null },
-  { label: 'Yellow', value: '#fef08a' },
-  { label: 'Green', value: '#bbf7d0' },
-  { label: 'Blue', value: '#bfdbfe' },
-  { label: 'Pink', value: '#fecdd3' },
-  { label: 'Purple', value: '#e9d5ff' },
-  { label: 'Orange', value: '#fed7aa' },
+  { label: 'Paper', value: '#ece8de' },
+  { label: 'Teal', value: '#d7eef1' },
+  { label: 'Blue', value: '#dde8ef' },
+  { label: 'Sage', value: '#dee8e1' },
+  { label: 'Gold', value: '#ece3cf' },
+  { label: 'Rose', value: '#ece1e2' },
 ];
 
 interface TextBubbleMenuProps {

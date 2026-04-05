@@ -274,11 +274,11 @@ function ToolbarActions({
         void action.callback?.();
       }}
       style={{
-        border: '1px solid rgba(255,255,255,0.12)',
-        background: 'rgba(255,255,255,0.04)',
-        color: 'inherit',
-        borderRadius: 8,
-        padding: '6px 10px',
+        border: '1px solid var(--surface-border-primary)',
+        background: 'color-mix(in srgb, var(--surface-solid-secondary) 92%, var(--color-bg-primary))',
+        color: 'var(--color-text-secondary)',
+        borderRadius: 999,
+        padding: '6px 12px',
         cursor: 'pointer',
       }}
     >
@@ -294,7 +294,8 @@ function ToolbarActions({
         justifyContent: 'space-between',
         gap: 12,
         padding: '8px 12px',
-        borderBottom: '1px solid rgba(255,255,255,0.06)',
+        borderBottom: '1px solid var(--surface-border-secondary)',
+        background: 'color-mix(in srgb, var(--surface-solid-secondary) 72%, transparent)',
       }}
     >
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>{primary.map(renderAction)}</div>
@@ -348,12 +349,13 @@ function HostEditorShell({
             style={{
               width: 280,
               minWidth: 280,
-              borderLeft: '1px solid rgba(255,255,255,0.06)',
+              borderLeft: '1px solid var(--surface-border-secondary)',
               display: 'flex',
               flexDirection: 'column',
               gap: 12,
               padding: 12,
               overflow: 'auto',
+              background: 'color-mix(in srgb, var(--surface-solid-secondary) 74%, transparent)',
             }}
           >
             {rightPanels.map((panel) => (
@@ -365,11 +367,12 @@ function HostEditorShell({
       {bottomPanels.length > 0 && (
         <div
           style={{
-            borderTop: '1px solid rgba(255,255,255,0.06)',
+            borderTop: '1px solid var(--surface-border-secondary)',
             display: 'flex',
             flexDirection: 'column',
             gap: 12,
             padding: 12,
+            background: 'color-mix(in srgb, var(--surface-solid-secondary) 72%, transparent)',
           }}
         >
           {bottomPanels.map((panel) => (
@@ -870,15 +873,72 @@ function ImageEditorDriver({
       style={{ display: 'flex', flex: 1, minHeight: 0, minWidth: 0, flexDirection: 'column', outline: 'none' }}
     >
       {mode === 'file-tab' && <PluginTaskStatusBanner voltPath={voltPath} filePath={filePath} />}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-        <span style={{ fontWeight: 600 }}>{fileName}</span>
-        {dimensions && <span style={{ opacity: 0.7 }}>{dimensions.w} x {dimensions.h}</span>}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
+          padding: '10px 14px',
+          borderBottom: '1px solid var(--surface-border-secondary)',
+          background: 'color-mix(in srgb, var(--surface-solid-secondary) 74%, transparent)',
+        }}
+      >
+        <span style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>{fileName}</span>
+        {dimensions && <span style={{ color: 'var(--color-text-secondary)' }}>{dimensions.w} x {dimensions.h}</span>}
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
-          <button type="button" onClick={zoomOut}>-</button>
-          <span>{zoomPercent}%</span>
-          <button type="button" onClick={zoomIn}>+</button>
-          <button type="button" onClick={zoomFit}>Fit</button>
-          <button type="button" onClick={zoomActual}>1:1</button>
+          <button
+            type="button"
+            onClick={zoomOut}
+            style={{
+              border: '1px solid var(--surface-border-primary)',
+              background: 'var(--surface-solid-primary)',
+              color: 'var(--color-text-primary)',
+              borderRadius: 999,
+              padding: '4px 10px',
+            }}
+          >
+            -
+          </button>
+          <span style={{ color: 'var(--color-text-secondary)' }}>{zoomPercent}%</span>
+          <button
+            type="button"
+            onClick={zoomIn}
+            style={{
+              border: '1px solid var(--surface-border-primary)',
+              background: 'var(--surface-solid-primary)',
+              color: 'var(--color-text-primary)',
+              borderRadius: 999,
+              padding: '4px 10px',
+            }}
+          >
+            +
+          </button>
+          <button
+            type="button"
+            onClick={zoomFit}
+            style={{
+              border: '1px solid var(--surface-border-primary)',
+              background: 'var(--surface-solid-primary)',
+              color: 'var(--color-text-primary)',
+              borderRadius: 999,
+              padding: '4px 10px',
+            }}
+          >
+            Fit
+          </button>
+          <button
+            type="button"
+            onClick={zoomActual}
+            style={{
+              border: '1px solid var(--surface-border-primary)',
+              background: 'var(--surface-solid-primary)',
+              color: 'var(--color-text-primary)',
+              borderRadius: 999,
+              padding: '4px 10px',
+            }}
+          >
+            1:1
+          </button>
         </div>
       </div>
       <div
@@ -894,6 +954,7 @@ function ImageEditorDriver({
           alignItems: 'center',
           justifyContent: 'center',
           padding: 16,
+          background: 'color-mix(in srgb, var(--surface-solid-primary) 84%, var(--surface-shell-root))',
         }}
       >
         {blobUrl && (

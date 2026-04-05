@@ -3,7 +3,8 @@
   flex: 1;
   min-width: 0;
   min-height: 0;
-  background: color-mix(in srgb, var(--color-surface-raised) 94%, var(--color-bg-primary));
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-solid-primary) 96%, var(--color-bg-primary)) 0%, color-mix(in srgb, var(--surface-solid-secondary) 88%, var(--color-bg-primary)) 100%);
 }
 
 .editor {
@@ -15,5 +16,5 @@
   padding: var(--space-6) calc(var(--space-6) + var(--space-1));
   background: transparent;
   color: inherit;
-  font: 500 14px/1.7 var(--font-mono);
+  font: 500 var(--font-size-base)/1.78 var(--font-family);
 }

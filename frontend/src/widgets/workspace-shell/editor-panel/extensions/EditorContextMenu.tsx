@@ -19,13 +19,13 @@ import type { EditorMenuContext } from '../lib/editorContext';
 import styles from './EditorContextMenu.module.scss';
 
 const CELL_COLOR_PRESETS = [
-  { label: 'Gray', value: '#f3f4f6' },
-  { label: 'Blue', value: '#dbeafe' },
-  { label: 'Green', value: '#dcfce7' },
-  { label: 'Yellow', value: '#fef9c3' },
-  { label: 'Red', value: '#fee2e2' },
-  { label: 'Purple', value: '#f3e8ff' },
-  { label: 'Rose', value: '#ffe4e6' },
+  { label: 'Paper', value: '#ece8de' },
+  { label: 'Teal', value: '#d7eef1' },
+  { label: 'Blue', value: '#dde8ef' },
+  { label: 'Sage', value: '#dee8e1' },
+  { label: 'Gold', value: '#ece3cf' },
+  { label: 'Rose', value: '#ece1e2' },
+  { label: 'Slate', value: '#e2e5e8' },
 ];
 
 interface EditorContextMenuProps {

@@ -4,13 +4,13 @@ body {
   line-height: var(--line-height);
   color: var(--color-text-primary);
   background-color: var(--surface-shell-root);
-  letter-spacing: -0.012em;
+  letter-spacing: -0.004em;
   text-rendering: optimizeLegibility;
 }
 
 h1 {
   font-size: var(--font-size-3xl);
-  font-family: var(--font-display);
+  font-family: var(--font-family);
   font-weight: 700;
   line-height: var(--line-height-tight);
   letter-spacing: var(--letter-spacing-display);
@@ -42,8 +42,9 @@ h4 {
 
 code,
 pre {
-  font-family: var(--font-mono);
-  font-size: 0.9em;
+  font-family: var(--font-family);
+  font-size: 0.94em;
+  letter-spacing: 0;
 }
 
 p,

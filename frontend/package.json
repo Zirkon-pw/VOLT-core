@@ -10,9 +10,7 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
-    "@fontsource/cormorant-garamond": "^5.2.11",
-    "@fontsource/jetbrains-mono": "^5.2.8",
-    "@fontsource/manrope": "^5.2.8",
+    "@fontsource/source-serif-4": "^5.2.8",
     "@tiptap/extension-code-block-lowlight": "^3.21.0",
     "@tiptap/extension-color": "^3.21.0",
     "@tiptap/extension-highlight": "^3.21.0",

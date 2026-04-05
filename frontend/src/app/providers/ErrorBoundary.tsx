@@ -38,28 +38,30 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
             alignItems: 'center',
             justifyContent: 'center',
             height: '100vh',
-            backgroundColor: '#191919',
-            color: '#e0e0e0',
-            fontFamily: 'system-ui, -apple-system, sans-serif',
+            background:
+              'linear-gradient(180deg, color-mix(in srgb, var(--surface-shell-panel) 92%, var(--surface-shell-root)) 0%, var(--surface-shell-root) 100%)',
+            color: 'var(--color-text-primary)',
+            fontFamily: 'var(--font-family)',
             padding: '2rem',
             textAlign: 'center',
           }}
         >
-          <h1 style={{ fontSize: '1.5rem', marginBottom: '0.75rem', color: '#ffffff' }}>
+          <h1 style={{ fontSize: '1.75rem', marginBottom: '0.75rem', color: 'var(--color-text-primary)' }}>
             {translate('errorBoundary.title')}
           </h1>
-          <p style={{ fontSize: '0.875rem', color: '#999', marginBottom: '1.5rem', maxWidth: '480px' }}>
+          <p style={{ fontSize: '0.95rem', color: 'var(--color-text-secondary)', marginBottom: '1.5rem', maxWidth: '480px' }}>
             {this.state.error?.message ?? translate('errorBoundary.description')}
           </p>
           <button
             onClick={this.handleReload}
             style={{
-              padding: '0.5rem 1.5rem',
-              fontSize: '0.875rem',
-              backgroundColor: '#333',
-              color: '#e0e0e0',
-              border: '1px solid #555',
-              borderRadius: '6px',
+              padding: '0.625rem 1.5rem',
+              fontSize: '0.95rem',
+              background:
+                'linear-gradient(180deg, color-mix(in srgb, var(--color-accent) 92%, white) 0%, var(--color-accent) 100%)',
+              color: 'var(--color-accent-text)',
+              border: '1px solid color-mix(in srgb, var(--color-accent) 64%, var(--color-border))',
+              borderRadius: '999px',
               cursor: 'pointer',
             }}
           >

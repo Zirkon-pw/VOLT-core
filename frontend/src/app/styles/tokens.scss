@@ -1,24 +1,23 @@
 :root {
   // Typography
-  --font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-display: 'Cormorant Garamond', 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
-  --font-mono: 'JetBrains Mono', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas',
-    'Liberation Mono', 'Courier New', monospace;
+  --font-family: 'Source Serif 4', 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
+  --font-display: 'Source Serif 4', 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
+  --font-mono: 'Source Serif 4', 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
   --font-size-xs: 12px;
-  --font-size-sm: 13px;
-  --font-size-base: 14px;
-  --font-size-md: 16px;
-  --font-size-lg: 20px;
-  --font-size-xl: 28px;
-  --font-size-2xl: 38px;
-  --font-size-3xl: 52px;
-  --font-size-4xl: 64px;
-  --line-height: 1.62;
-  --line-height-snug: 1.48;
-  --line-height-tight: 1.12;
-  --letter-spacing-tight: -0.02em;
-  --letter-spacing-display: -0.024em;
-  --letter-spacing-caps: 0.18em;
+  --font-size-sm: 14px;
+  --font-size-base: 15px;
+  --font-size-md: 17px;
+  --font-size-lg: 22px;
+  --font-size-xl: 30px;
+  --font-size-2xl: 40px;
+  --font-size-3xl: 56px;
+  --font-size-4xl: 68px;
+  --line-height: 1.68;
+  --line-height-snug: 1.52;
+  --line-height-tight: 1.14;
+  --letter-spacing-tight: -0.015em;
+  --letter-spacing-display: -0.03em;
+  --letter-spacing-caps: 0.14em;
 
   // Spacing
   --space-1: 4px;
