@@ -70,6 +70,10 @@ export async function getLocalization(preferredLocales: string[]): Promise<Local
   return buildLocalizationPayload(await readSelectedLocale(), preferredLocales);
 }
 
+export function getFallbackLocalization(preferredLocales: string[]): LocalizationPayload {
+  return buildLocalizationPayload(AUTO_LOCALE, preferredLocales);
+}
+
 export async function setLocale(locale: string, preferredLocales: string[]): Promise<LocalizationPayload> {
   const selectedLocale = locale.trim().toLowerCase() || AUTO_LOCALE;
   await setStorageValue(SETTINGS_NAMESPACE, APP_SETTINGS_KEY, {

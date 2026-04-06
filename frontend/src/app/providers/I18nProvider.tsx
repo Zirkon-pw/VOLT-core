@@ -2,12 +2,17 @@ import {
   createContext,
   useContext,
   useEffect,
-  useState,
+  useMemo,
   type ReactNode,
 } from 'react';
 import type { LocalizationPayload } from '@shared/i18n';
 import { useAppSettingsStore } from '@plugins/settings/SettingsStore';
-import { translate, type TranslationParams } from '@shared/i18n';
+import {
+  getFallbackLocalization,
+  setLocalizationRuntime,
+  translate,
+  type TranslationParams,
+} from '@shared/i18n';
 
 interface I18nContextValue extends LocalizationPayload {
   t: (key: string, params?: TranslationParams) => string;
@@ -17,52 +22,41 @@ interface I18nContextValue extends LocalizationPayload {
 
 const I18nContext = createContext<I18nContextValue | null>(null);
 
+function getPreferredLocales(): string[] {
+  if (typeof navigator === 'undefined') {
+    return [];
+  }
+
+  const locales = [...(navigator.languages ?? []), navigator.language].filter(Boolean);
+  return Array.from(new Set(locales));
+}
+
 export function I18nProvider({ children }: { children: ReactNode }) {
   const localization = useAppSettingsStore((state) => state.localization);
   const refreshLocalization = useAppSettingsStore((state) => state.refreshLocalization);
   const setLocale = useAppSettingsStore((state) => state.setLocale);
-  const [error, setError] = useState<Error | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const fallbackLocalization = useMemo(
+    () => getFallbackLocalization(getPreferredLocales()),
+    [],
+  );
 
   useEffect(() => {
-    let cancelled = false;
-
     void refreshLocalization()
-      .then(() => {
-        if (!cancelled) {
-          setIsLoading(false);
-        }
-      })
       .catch((err) => {
-        if (!cancelled) {
-          setError(err as Error);
-          setIsLoading(false);
-        }
+        console.warn('Volt localization bridge is not ready, using fallback locale.', err);
       });
-
-    return () => {
-      cancelled = true;
-    };
   }, [refreshLocalization]);
 
-  const value = localization == null ? null : {
-    ...localization,
-    t: translate,
-    setLocale,
-    refreshLocalization,
-  };
-
-  if (error) {
-    throw error;
-  }
-
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
-
-  if (value == null) {
-    return <div>Loading...</div>;
-  }
+  const value = useMemo(() => {
+    const nextLocalization = localization ?? fallbackLocalization;
+    setLocalizationRuntime(nextLocalization);
+    return {
+      ...nextLocalization,
+      t: translate,
+      setLocale,
+      refreshLocalization,
+    };
+  }, [fallbackLocalization, localization, refreshLocalization, setLocale]);
 
   return (
     <I18nContext.Provider value={value}>

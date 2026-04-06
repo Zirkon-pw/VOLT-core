@@ -6,6 +6,15 @@ import '@fontsource/source-serif-4/700.css';
 import App from './app/App';
 import { installPlaywrightBootstrap } from './pages/playwright/installPlaywrightBootstrap';
 
+function normalizeStartupPath() {
+  const { pathname, search, hash } = window.location;
+  if (pathname === '/index.html') {
+    window.history.replaceState(window.history.state, '', `/${search}${hash}`);
+  }
+}
+
+normalizeStartupPath();
+
 if (import.meta.env.DEV && window.location.pathname.startsWith('/__playwright__/')) {
   installPlaywrightBootstrap();
 }

@@ -1,4 +1,4 @@
-import { BrowserRouter, Outlet, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom';
 import { HomePage } from '@pages/home/HomePage';
 import { DetachedFileWindowPage } from '@pages/window/DetachedFileWindowPage';
 import { DetachedSidebarWindowPage } from '@pages/window/DetachedSidebarWindowPage';
@@ -42,6 +42,7 @@ export function AppRouter() {
               <Route path="/__playwright__/settings/shortcuts" element={<SettingsPage section="shortcuts" />} />
             </>
           )}
+          <Route path="*" element={<Navigate replace to="/" />} />
         </Route>
         <Route path="/window/file" element={<DetachedFileWindowPage />} />
         <Route path="/window/sidebar" element={<DetachedSidebarWindowPage />} />

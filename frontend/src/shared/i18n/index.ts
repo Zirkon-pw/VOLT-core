@@ -6,6 +6,7 @@ export {
 } from './runtime';
 export {
   getLocalization,
+  getFallbackLocalization,
   setLocale,
 } from './localization';
 export type {
