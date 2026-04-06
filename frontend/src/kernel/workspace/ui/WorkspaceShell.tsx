@@ -2,17 +2,14 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTabStore, type FileTab } from '@kernel/workspace/tabs/model';
 import { useNavigationStore } from '@kernel/navigation/model';
 import { type PaneId, useWorkspaceViewStore } from '@kernel/workspace/panes/model';
-import { SearchPopup } from '@plugins/search/ui/SearchPopup';
-import { Breadcrumbs } from '@plugins/breadcrumbs/ui/Breadcrumbs';
-import { FileViewHost } from '@plugins/file-viewer/ui/file-view-host/FileViewHost';
-import { Sidebar } from '@plugins/file-tree/ui/sidebar/Sidebar';
-import { usePluginRegistryStore } from '@kernel/plugin-system/model';
+import { usePluginRegistryStore } from '@kernel/plugin-system/model/pluginRegistry';
+import { useWorkspaceSlotRegistry } from '@kernel/services/workspaceSlotRegistry';
 import { Icon } from '@shared/ui/icon';
 import { PluginPageHost } from '@kernel/plugin-system/ui/plugin-page';
 import { SIDEBAR } from '@shared/config/constants';
-import { FileTabs } from '../tabs/internal/file-tabs/FileTabs';
-import { WorkspaceToolbar } from './internal/workspace-toolbar/WorkspaceToolbar';
-import { useWorkspaceHotkeys } from './internal/useWorkspaceHotkeys';
+import { FileTabs } from '../tabs/file-tabs/FileTabs';
+import { WorkspaceToolbar } from './workspace-toolbar/WorkspaceToolbar';
+import { useWorkspaceHotkeys } from './useWorkspaceHotkeys';
 import styles from './WorkspaceShell.module.scss';
 
 interface WorkspaceShellProps {
@@ -38,6 +35,11 @@ export function WorkspaceShell({ voltId, voltPath }: WorkspaceShellProps) {
     () => localStorage.getItem(SIDEBAR.COLLAPSED_STORAGE_KEY) === 'true',
   );
   const hasToolbarButtons = usePluginRegistryStore((state) => state.toolbarButtons.length > 0);
+  const slots = useWorkspaceSlotRegistry((state) => state.slots);
+  const SidebarSlot = slots['sidebar'];
+  const BreadcrumbsSlot = slots['breadcrumbs'];
+  const FileViewHostSlot = slots['file-view-host'];
+  const SearchPopupSlot = slots['search-popup'];
   const contentRef = useRef<HTMLDivElement>(null);
   const splitDraggingRef = useRef(false);
 
@@ -161,24 +163,26 @@ export function WorkspaceShell({ voltId, voltPath }: WorkspaceShellProps) {
       );
     }
 
-    return (
-      <FileViewHost
+    return FileViewHostSlot ? (
+      <FileViewHostSlot
         voltId={voltId}
         voltPath={voltPath}
         filePath={tab.filePath}
       />
-    );
-  }, [voltId, voltPath]);
+    ) : null;
+  }, [voltId, voltPath, FileViewHostSlot]);
 
   return (
     <div className={styles.layout}>
-      <Sidebar
-        voltId={voltId}
-        voltPath={voltPath}
-        onSearchClick={() => openSearch('')}
-        collapsed={sidebarCollapsed}
-        onToggleCollapse={toggleSidebar}
-      />
+      {SidebarSlot ? (
+        <SidebarSlot
+          voltId={voltId}
+          voltPath={voltPath}
+          onSearchClick={() => openSearch('')}
+          collapsed={sidebarCollapsed}
+          onToggleCollapse={toggleSidebar}
+        />
+      ) : null}
       <div className={styles.main}>
         {hasChromeStack ? (
           <div className={styles.chromeStack}>
@@ -188,7 +192,7 @@ export function WorkspaceShell({ voltId, voltPath }: WorkspaceShellProps) {
         ) : null}
         <div ref={contentRef} className={styles.content}>
           <div className={styles.breadcrumbsOverlay}>
-            <Breadcrumbs voltId={voltId} />
+            {BreadcrumbsSlot ? <BreadcrumbsSlot voltId={voltId} /> : null}
           </div>
           <div className={styles.paneLayout}>
             <div
@@ -249,15 +253,17 @@ export function WorkspaceShell({ voltId, voltPath }: WorkspaceShellProps) {
           </div>
         </div>
       </div>
-      <SearchPopup
-        isOpen={searchOpen}
-        initialQuery={searchInitialQuery}
-        openToken={searchOpenToken}
-        onClose={closeSearch}
-        voltId={voltId}
-        voltPath={voltPath}
-        onToggleSidebar={toggleSidebar}
-      />
+      {SearchPopupSlot ? (
+        <SearchPopupSlot
+          isOpen={searchOpen}
+          initialQuery={searchInitialQuery}
+          openToken={searchOpenToken}
+          onClose={closeSearch}
+          voltId={voltId}
+          voltPath={voltPath}
+          onToggleSidebar={toggleSidebar}
+        />
+      ) : null}
     </div>
   );
 }

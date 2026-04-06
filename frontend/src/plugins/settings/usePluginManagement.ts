@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { usePluginLogStore, usePluginSettingsStore } from '@kernel/plugin-system/model';
+import { usePluginLogStore } from '@kernel/plugin-system/model/pluginLogStore';
+import { usePluginSettingsStore } from '@kernel/plugin-system/model/pluginSettingsStore';
 import { PluginLifecycleManager } from '@kernel/plugin-system/lifecycle/PluginLifecycleManager';
 import {
   deletePlugin,

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import type { Editor } from '@tiptap/react';
-import { useFileTreeStore } from '@plugins/file-tree/model';
+import { useFileTreeServiceStore } from '@kernel/services/fileTreeService';
 import { translate } from '@shared/i18n';
 import {
   collectMarkdownFiles,
@@ -36,7 +36,7 @@ export function LinkFilePicker({
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
-  const tree = useFileTreeStore((state) => state.trees[voltId] ?? []);
+  const tree = useFileTreeServiceStore((state) => state.trees[voltId] ?? []);
   const allFiles = useMemo(() => collectMarkdownFiles(tree), [tree]);
 
   const filtered = useMemo(() => {

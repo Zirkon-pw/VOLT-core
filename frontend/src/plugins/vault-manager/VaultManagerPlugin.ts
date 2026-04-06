@@ -1,5 +1,5 @@
 import type { PluginManifest } from '@kernel/plugin-system/api/pluginTypes';
-import type { BuiltinPluginModule } from '@plugins/types';
+import type { BuiltinPluginModule } from '@kernel/plugin-system/builtin/types';
 
 export const vaultManagerManifest: PluginManifest = {
   apiVersion: 5,

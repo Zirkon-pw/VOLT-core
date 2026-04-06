@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { useActiveFileStore } from '@kernel/editor/sessions/model';
-import { usePluginRegistryStore, type RegisteredCustomFileViewer } from '@kernel/plugin-system/model';
+import { usePluginRegistryStore, type RegisteredCustomFileViewer } from '@kernel/plugin-system/model/pluginRegistry';
 import { useTabStore } from '@kernel/workspace/tabs/model';
 import { getPathBasename } from '@shared/lib/fileTree';
 import { safeExecute } from '@kernel/plugin-system/runtime';

@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useFileTreeStore } from '@plugins/file-tree/model';
-import { usePluginRegistryStore } from '@kernel/plugin-system/model';
+import { usePluginRegistryStore } from '@kernel/plugin-system/model/pluginRegistry';
 import { useTabStore } from '@kernel/workspace/tabs/model';
 
 const EMPTY_PATHS = [] as const;

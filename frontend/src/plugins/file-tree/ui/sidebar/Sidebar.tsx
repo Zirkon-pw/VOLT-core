@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useI18n } from '@app/providers/I18nProvider';
 import { useFileTreeStore } from '@plugins/file-tree/model';
-import { usePluginRegistryStore, type RegisteredSidebarPanel } from '@kernel/plugin-system/model';
+import { usePluginRegistryStore, type RegisteredSidebarPanel } from '@kernel/plugin-system/model/pluginRegistry';
 import { SIDEBAR } from '@shared/config/constants';
 import { safeExecute } from '@kernel/plugin-system/runtime';
 import { FileTree } from '../file-tree/FileTree';

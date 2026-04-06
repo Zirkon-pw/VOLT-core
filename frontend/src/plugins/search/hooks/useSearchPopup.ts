@@ -7,7 +7,7 @@ import {
 } from '@plugins/settings/SettingsStore';
 import { searchFiles, type SearchResult } from '@plugins/search';
 import { useFileTreeStore } from '@plugins/file-tree/model';
-import { type RegisteredSearchProvider, usePluginRegistryStore } from '@kernel/plugin-system/model';
+import { type RegisteredSearchProvider, usePluginRegistryStore } from '@kernel/plugin-system/model/pluginRegistry';
 import { openFileInActivePane, openFileInSecondaryPane } from '@kernel/workspace/panes/model';
 import { readFile, type FileEntry } from '@shared/api/file';
 import { SEARCH } from '@shared/config/constants';

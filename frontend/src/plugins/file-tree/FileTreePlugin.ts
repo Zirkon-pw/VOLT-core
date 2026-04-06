@@ -1,5 +1,9 @@
 import type { PluginManifest } from '@kernel/plugin-system/api/pluginTypes';
-import type { BuiltinPluginModule } from '@plugins/types';
+import type { BuiltinPluginModule } from '@kernel/plugin-system/builtin/types';
+import { registerFileTreeStore } from '@kernel/services/fileTreeService';
+import { useWorkspaceSlotRegistry } from '@kernel/services/workspaceSlotRegistry';
+import { useFileTreeStore } from './model';
+import { Sidebar } from './ui/sidebar/Sidebar';
 
 export const fileTreeManifest: PluginManifest = {
   apiVersion: 5,
@@ -10,6 +14,9 @@ export const fileTreeManifest: PluginManifest = {
   main: 'builtin',
   permissions: ['read', 'write'],
 };
+
+registerFileTreeStore(useFileTreeStore);
+useWorkspaceSlotRegistry.getState().registerSlot('sidebar', Sidebar);
 
 export const fileTreePlugin: BuiltinPluginModule = {
   manifest: fileTreeManifest,

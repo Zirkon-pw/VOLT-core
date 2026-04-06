@@ -19,18 +19,18 @@ import {
   registerSidebarPanel,
   registerSlashCommand,
   registerToolbarButton,
-  usePluginLogStore,
   usePluginRegistryStore,
-} from '@kernel/plugin-system/model';
+} from '@kernel/plugin-system/model/pluginRegistry';
+import { usePluginLogStore } from '@kernel/plugin-system/model/pluginLogStore';
 import { onTracked } from './pluginEventBus';
 import { createFile as createWorkspaceFile, listTree, readFile, type FileEntry, writeFile } from '@shared/api/file';
-import { copyImage, pickImage, readImageBase64, saveImageBase64 } from '@plugins/image-service';
+import { copyImage, pickImage, readImageBase64, saveImageBase64 } from '@kernel/services/imageService';
 import { getCachedPlugins } from '@kernel/plugin-system/api/catalogApi';
 import { copyPluginAsset, getPluginData, pickPluginFiles, setPluginData } from '@kernel/plugin-system/api/runtimeApi';
 import { openPluginPrompt } from '@kernel/plugin-system/ui/prompt';
 import { useWorkspaceStore } from '@kernel/workspace/core/model';
 import { openFileInActivePane } from '@kernel/workspace/panes/model';
-import { useFileTreeStore } from '@plugins/file-tree/model';
+import { getFileTreeServiceStore } from '@kernel/services/fileTreeService';
 import { useTabStore } from '@kernel/workspace/tabs/model';
 import { useToastStore } from '@shared/ui/toast';
 import { isIconName } from '@shared/ui/icon/icons';
@@ -60,11 +60,11 @@ import {
   getPluginSettingValue,
   setPluginSettingValue,
   subscribePluginSettings,
-} from '@kernel/plugin-system/model';
+} from '@kernel/plugin-system/model/pluginSettingsStore';
 import { openExternalUrl } from '@shared/api/runtime/browser';
 import { clearStorageNamespace, deleteStorageValue } from '@shared/api/storage';
-import { searchFiles } from '@plugins/search';
-import { builtinPlugins } from '@plugins/registry';
+import { searchFiles } from '@kernel/services/searchService';
+import { builtinPlugins } from '@kernel/plugin-system/builtin/registry';
 
 function normalizePluginIcon(icon?: PluginIcon): IconSource {
   if (typeof icon === 'string' && isIconName(icon)) {
@@ -152,7 +152,7 @@ export function createPluginAPI(
       return;
     }
 
-    await useFileTreeStore.getState().notifyFsMutation(voltId, voltPath);
+    await getFileTreeServiceStore().notifyFsMutation(voltId, voltPath);
   };
 
   const requirePermission = (permission: 'read' | 'write' | 'editor' | 'process' | 'external' | 'inter-plugin', action: string) => {

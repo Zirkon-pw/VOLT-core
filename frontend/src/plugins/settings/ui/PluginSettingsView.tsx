@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useRef } from 'react';
+import { usePluginRegistryStore } from '@kernel/plugin-system/model/pluginRegistry';
+import { usePluginLogStore } from '@kernel/plugin-system/model/pluginLogStore';
 import {
   ensurePluginSettingsLoaded,
   getMergedPluginSettings,
   setPluginSettingValue,
-  usePluginLogStore,
-  usePluginRegistryStore,
   usePluginSettingsStore,
-} from '@kernel/plugin-system/model';
+} from '@kernel/plugin-system/model/pluginSettingsStore';
 import type {
   PluginInfo,
   PluginSettingField,

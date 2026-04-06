@@ -1,5 +1,5 @@
 import { useRef, useCallback, useEffect } from 'react';
-import { readImageBase64, dataUrlToBlobUrl } from '@plugins/image-service';
+import { readImageBase64, dataUrlToBlobUrl } from '@kernel/services/imageService';
 
 interface ImageMaps {
   relToBlob: Map<string, string>;

@@ -1,4 +1,4 @@
-import type { RegisteredCommand } from '@kernel/plugin-system/model';
+import type { RegisteredCommand } from '@kernel/plugin-system/model/pluginRegistry';
 import type { ShortcutDescriptor } from '@shared/lib/hotkeys';
 import type { ShortcutActionId } from './types';
 

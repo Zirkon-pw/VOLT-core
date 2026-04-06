@@ -1,6 +1,6 @@
 import { useCallback, useEffect } from 'react';
 import type { Editor } from '@tiptap/react';
-import { copyImage, pickImage, saveImageBase64, base64ToBlobUrl } from '@plugins/image-service';
+import { copyImage, pickImage, saveImageBase64, base64ToBlobUrl } from '@kernel/services/imageService';
 import { isImagePath } from '@shared/lib/fileTypes';
 import {
   computeRelativePath,

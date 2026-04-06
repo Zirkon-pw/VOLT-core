@@ -1,5 +1,7 @@
 import type { PluginManifest } from '@kernel/plugin-system/api/pluginTypes';
-import type { BuiltinPluginModule } from '@plugins/types';
+import type { BuiltinPluginModule } from '@kernel/plugin-system/builtin/types';
+import { useLinkPreviewService } from '@kernel/services/linkPreviewService';
+import { resolveLinkPreview } from './LinkPreviewService';
 
 export const linkPreviewManifest: PluginManifest = {
   apiVersion: 5,
@@ -10,6 +12,8 @@ export const linkPreviewManifest: PluginManifest = {
   main: 'builtin',
   permissions: ['external'],
 };
+
+useLinkPreviewService.getState().register({ resolveLinkPreview });
 
 export const linkPreviewPlugin: BuiltinPluginModule = {
   manifest: linkPreviewManifest,

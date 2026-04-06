@@ -1,13 +1,8 @@
 import { useEffect } from 'react';
-import {
-  BUILTIN_SHORTCUT_ACTIONS,
-  getPluginCommandShortcutActionId,
-  useResolvedShortcuts,
-  useShortcutAction,
-} from '@plugins/settings/SettingsStore';
 import { useActiveFileStore } from '@kernel/editor/sessions/model';
-import { useFileTreeStore } from '@plugins/file-tree/model';
-import { usePluginRegistryStore } from '@kernel/plugin-system/model';
+import { getFileTreeServiceStore } from '@kernel/services/fileTreeService';
+import { useShortcutService } from '@kernel/services/shortcutService';
+import { usePluginRegistryStore } from '@kernel/plugin-system/model/pluginRegistry';
 import { useTabStore } from '@kernel/workspace/tabs/model';
 import { matchesShortcutBinding } from '@shared/lib/hotkeys';
 
@@ -25,7 +20,16 @@ export function useWorkspaceHotkeys({
   onOpenFindInFile,
 }: UseWorkspaceHotkeysOptions) {
   const commands = usePluginRegistryStore((state) => state.commands);
-  const { byActionId } = useResolvedShortcuts();
+  const shortcutMethods = useShortcutService((state) => state.methods);
+
+  const useResolvedShortcuts = shortcutMethods?.useResolvedShortcuts;
+  const useShortcutAction = shortcutMethods?.useShortcutAction;
+  const BUILTIN_SHORTCUT_ACTIONS = shortcutMethods?.BUILTIN_SHORTCUT_ACTIONS;
+  const getPluginCommandShortcutActionId = shortcutMethods?.getPluginCommandShortcutActionId;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const resolved = useResolvedShortcuts?.() as any;
+  const byActionId: Record<string, { status: string; binding: string | null }> = resolved?.byActionId ?? {};
 
   const getActiveTab = () => {
     const state = useTabStore.getState();
@@ -36,19 +40,19 @@ export function useWorkspaceHotkeys({
     return voltTabs.find((tab) => tab.id === activeTabId) ?? null;
   };
 
-  useShortcutAction(BUILTIN_SHORTCUT_ACTIONS.workspaceSearchToggle, () => onOpenSearch('>'), {
+  useShortcutAction?.(BUILTIN_SHORTCUT_ACTIONS?.workspaceSearchToggle ?? '', () => onOpenSearch('>'), {
     allowInEditable: true,
   });
-  useShortcutAction(BUILTIN_SHORTCUT_ACTIONS.workspaceSearchDoubleShift, () => onOpenSearch(''));
-  useShortcutAction(BUILTIN_SHORTCUT_ACTIONS.workspaceSidebarToggle, onToggleSidebar, {
+  useShortcutAction?.(BUILTIN_SHORTCUT_ACTIONS?.workspaceSearchDoubleShift ?? '', () => onOpenSearch(''));
+  useShortcutAction?.(BUILTIN_SHORTCUT_ACTIONS?.workspaceSidebarToggle ?? '', onToggleSidebar, {
     allowInEditable: true,
   });
-  useShortcutAction(BUILTIN_SHORTCUT_ACTIONS.editorSave, () => {
+  useShortcutAction?.(BUILTIN_SHORTCUT_ACTIONS?.editorSave ?? '', () => {
     void useActiveFileStore.getState().saveActiveFile(voltId);
   }, {
     allowInEditable: true,
   });
-  useShortcutAction(BUILTIN_SHORTCUT_ACTIONS.tabsCloseActive, () => {
+  useShortcutAction?.(BUILTIN_SHORTCUT_ACTIONS?.tabsCloseActive ?? '', () => {
     const activeTab = getActiveTab();
     if (activeTab) {
       useTabStore.getState().closeTab(voltId, activeTab.id);
@@ -56,12 +60,12 @@ export function useWorkspaceHotkeys({
   }, {
     allowInEditable: true,
   });
-  useShortcutAction(BUILTIN_SHORTCUT_ACTIONS.fileCreate, () => {
-    useFileTreeStore.getState().startCreate(voltId, '', false);
+  useShortcutAction?.(BUILTIN_SHORTCUT_ACTIONS?.fileCreate ?? '', () => {
+    getFileTreeServiceStore().startCreate(voltId, '', false);
   }, {
     allowInEditable: true,
   });
-  useShortcutAction(BUILTIN_SHORTCUT_ACTIONS.fileFind, onOpenFindInFile, {
+  useShortcutAction?.(BUILTIN_SHORTCUT_ACTIONS?.fileFind ?? '', onOpenFindInFile, {
     allowInEditable: true,
   });
 
@@ -70,7 +74,10 @@ export function useWorkspaceHotkeys({
 
     const handleKeyDown = (event: KeyboardEvent) => {
       for (const command of commands) {
-        const resolvedShortcut = byActionId[getPluginCommandShortcutActionId(command.id)];
+        const actionId = getPluginCommandShortcutActionId?.(command.id);
+        if (!actionId) continue;
+
+        const resolvedShortcut = byActionId[actionId];
         if (resolvedShortcut?.status !== 'active' || !resolvedShortcut.binding) {
           continue;
         }
@@ -102,5 +109,5 @@ export function useWorkspaceHotkeys({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [byActionId, commands]);
+  }, [byActionId, commands, getPluginCommandShortcutActionId]);
 }

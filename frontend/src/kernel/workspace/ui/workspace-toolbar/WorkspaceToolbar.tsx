@@ -1,4 +1,4 @@
-import { usePluginRegistryStore } from '@kernel/plugin-system/model';
+import { usePluginRegistryStore } from '@kernel/plugin-system/model/pluginRegistry';
 import { Icon } from '@shared/ui/icon';
 import styles from './WorkspaceToolbar.module.scss';
 

@@ -1,5 +1,9 @@
 import type { PluginManifest } from '@kernel/plugin-system/api/pluginTypes';
-import type { BuiltinPluginModule } from '@plugins/types';
+import type { BuiltinPluginModule } from '@kernel/plugin-system/builtin/types';
+import { useWorkspaceSlotRegistry } from '@kernel/services/workspaceSlotRegistry';
+import { useSearchService } from '@kernel/services/searchService';
+import { searchFiles } from './SearchService';
+import { SearchPopup } from './ui/SearchPopup';
 
 export const searchManifest: PluginManifest = {
   apiVersion: 5,
@@ -10,6 +14,9 @@ export const searchManifest: PluginManifest = {
   main: 'builtin',
   permissions: ['read'],
 };
+
+useSearchService.getState().register({ searchFiles });
+useWorkspaceSlotRegistry.getState().registerSlot('search-popup', SearchPopup);
 
 export const searchPlugin: BuiltinPluginModule = {
   manifest: searchManifest,

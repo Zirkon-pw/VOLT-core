@@ -7,7 +7,7 @@ import { WorkspacePage } from '@pages/workspace/WorkspacePage';
 import { PluginSettingsPage } from '@plugins/settings/PluginSettingsPage';
 import { PluginSettingsHostPage } from '@plugins/settings/PluginSettingsHostPage';
 import { SettingsPage } from '@plugins/settings/SettingsPage';
-import { WorkspaceTabs } from '@kernel/workspace/ui/WorkspaceTabs';
+import { WorkspaceTabs } from '@kernel/workspace/ui/workspace-tabs/WorkspaceTabs';
 import { PlaywrightEditorHarness } from '@pages/playwright/PlaywrightEditorHarness';
 import styles from './AppRouter.module.scss';
 

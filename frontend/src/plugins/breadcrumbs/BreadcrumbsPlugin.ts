@@ -1,5 +1,7 @@
 import type { PluginManifest } from '@kernel/plugin-system/api/pluginTypes';
-import type { BuiltinPluginModule } from '@plugins/types';
+import type { BuiltinPluginModule } from '@kernel/plugin-system/builtin/types';
+import { useWorkspaceSlotRegistry } from '@kernel/services/workspaceSlotRegistry';
+import { Breadcrumbs } from './ui/Breadcrumbs';
 
 export const breadcrumbsManifest: PluginManifest = {
   apiVersion: 5,
@@ -10,6 +12,8 @@ export const breadcrumbsManifest: PluginManifest = {
   main: 'builtin',
   permissions: ['read'],
 };
+
+useWorkspaceSlotRegistry.getState().registerSlot('breadcrumbs', Breadcrumbs);
 
 export const breadcrumbsPlugin: BuiltinPluginModule = {
   manifest: breadcrumbsManifest,

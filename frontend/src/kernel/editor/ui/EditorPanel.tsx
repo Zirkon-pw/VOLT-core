@@ -3,8 +3,8 @@ import type { Editor } from '@tiptap/react';
 import { TextSelection } from '@tiptap/pm/state';
 import { flushSync } from 'react-dom';
 import { useActiveFileStore } from '@kernel/editor/sessions/model';
-import { useFileTreeStore } from '@plugins/file-tree/model';
-import { useAppSettingsStore } from '@plugins/settings/SettingsStore';
+import { useFileTreeServiceStore } from '@kernel/services/fileTreeService';
+import { useAppSettingsServiceStore } from '@kernel/services/appSettingsService';
 import { useTabStore } from '@kernel/workspace/tabs/model';
 import { readFile } from '@shared/api/file';
 import { useI18n } from '@app/providers/I18nProvider';
@@ -118,12 +118,12 @@ function revealMatch(
 
 export function EditorPanel({ voltId, voltPath, filePath }: EditorPanelProps) {
   const { t } = useI18n();
-  const imageDir = useAppSettingsStore((state) => state.settings.imageDir);
+  const imageDir = useAppSettingsServiceStore((state) => state.settings.imageDir);
   const editor = useEditorSetup({ placeholder: t('editor.placeholder') });
   const [editorScrollContainer, setEditorScrollContainer] = useState<HTMLDivElement | null>(null);
   const loadedPathRef = useRef<string | null>(null);
   const { resolve, register, unresolveAll, resolveAll, clear } = useImageResolver(voltPath);
-  const notifyFsMutation = useFileTreeStore((state) => state.notifyFsMutation);
+  const notifyFsMutation = useFileTreeServiceStore((state) => state.notifyFsMutation);
   const registerSaveHandler = useActiveFileStore((state) => state.registerSaveHandler);
   const pendingRename = useTabStore((state) => state.pendingRenames[voltId] ?? null);
   const consumePendingRename = useTabStore((state) => state.consumePendingRename);

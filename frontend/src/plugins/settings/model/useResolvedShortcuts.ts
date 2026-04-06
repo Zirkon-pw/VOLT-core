@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { usePluginRegistryStore } from '@kernel/plugin-system/model';
+import { usePluginRegistryStore } from '@kernel/plugin-system/model/pluginRegistry';
 import { resolveShortcutDescriptors, type ResolvedShortcut, type ShortcutDescriptor } from '@shared/lib/hotkeys';
 import { useAppSettingsStore } from './appSettingsStore';
 import { getShortcutDescriptors } from './shortcutCatalog';

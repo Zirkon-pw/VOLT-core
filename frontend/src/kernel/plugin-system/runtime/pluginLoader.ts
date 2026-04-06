@@ -1,7 +1,7 @@
 import type { PluginInfo } from '@kernel/plugin-system/api/pluginTypes';
 import { listPlugins } from '@kernel/plugin-system/api/catalogApi';
 import { loadPluginSource } from '@kernel/plugin-system/api/runtimeApi';
-import { builtinPlugins, getBuiltinPlugin, isBuiltinPlugin } from '@plugins/registry';
+import { builtinPlugins, getBuiltinPlugin, isBuiltinPlugin } from '@kernel/plugin-system/builtin/registry';
 import { createPluginAPI } from './pluginApiFactory';
 import type { PluginSettingChangeEvent, PluginWorkspaceInfo, VoltPluginAPI } from './pluginApi';
 import { clearAllListeners, clearPluginListeners } from './pluginEventBus';
@@ -10,20 +10,19 @@ import { cleanupPluginProcesses, cleanupAllPluginProcesses } from './pluginProce
 import { cleanupPluginEditorSessions, cleanupAllEditorSessions } from './editorSessionManager';
 import { cleanupAllHostEditors, cleanupPluginHostEditors } from './hostEditorService';
 import { useTabStore } from '@kernel/workspace/tabs/model';
+import { clearAll, usePluginRegistryStore } from '@kernel/plugin-system/model/pluginRegistry';
+import { usePluginLogStore } from '@kernel/plugin-system/model/pluginLogStore';
 import {
-  clearAll,
   clearAllPluginSettingsRuntime,
   clearPluginSettingsRuntime,
   subscribePluginSettings,
-  usePluginLogStore,
-  usePluginRegistryStore,
-} from '@kernel/plugin-system/model';
+} from '@kernel/plugin-system/model/pluginSettingsStore';
 import {
   cleanupAllPluginTaskStatuses,
   cleanupPluginTaskStatuses,
 } from '@kernel/plugin-system/ui/task-status';
 import { useWorkspaceStore } from '@kernel/workspace/core/model';
-import type { BuiltinPluginModule } from '@plugins/types';
+import type { BuiltinPluginModule } from '@kernel/plugin-system/builtin/types';
 
 type PluginCleanup = (() => void | Promise<void>) | void;
 

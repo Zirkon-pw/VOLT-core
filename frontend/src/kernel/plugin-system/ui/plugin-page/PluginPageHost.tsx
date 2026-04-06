@@ -4,7 +4,7 @@ import {
   markPluginPageRendered,
   runPluginPageCleanup,
   usePluginRegistryStore,
-} from '@kernel/plugin-system/model';
+} from '@kernel/plugin-system/model/pluginRegistry';
 import { safeExecute } from '@kernel/plugin-system/runtime';
 
 interface PluginPageHostProps {

@@ -8,7 +8,7 @@ import {
   type DragEventHandler,
 } from 'react';
 import { EditorContent, type Editor } from '@tiptap/react';
-import { useFileTreeStore } from '@plugins/file-tree/model';
+import { getFileTreeServiceStore } from '@kernel/services/fileTreeService';
 import { openFileInActivePane, openFileInSecondaryPane } from '@kernel/workspace/panes/model';
 import { PluginTaskStatusBanner } from '@kernel/plugin-system/ui/task-status';
 import { getFileExtension } from '@shared/lib/fileTypes';
@@ -207,7 +207,7 @@ export function MarkdownEditorSurface({
       }
 
       const resolvedPath = resolveRelativePath(getParentPath(filePath), normalizedHref);
-      const tree = useFileTreeStore.getState().trees[voltId] ?? [];
+      const tree = getFileTreeServiceStore().trees[voltId] ?? [];
       const markdownFallbackPath = getFileExtension(resolvedPath) ? resolvedPath : `${resolvedPath}.md`;
       const targetPath = findEntryByPath(tree, resolvedPath)
         ? resolvedPath

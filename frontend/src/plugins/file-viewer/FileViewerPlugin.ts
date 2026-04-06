@@ -1,5 +1,7 @@
 import type { PluginManifest } from '@kernel/plugin-system/api/pluginTypes';
-import type { BuiltinPluginModule } from '@plugins/types';
+import type { BuiltinPluginModule } from '@kernel/plugin-system/builtin/types';
+import { useWorkspaceSlotRegistry } from '@kernel/services/workspaceSlotRegistry';
+import { FileViewHost } from './ui/file-view-host/FileViewHost';
 
 export const fileViewerManifest: PluginManifest = {
   apiVersion: 5,
@@ -10,6 +12,8 @@ export const fileViewerManifest: PluginManifest = {
   main: 'builtin',
   permissions: ['read'],
 };
+
+useWorkspaceSlotRegistry.getState().registerSlot('file-view-host', FileViewHost);
 
 export const fileViewerPlugin: BuiltinPluginModule = {
   manifest: fileViewerManifest,

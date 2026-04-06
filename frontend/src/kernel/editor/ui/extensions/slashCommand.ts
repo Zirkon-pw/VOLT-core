@@ -3,7 +3,7 @@ import { PluginKey } from '@tiptap/pm/state';
 import Suggestion from '@tiptap/suggestion';
 import { createRoot, type Root } from 'react-dom/client';
 import { createElement, createRef } from 'react';
-import { usePluginRegistryStore } from '@kernel/plugin-system/model';
+import { usePluginRegistryStore } from '@kernel/plugin-system/model/pluginRegistry';
 import { EDITOR } from '@shared/config/constants';
 import { translate } from '@shared/i18n';
 import type { IconSource } from '@shared/ui/icon';

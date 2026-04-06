@@ -1,6 +1,6 @@
 import { Node, mergeAttributes } from '@tiptap/core';
 import { type NodeViewRendererProps } from '@tiptap/core';
-import { resolveLinkPreview, type LinkPreviewPayload } from '@plugins/link-preview';
+import { resolveLinkPreview, type LinkPreviewPayload } from '@kernel/services/linkPreviewService';
 import { getRemoteUrlHostname } from '@shared/lib/remoteUrl';
 import { translate } from '@shared/i18n';
 

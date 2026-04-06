@@ -18,7 +18,13 @@
 - `@kernel`
 - `@plugins`
 
-Legacy-алиасы `@entities`, `@features`, `@widgets` удалены.
+## Правило зависимостей
+
+Строгий однонаправленный поток: `plugins → kernel → shared`.
+
+`@kernel/` никогда не импортирует из `@plugins/` напрямую. Единственное исключение — `kernel/plugin-system/builtin/registry.ts`.
+
+Kernel получает функциональность плагинов через сервис-интерфейсы в `kernel/services/`.
 
 ## Структура
 
@@ -39,6 +45,8 @@ App-shell, провайдеры темы и локализации, router, rout
 
 Общие API-клиенты, UI-kit, i18n, utility-хелперы, дизайн-токены и runtime helpers.
 
+- `shared/lib/image/` — общие React-хуки для изображений (useImageDrag, useImageZoom)
+
 ### `src/kernel`
 
 #### `kernel/editor`
@@ -49,12 +57,28 @@ Host editor logic:
 - markdown serialization
 - autosave
 - image drag/drop
-- extension modules
+- extension modules (в `ui/extensions/`)
 - detached editor sessions
 
 #### `kernel/workspace`
 
 Workspace shell, pane layout, tabs, file/plugin route coordination.
+
+Структура плоская — без `internal/` вложенностей:
+
+```
+workspace/
+  core/           — WorkspaceStore, WorkspaceManager
+  panes/          — PaneSplitter, WorkspaceViewStore
+  tabs/
+    file-tabs/    — FileTabs (UI)
+    model/        — TabStore, selectors
+  ui/
+    workspace-tabs/     — WorkspaceTabs (UI)
+    workspace-toolbar/  — WorkspaceToolbar (UI)
+    useWorkspaceHotkeys.ts
+    WorkspaceShell.tsx
+```
 
 #### `kernel/navigation`
 
@@ -64,21 +88,26 @@ Navigation history и state management.
 
 Frontend kernel для плагинов:
 
-- loader
-- API factory
-- lifecycle
-- event bus
-- registry
-- permission/prompt/task-status UI
+- `api/` — типы и runtime API
+- `builtin/` — bootstrapping реестр встроенных плагинов (registry.ts, types.ts)
+- `events/` — inter-plugin messaging
+- `lifecycle/` — PluginLifecycleManager
+- `loader/` — загрузка плагинов
+- `model/` — pluginRegistry, pluginLogStore, pluginSettingsStore (прямые импорты, без barrel)
+- `runtime/` — pluginLoader, pluginApiFactory, hostEditorService, etc.
+- `ui/` — permission, plugin-page, prompt, task-status
 
-User plugin lifecycle работает по v5 схеме:
+#### `kernel/services`
 
-- `onLoad(api)`
-- `onWorkspaceOpen(api, workspace)`
-- `onSettingsChange(api, event)`
-- `onUnload(api)`
+Сервис-интерфейсы для доступа kernel к функциональности плагинов:
 
-Для старых внешних плагинов сохранён legacy fallback-режим загрузки.
+- `fileTreeService.ts` — файловое дерево (reactive store proxy)
+- `appSettingsService.ts` — настройки приложения (reactive store proxy)
+- `imageService.ts` — операции с изображениями
+- `linkPreviewService.ts` — превью ссылок
+- `searchService.ts` — поиск по файлам
+- `shortcutService.ts` — горячие клавиши
+- `workspaceSlotRegistry.ts` — UI-слоты для workspace
 
 ### `src/plugins`
 
@@ -93,6 +122,8 @@ User plugin lifecycle работает по v5 схеме:
 - `search`
 - `link-preview`
 
+Каждый плагин в `*Plugin.ts` регистрирует свои сервисы и слоты через `@kernel/services/`.
+
 ## Shared API
 
 Frontend вызывает backend только через `shared/api/*`:
@@ -103,11 +134,9 @@ Frontend вызывает backend только через `shared/api/*`:
 - `storage`
 - runtime/browser helpers
 
-Legacy API-каталоги `note`, `volt`, `search`, `image`, `link-preview`, `settings`, `plugin` удалены.
-
 ## Plugin system в UI
 
-Plugin registry держит:
+Plugin registry (`pluginRegistry.ts`) держит:
 
 - commands
 - sidebar panels
@@ -117,7 +146,7 @@ Plugin registry держит:
 - search providers
 - slash/context/toolbar/sidebar actions
 
-Плагины могут регистрировать custom settings UI через `api.ui.registerSettingsPage(...)`.
+Импорт из registry — напрямую из `@kernel/plugin-system/model/pluginRegistry`, без barrel-файла.
 
 ## Проверка
 

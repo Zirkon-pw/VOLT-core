@@ -75,6 +75,46 @@ export function onUnload(api) {
 
 Для legacy v4-плагинов сохранён fallback-режим загрузки, но он считается временным shim и логируется как deprecated.
 
+## Builtin Plugins
+
+Встроенные плагины зарегистрированы в `kernel/plugin-system/builtin/registry.ts`. Каждый плагин имеет `*Plugin.ts` файл, в котором:
+
+1. Объявляется manifest
+2. Регистрируются сервисы через `@kernel/services/`
+3. Регистрируются UI-слоты через `useWorkspaceSlotRegistry`
+
+### Регистрация сервисов
+
+Пример из `ImageServicePlugin.ts`:
+
+```typescript
+import { useImageService } from '@kernel/services/imageService';
+import { copyImage, pickImage, ... } from './ImageService';
+
+useImageService.getState().register({
+  copyImage, pickImage, readImageBase64, saveImageBase64,
+  dataUrlToBlobUrl, base64ToBlobUrl,
+});
+```
+
+### Регистрация UI-слотов
+
+Пример из `FileTreePlugin.ts`:
+
+```typescript
+import { useWorkspaceSlotRegistry } from '@kernel/services/workspaceSlotRegistry';
+import { Sidebar } from './ui/sidebar/Sidebar';
+
+useWorkspaceSlotRegistry.getState().registerSlot('sidebar', Sidebar);
+```
+
+Доступные слоты:
+
+- `sidebar` — боковая панель файлового дерева
+- `breadcrumbs` — хлебные крошки над редактором
+- `search-popup` — всплывающее окно поиска
+- `file-view-host` — рендеринг содержимого файлов
+
 ## Host API v5
 
 Основные разделы `VoltPluginAPI`:

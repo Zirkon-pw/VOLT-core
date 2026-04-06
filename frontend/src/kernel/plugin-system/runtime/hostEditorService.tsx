@@ -1,22 +1,22 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { useI18n } from '@app/providers/I18nProvider';
-import { useAppSettingsStore } from '@plugins/settings/SettingsStore';
 import { useActiveFileStore } from '@kernel/editor/sessions/model';
-import type { RegisteredHostEditorFileViewer } from '@kernel/plugin-system/model';
-import { useFileTreeStore } from '@plugins/file-tree/model';
+import type { RegisteredHostEditorFileViewer } from '@kernel/plugin-system/model/pluginRegistry';
+import { useFileTreeServiceStore } from '@kernel/services/fileTreeService';
+import { useAppSettingsServiceStore } from '@kernel/services/appSettingsService';
+import { dataUrlToBlobUrl, readImageBase64 } from '@kernel/services/imageService';
 import { useTabStore } from '@kernel/workspace/tabs/model';
 import { PluginTaskStatusBanner } from '@kernel/plugin-system/ui/task-status';
 import { readFile, writeFile } from '@shared/api/file';
-import { dataUrlToBlobUrl, readImageBase64 } from '@plugins/image-service';
 import { isMarkdownPath } from '@shared/lib/fileTypes';
 import { MarkdownEditorSurface } from '@kernel/editor/ui/MarkdownEditorSurface';
 import { useAutoSave } from '@kernel/editor/hooks/useAutoSave';
 import { resetEditorHistory, useEditorSetup } from '@kernel/editor/hooks/useEditorSetup';
 import { useImageHandlers } from '@kernel/editor/hooks/useImageHandlers';
 import { useImageResolver } from '@kernel/editor/hooks/useImageResolver';
-import { useImageDrag } from '@plugins/file-viewer/hooks/useImageDrag';
-import { useImageZoom } from '@plugins/file-viewer/hooks/useImageZoom';
+import { useImageDrag } from '@shared/lib/image/useImageDrag';
+import { useImageZoom } from '@shared/lib/image/useImageZoom';
 import { preprocessMarkdown } from '@kernel/editor/lib/markdownPreprocessor';
 import { emit } from './pluginEventBus';
 import {
@@ -404,11 +404,11 @@ function MarkdownEditorDriver({
   autofocus: boolean;
 }) {
   const { t } = useI18n();
-  const imageDir = useAppSettingsStore((state) => state.settings.imageDir);
+  const imageDir = useAppSettingsServiceStore((state) => state.settings.imageDir);
   const editor = useEditorSetup({ placeholder: t('editor.placeholder'), editable: !readOnly });
   const loadedPathRef = useRef<string | null>(null);
   const { resolve, register, unresolveAll, resolveAll, clear } = useImageResolver(voltPath);
-  const notifyFsMutation = useFileTreeStore((state) => state.notifyFsMutation);
+  const notifyFsMutation = useFileTreeServiceStore((state) => state.notifyFsMutation);
   const registerSaveHandler = useActiveFileStore((state) => state.registerSaveHandler);
   const pendingRename = useTabStore((state) => (voltId ? state.pendingRenames[voltId] ?? null : null));
   const consumePendingRename = useTabStore((state) => state.consumePendingRename);
