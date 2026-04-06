@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import type { NavigateFunction } from 'react-router-dom';
-import { useWorkspaceStore } from '@entities/workspace';
-import { loadAllPlugins, unloadAllPlugins } from '@shared/lib/plugin-runtime';
+import { PluginLifecycleManager } from '@kernel/plugin-system/lifecycle/PluginLifecycleManager';
+import { useWorkspaceStore } from '@kernel/workspace/core/WorkspaceStore';
 
 export function useWorkspaceRuntimeRoute(
   voltId: string | undefined,
@@ -12,11 +12,11 @@ export function useWorkspaceRuntimeRoute(
 
   useEffect(() => {
     if (workspace) {
-      void loadAllPlugins(workspace.voltPath);
+      void PluginLifecycleManager.loadAllPlugins(workspace.voltPath);
     }
 
     return () => {
-      unloadAllPlugins();
+      PluginLifecycleManager.unloadAllPlugins();
     };
   }, [workspace]);
 

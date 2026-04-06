@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { WorkspaceShell } from '@widgets/workspace-shell';
+import { WorkspaceShell } from '@kernel/workspace/ui/WorkspaceShell';
 import { useWorkspaceRuntimeRoute } from './hooks/useWorkspaceRuntimeRoute';
 
 export function WorkspacePage() {

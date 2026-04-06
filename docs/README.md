@@ -1,38 +1,25 @@
 # Документация Volt
 
-В каталоге `docs/` собрана актуальная русскоязычная документация по проекту. Разделы ниже синхронизированы с текущей структурой backend, frontend и plugin runtime.
+Документация в `docs/` синхронизирована с target-state из `refactor.md` и каталога `refactoring/`.
 
 ## С чего начать
 
-Если вы только входите в проект, удобнее читать в таком порядке:
+1. [`architecture.md`](architecture.md) — общая схема приложения и границы слоёв.
+2. [`backend.md`](backend.md) — Go backend, composition root и 4 Wails handler'а.
+3. [`frontend.md`](frontend.md) — React/Vite frontend, `kernel/*`, `plugins/*`, страницы и маршруты.
+4. [`plugins.md`](plugins.md) — пользовательские плагины, `apiVersion: 5`, lifecycle hooks и host API.
+5. [`release.md`](release.md) — сборка и релизный процесс.
 
-1. [`architecture.md`](architecture.md) — общая картина и границы ответственности.
-2. [`backend.md`](backend.md) — слои Go-приложения, команды, handlers и локальное хранение.
-3. [`frontend.md`](frontend.md) — маршруты, store-ы, редактор и plugin runtime на стороне React.
-4. [`plugins.md`](plugins.md) — формат плагина, `apiVersion: 4`, жизненный цикл и публичный host API.
-5. [`release.md`](release.md) — как устроен release-процесс и какие ограничения у сборок.
+## Коротко о target-state
 
-## Навигация по разделам
-
-### Обзор проекта
-
-- [Архитектура проекта](architecture.md)
-
-### Реализация
-
-- [Бэкенд](backend.md)
-- [Фронтенд](frontend.md)
-
-### Расширение приложения
-
-- [Плагинная система](plugins.md)
-
-### Поставка и релизы
-
-- [Релизы и GitHub Actions](release.md)
+- Backend публикует только `FileHandler`, `ProcessHandler`, `DialogHandler`, `StorageHandler`.
+- Frontend использует только алиасы `@app`, `@pages`, `@shared`, `@kernel`, `@plugins`.
+- Legacy-слои `kernel/compat`, `@entities`, `@features`, `@widgets`, `shared/lib/plugin-runtime`, `PluginCatalog`, `PluginRuntime` удалены.
+- Пользовательские плагины живут в `~/.volt/plugins/<pluginId>/` и читаются через `FileHandler`.
+- Состояние и plugin-local данные живут в namespace-файлах `StorageHandler`, а не в `plugin-state.json` или `data.json`.
 
 ## Термины
 
-- `volt` — локальное хранилище, добавленное в приложение.
-- `workspace` — активный открытый `volt` в UI.
-- `plugin runtime` — frontend-слой, который загружает `main.js` плагинов, выдаёт host API и очищает регистрации при выгрузке.
+- `volt` — локальное хранилище на диске, которое открывается пользователем.
+- `workspace` — активный `volt`, открытый в UI.
+- `plugin system` — frontend-ядро загрузки пользовательских и встроенных плагинов.

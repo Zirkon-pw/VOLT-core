@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef } from 'react';
-import { useActiveFileStore } from '@entities/editor-session';
-import { useTabStore } from '@entities/tab';
+import { useActiveFileStore } from '@kernel/editor/sessions/model';
+import { useTabStore } from '@kernel/workspace/tabs/model';
 import { readFile, writeFile } from '@shared/api/file';
-import { emit } from '@shared/lib/plugin-runtime';
+import { emit } from '@kernel/plugin-system/runtime';
 
 interface UseFileSessionOptions {
   voltId: string;

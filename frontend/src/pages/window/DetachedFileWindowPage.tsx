@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
-import { FileViewHost } from '@widgets/workspace-shell/file-view-host/FileViewHost';
+import { FileViewHost } from '@plugins/file-viewer/FileViewHost';
 import { readWindowPayloadFromSearch } from '@shared/lib/windowing';
 import styles from './DetachedWindowPage.module.scss';
 

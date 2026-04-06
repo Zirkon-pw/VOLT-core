@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Sidebar } from '@widgets/workspace-shell/sidebar/Sidebar';
+import { Sidebar } from '@plugins/file-tree/Sidebar';
 import { readWindowPayloadFromSearch } from '@shared/lib/windowing';
 import styles from './DetachedWindowPage.module.scss';
 

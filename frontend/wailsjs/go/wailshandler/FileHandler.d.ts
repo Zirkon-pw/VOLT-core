@@ -6,12 +6,12 @@ export function CreateDirectory(arg1:string,arg2:string):Promise<void>;
 
 export function CreateFile(arg1:string,arg2:string,arg3:string):Promise<void>;
 
-export function DeletePath(arg1:string,arg2:string):Promise<void>;
+export function Delete(arg1:string,arg2:string):Promise<void>;
 
 export function ListTree(arg1:string,arg2:string):Promise<Array<file.FileEntry>>;
 
-export function ReadFile(arg1:string,arg2:string):Promise<string>;
+export function Read(arg1:string,arg2:string):Promise<string>;
 
-export function RenamePath(arg1:string,arg2:string,arg3:string):Promise<void>;
+export function Rename(arg1:string,arg2:string,arg3:string):Promise<void>;
 
-export function WriteFile(arg1:string,arg2:string,arg3:string):Promise<void>;
+export function Write(arg1:string,arg2:string,arg3:string):Promise<void>;

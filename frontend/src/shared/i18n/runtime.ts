@@ -1,4 +1,4 @@
-import type { LocalizationPayload } from '@shared/api/settings/types';
+import type { LocalizationPayload } from './types';
 
 export type TranslationParams = Record<string, string | number>;
 

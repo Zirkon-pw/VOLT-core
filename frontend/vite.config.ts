@@ -9,14 +9,13 @@ export default defineConfig({
     port: 5173,
   },
   resolve: {
-    alias: {
-      '@app': path.resolve(__dirname, 'src/app'),
-      '@pages': path.resolve(__dirname, 'src/pages'),
-      '@entities': path.resolve(__dirname, 'src/entities'),
-      '@features': path.resolve(__dirname, 'src/features'),
-      '@widgets': path.resolve(__dirname, 'src/widgets'),
-      '@shared': path.resolve(__dirname, 'src/shared'),
-    },
+    alias: [
+      { find: '@app', replacement: path.resolve(__dirname, 'src/app') },
+      { find: '@pages', replacement: path.resolve(__dirname, 'src/pages') },
+      { find: '@shared', replacement: path.resolve(__dirname, 'src/shared') },
+      { find: '@kernel', replacement: path.resolve(__dirname, 'src/kernel') },
+      { find: '@plugins', replacement: path.resolve(__dirname, 'src/plugins') },
+    ],
   },
   css: {
     modules: {

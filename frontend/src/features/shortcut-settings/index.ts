@@ -1,1 +1,0 @@
-export { ShortcutSettingsSection } from './ShortcutSettingsSection';

@@ -3,9 +3,9 @@ import { ThemeProvider } from './providers/ThemeProvider';
 import { ErrorBoundary } from './providers/ErrorBoundary';
 import { I18nProvider } from './providers/I18nProvider';
 import { AppRouter } from './routes/AppRouter';
+import { PluginPromptDialog } from '@kernel/plugin-system/ui/PluginPrompt';
+import { PluginTaskStatusController } from '@kernel/plugin-system/ui/PluginTaskStatus';
 import { ToastController } from '@shared/ui/toast';
-import { PluginPromptDialog } from '@features/plugin-prompt';
-import { PluginTaskStatusController } from '@features/plugin-task-status';
 import './styles/globals.scss';
 
 function App() {

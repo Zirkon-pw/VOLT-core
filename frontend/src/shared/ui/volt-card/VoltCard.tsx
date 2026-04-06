@@ -1,4 +1,4 @@
-import { Volt } from '@shared/api/volt/types';
+import type { Volt } from '@plugins/vault-manager/model/types';
 import { useI18n } from '@app/providers/I18nProvider';
 import { Icon } from '@shared/ui/icon';
 import styles from './VoltCard.module.scss';

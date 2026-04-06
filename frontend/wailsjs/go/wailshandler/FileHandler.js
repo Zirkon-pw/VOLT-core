@@ -10,22 +10,22 @@ export function CreateFile(arg1, arg2, arg3) {
   return window['go']['wailshandler']['FileHandler']['CreateFile'](arg1, arg2, arg3);
 }
 
-export function DeletePath(arg1, arg2) {
-  return window['go']['wailshandler']['FileHandler']['DeletePath'](arg1, arg2);
+export function Delete(arg1, arg2) {
+  return window['go']['wailshandler']['FileHandler']['Delete'](arg1, arg2);
 }
 
 export function ListTree(arg1, arg2) {
   return window['go']['wailshandler']['FileHandler']['ListTree'](arg1, arg2);
 }
 
-export function ReadFile(arg1, arg2) {
-  return window['go']['wailshandler']['FileHandler']['ReadFile'](arg1, arg2);
+export function Read(arg1, arg2) {
+  return window['go']['wailshandler']['FileHandler']['Read'](arg1, arg2);
 }
 
-export function RenamePath(arg1, arg2, arg3) {
-  return window['go']['wailshandler']['FileHandler']['RenamePath'](arg1, arg2, arg3);
+export function Rename(arg1, arg2, arg3) {
+  return window['go']['wailshandler']['FileHandler']['Rename'](arg1, arg2, arg3);
 }
 
-export function WriteFile(arg1, arg2, arg3) {
-  return window['go']['wailshandler']['FileHandler']['WriteFile'](arg1, arg2, arg3);
+export function Write(arg1, arg2, arg3) {
+  return window['go']['wailshandler']['FileHandler']['Write'](arg1, arg2, arg3);
 }

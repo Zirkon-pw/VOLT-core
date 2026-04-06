@@ -1,178 +1,103 @@
-# Бэкенд
+# Backend
 
-## Роль backend
+## Слои
 
-Backend в Volt отвечает за локальные операции:
+Backend расположен в `backend/` и разделён на слои:
 
-- работу с volt-хранилищами
-- файловые операции внутри активного workspace
-- создание markdown-заметок
-- поиск по markdown
-- хранение и загрузку плагинов
-- локализацию и системные desktop-операции
+- `domain/` — сущности, repository contracts, domain errors.
+- `application/` — сервисы use-case уровня.
+- `infrastructure/` — файловая система, KV storage, dialog/runtime adapters.
+- `interfaces/` — Wails handlers и lifecycle glue.
+- `bootstrap/` — composition root.
 
-Отдельного сетевого API или базы данных здесь нет: backend работает только с локальной файловой системой и Wails runtime.
+## Wails bridge
 
-## Структура слоёв
+В bridge опубликованы только 4 handler'а:
 
-### `core/`
+### `FileHandler`
 
-Доменные сущности, контракты и ошибки:
+Канонические методы:
 
-- `core/volt` — сущность volt и контракт репозитория
-- `core/file` — файловые сущности, репозиторий и доменные ошибки
-- `core/note` — сущности и абстракции заметок
-- `core/search` — структура результатов поиска
-- `core/plugin` — manifest, настройки плагинов и plugin-specific ошибки
-- `core/settings` — локализация и настройки приложения
+- `Read(rootPath, path)`
+- `Write(rootPath, path, content)`
+- `ListTree(rootPath, path)`
+- `CreateFile(rootPath, path, content)`
+- `CreateDirectory(rootPath, path)`
+- `Delete(rootPath, path)`
+- `Rename(rootPath, oldPath, newPath)`
 
-### `commands/`
+Старые сигнатуры `ReadFile`, `WriteFile`, `DeletePath`, `RenamePath` удалены.
 
-Сценарии приложения, зарегистрированные в `commands.Manager`:
+### `ProcessHandler`
 
-- `volt/` — список, создание и удаление volt
-- `file/` — чтение, запись, дерево, создание, удаление и переименование файлов и каталогов
-- `note/` — создание markdown-note с доменной нормализацией
-- `search/` — поиск по markdown-файлам
-- `plugin/` — каталог плагинов, импорт ZIP-архивов, загрузка исходников и plugin data
-- `settings/` — получение локализации и переключение языка
-- `system/` — диалоги, изображения, копирование assets и локальные процессы
+- `Start(req)`
+- `Cancel(runId)`
 
-### `infrastructure/`
+Используется для локальных OS-process внутри заданного рабочего каталога.
 
-Конкретные реализации для локальной среды:
+### `DialogHandler`
 
-- `infrastructure/filesystem/file_repository.go` — файловые операции внутри workspace
-- `infrastructure/filesystem/plugin_store.go` — каталог плагинов, `plugin-state.json`, `data.json`, импорт ZIP-архивов
-- `infrastructure/persistence/local/volt_store.go` — хранение `~/.volt/volts.json`
-- `infrastructure/persistence/local/settings_store.go` — настройки приложения
-- `infrastructure/runtime/wails/runtime.go` — bridge к Wails runtime
+Используется для выбора директорий, файлов и изображений.
 
-### `interfaces/wailshandler/`
+### `StorageHandler`
 
-Публичный backend API для frontend:
+- `ConfigDir()`
+- `Get(namespace, key)`
+- `Set(namespace, key, value)`
+- `Delete(namespace, key)`
+- `List(namespace)`
+
+`StorageHandler` хранит JSON namespace-файлы в `~/.volt/`.
+
+## Хранилище
+
+### Config dir
+
+Канонический config dir: `~/.volt`.
+
+### Namespace-файлы
+
+Каждый namespace хранится отдельно:
+
+- `~/.volt/vaults.json`
+- `~/.volt/settings.json`
+- `~/.volt/plugins.json`
+- `~/.volt/plugin-data:<pluginId>.json`
+
+### Пользовательские плагины
+
+Исходники плагинов backend не хранит в storage. Source-of-truth:
+
+- `~/.volt/plugins/<pluginId>/manifest.json`
+- `~/.volt/plugins/<pluginId>/main.js`
+
+## Файловая безопасность
+
+`backend/infrastructure/filesystem/file_repository.go` делает path traversal protection через canonical safe path resolution внутри `rootPath`.
+
+## Asset server
+
+`backend/interfaces/vault_asset_server.go` отдаёт workspace assets для frontend preview/render сценариев.
+
+## Удалённые legacy-компоненты
+
+Из backend удалены:
 
 - `VoltHandler`
-- `FileHandler`
 - `NoteHandler`
 - `SearchHandler`
 - `PluginCatalogHandler`
 - `PluginRuntimeHandler`
 - `ImageHandler`
+- `LinkPreviewHandler`
 - `SettingsHandler`
-- `Lifecycle`
 
-`Lifecycle` нужен для startup/dom-ready hooks и не публикуется во frontend как отдельный API namespace.
+Также удалена plugin-specific backend логика хранения `plugin-state.json`, `data.json` и legacy plugin store.
 
-## Dependency wiring
+## Проверка
 
-Все зависимости собираются вручную в [`bootstrap/container.go`](../bootstrap/container.go).
+Основная базовая проверка backend:
 
-Container:
-
-- создаёт store-ы и runtime bridge
-- собирает `commands.Manager`
-- создаёт handlers поверх manager-а
-- отдаёт их в Wails через `Bindings()`
-
-Такой подход упрощает навигацию по проекту: путь от UI-сценария до конкретной команды остаётся явным.
-
-## Работа с файлами
-
-Главная реализация находится в [`infrastructure/filesystem/file_repository.go`](../infrastructure/filesystem/file_repository.go).
-
-Что важно:
-
-- каждый путь проходит через защиту от выхода за пределы активного workspace
-- скрытые файлы и каталоги не попадают в дерево
-- директории сортируются раньше файлов
-- чтение и запись возвращают доменные ошибки вместо сырых системных сообщений
-
-Файловые handlers вызывают команды по имени и локализуют ошибки перед возвратом во frontend.
-
-## Создание заметок
-
-Создание markdown-note вынесено в отдельный `NoteHandler` и команды из `commands/note/`.
-
-Это отделяет note-specific поведение от generic файлового API:
-
-- обычные файлы создаются через `FileHandler`
-- markdown-заметки создаются через `NoteHandler`
-
-## Поиск
-
-Поиск реализован в [`commands/search/search_files.go`](../commands/search/search_files.go).
-
-Текущее поведение:
-
-- backend ищет только по `.md`
-- сначала формируются совпадения по имени файла
-- затем совпадения по содержимому
-- максимум `50` результатов на запрос
-- максимум `5` совпадений по содержимому на один файл
-
-Plugin-owned форматы backend не индексирует. Они добавляются во frontend через зарегистрированные search providers.
-
-## Плагины на стороне backend
-
-Backend знает о плагинах как о локальных пакетах в `~/.volt/plugins`.
-
-Что он делает:
-
-- перечисляет установленные плагины и читает `manifest.json`
-- валидирует `apiVersion`, `id`, `name`, `version` и entry file
-- возвращает путь к каталогу плагинов
-- загружает исходник `main.js`
-- хранит состояние включения в `~/.volt/plugin-state.json`
-- хранит plugin-local данные в `data.json`
-- импортирует плагины из ZIP-архивов
-- запускает локальные процессы плагинов
-
-Сейчас поддерживается только `apiVersion: 4`.
-
-### Разделение plugin handlers
-
-Слой Wails намеренно разделён на два handler-а:
-
-- `PluginCatalogHandler` — список плагинов, каталог, импорт, удаление, enable/disable
-- `PluginRuntimeHandler` — загрузка исходников, plugin data, file picker, копирование assets и process bridge
-
-Это отражает текущую границу между каталогом плагинов и runtime-операциями.
-
-## Импорт плагинов
-
-Импорт реализован в [`infrastructure/filesystem/plugin_store.go`](../infrastructure/filesystem/plugin_store.go).
-
-Основные ограничения:
-
-- архив должен содержать один plugin root
-- внутри root должен быть корректный `manifest.json`
-- entry file из `manifest.main` обязан существовать
-- абсолютные пути, path traversal и symlink entries отклоняются
-
-После импорта плагин появляется в списке, но по умолчанию остаётся выключенным, пока frontend явно не включит его.
-
-## Desktop process broker
-
-Desktop-process runtime собран из:
-
-- [`commands/system/plugin_process.go`](../commands/system/plugin_process.go)
-- [`interfaces/wailshandler/plugin_process.go`](../interfaces/wailshandler/plugin_process.go)
-- [`infrastructure/runtime/wails/runtime.go`](../infrastructure/runtime/wails/runtime.go)
-
-Он:
-
-- запускает бинарник напрямую, без `sh -c`
-- ограничивает `cwd` активным workspace
-- публикует `stdout`, `stderr`, `exit` и `error` события во frontend
-- умеет отменять запущенные процессы по `runId`
-
-## Локализация
-
-Backend также отвечает за локализацию системных сообщений и ошибок:
-
-- словари лежат в `core/settings/locales/`
-- `SettingsHandler` отдаёт локализованный payload во frontend
-- Wails handlers локализуют backend errors перед возвратом в UI
-
-Подробности по frontend-side поведению вынесены в [`frontend.md`](frontend.md), а plugin contract описан в [`plugins.md`](plugins.md).
+```bash
+go test ./...
+```

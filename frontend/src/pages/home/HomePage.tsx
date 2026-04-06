@@ -1,15 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useVoltStore } from '@entities/volt';
-import { useWorkspaceStore } from '@entities/workspace';
+import { useWorkspaceStore } from '@kernel/workspace/core/WorkspaceStore';
+import { selectDirectory, useVaultStore } from '@plugins/vault-manager';
 import { Button } from '@shared/ui/button';
 import { TextInput } from '@shared/ui/text-input';
 import { Modal } from '@shared/ui/modal';
 import { Icon } from '@shared/ui/icon';
-import { VoltLogo } from '@shared/ui/volt-logo';
+import { VoltLogo } from '@shared/ui/volt-logo/VoltLogo';
 import { useI18n } from '@app/providers/I18nProvider';
-import { VoltCard } from '@shared/ui/volt-card';
-import { selectDirectory } from '@shared/api/volt';
+import { VoltCard } from '@shared/ui/volt-card/VoltCard';
 import styles from './HomePage.module.scss';
 
 type HomeModalMode = 'create' | 'attach' | null;
@@ -42,7 +41,7 @@ export function HomePage() {
     createVoltInParent,
     deleteVolt,
     clearError,
-  } = useVoltStore();
+  } = useVaultStore();
   const openWorkspace = useWorkspaceStore((s) => s.openWorkspace);
   const navigate = useNavigate();
 

@@ -10,8 +10,34 @@ declare global {
 
 let pendingWailsReady: Promise<void> | null = null;
 
+const REQUIRED_WAILS_HANDLERS = {
+  FileHandler: ['Read', 'Write', 'ListTree', 'CreateFile', 'CreateDirectory', 'Delete', 'Rename'],
+  DialogHandler: ['SelectDirectory', 'PickFiles', 'PickImage'],
+  ProcessHandler: ['Start', 'Cancel'],
+  StorageHandler: ['ConfigDir', 'Get', 'Set', 'Delete', 'List'],
+} as const;
+
+function hasHandlerMethods(target: unknown, methods: readonly string[]): boolean {
+  if (target == null || typeof target !== 'object') {
+    return false;
+  }
+
+  return methods.every((methodName) => typeof (target as Record<string, unknown>)[methodName] === 'function');
+}
+
 function hasWailsBridge(): boolean {
-  return typeof window !== 'undefined' && Boolean(window.go?.wailshandler);
+  if (typeof window === 'undefined') {
+    return false;
+  }
+
+  const handlers = window.go?.wailshandler;
+  if (handlers == null) {
+    return false;
+  }
+
+  return Object.entries(REQUIRED_WAILS_HANDLERS).every(([handlerName, methods]) => (
+    hasHandlerMethods(handlers[handlerName], methods)
+  ));
 }
 
 export async function waitForWailsBridge(timeoutMs = WAILS.READY_TIMEOUT_MS): Promise<void> {

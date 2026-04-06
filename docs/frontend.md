@@ -1,151 +1,129 @@
-# Фронтенд
-
-## Роль frontend
-
-Frontend в Volt не ограничивается рендерингом экранов. Он одновременно:
-
-- показывает основной UI приложения
-- хранит клиентское состояние в `Zustand`
-- управляет редактором на базе `Tiptap`
-- работает как runtime-слой для плагинов
-- объединяет core-поиск и search providers плагинов
-
-Именно поэтому значимая часть архитектуры находится не только в страницах, но и в `entities/`, `features/` и `shared/lib/plugin-runtime/`.
+# Frontend
 
 ## Стек
 
-- `React 18`
-- `TypeScript`
-- `React Router 6`
-- `Vite`
-- `Sass Modules`
-- `Zustand`
-- `Tiptap`
+- React 18
+- Vite
+- TypeScript
+- Zustand
+- Tiptap
 
-## Точки входа
+## Алиасы
 
-- [`frontend/src/main.tsx`](../frontend/src/main.tsx) — bootstrap React-приложения
-- [`frontend/src/app/App.tsx`](../frontend/src/app/App.tsx) — корневое приложение и провайдеры
-- [`frontend/src/app/routes/AppRouter.tsx`](../frontend/src/app/routes/AppRouter.tsx) — маршрутизация
+В проекте используются только:
 
-## Основные маршруты
+- `@app`
+- `@pages`
+- `@shared`
+- `@kernel`
+- `@plugins`
 
-Маршруты описаны в [`frontend/src/app/routes/AppRouter.tsx`](../frontend/src/app/routes/AppRouter.tsx):
+Legacy-алиасы `@entities`, `@features`, `@widgets` удалены.
 
-- `/` — домашняя страница
-- `/workspace/:voltId` — активный workspace
-- `/workspace/:voltId/plugin/:pageId` — маршрут полноэкранной страницы плагина
-- `/settings` — общие настройки
-- `/settings/shortcuts` — настройки горячих клавиш
-- `/settings/plugins` — список плагинов
-- `/settings/plugin/:pluginId` — host-rendered settings page плагина
-- `/settings/about` — раздел About
+## Структура
 
-## Основные страницы
+### `src/app`
 
-- [`frontend/src/pages/home/HomePage.tsx`](../frontend/src/pages/home/HomePage.tsx) — список volt-хранилищ и создание нового подключения
-- [`frontend/src/pages/workspace/WorkspacePage.tsx`](../frontend/src/pages/workspace/WorkspacePage.tsx) — рабочая область
-- [`frontend/src/pages/workspace/PluginRoutePage.tsx`](../frontend/src/pages/workspace/PluginRoutePage.tsx) — полноэкранные страницы плагинов по отдельному маршруту
-- [`frontend/src/pages/settings/SettingsPage.tsx`](../frontend/src/pages/settings/SettingsPage.tsx) — общий контейнер настроек
+App-shell, провайдеры темы и локализации, router, route composition.
 
-## Состояние приложения
+### `src/pages`
 
-Ключевые store-ы и runtime-модули:
+Страницы верхнего уровня:
 
-- `voltStore` — список volt, загрузка, создание и удаление
-- `workspaceStore` — открытые workspace-ы и активный `voltId`
-- `tabStore` — file tabs и plugin tabs
-- `fileTreeStore` — дерево файлов, inline rename/create/delete и drag-and-drop
-- `pluginRegistry` — регистрации от плагинов: команды, страницы, sidebar, toolbar, file viewers и search providers
-- `pluginLogStore` — runtime-ошибки и предупреждения плагинов
-- `pluginSettingsStore` — значения host-rendered plugin settings
-- `pluginPromptStore` — модальное окно текстового ввода для плагинов
-- `pluginTaskStatusStore` — плавающие статусы и баннеры долгих задач
-- `appSettingsStore` — общие настройки и горячие клавиши
+- home
+- workspace
+- settings routes
+- playwright harness
 
-## Рабочая область
+### `src/shared`
 
-Рабочий экран собирается из нескольких независимых блоков:
+Общие API-клиенты, UI-kit, i18n, utility-хелперы, дизайн-токены и runtime helpers.
 
-- `WorkspaceTabs` — верхняя панель открытых workspace-ов
-- `WorkspaceShell` — каркас активного workspace
-- `FileTree` — дерево файлов и каталогов
-- `FileTabs` — вкладки открытых файлов
-- `EditorPanel` — markdown-редактор
-- `ImageViewer` и plugin file viewers — просмотр нестандартных форматов файлов
-- `PluginPageHost` — контейнер plugin pages в табах
-- `SearchPopup` — поиск и command palette
+### `src/kernel`
 
-## Редактор и файл-ориентированные сценарии
+#### `kernel/editor`
 
-Редактор построен на `Tiptap` и дополнен хостовой логикой:
+Host editor logic:
 
-- автосохранение находится в `useAutoSave`
-- slash-меню объединяет built-in действия и plugin slash commands
-- плагинам доступны editor sessions и host editors
-- при изменениях file tree эмитит событие `workspace:path-renamed`, на которое могут подписываться плагины
+- editor panel
+- markdown serialization
+- autosave
+- image drag/drop
+- extension modules
+- detached editor sessions
 
-Это позволяет держать основной markdown-редактор встроенным, а нестандартные сценарии подключать через runtime API.
+#### `kernel/workspace`
 
-## Поиск и command palette
+Workspace shell, pane layout, tabs, file/plugin route coordination.
 
-Поисковый popup:
+#### `kernel/navigation`
 
-- открывается по `Mod+K`
-- дополнительно поддерживает `Double Shift`
-- переключается в режим command palette, если строка начинается с `>`
-- объединяет backend search по `.md` и результаты плагинов через `search.registerTextProvider(...)`
-- в режиме command palette показывает plugin-команды из `pluginRegistry.commands` и использует их иконки из `registerCommand(...)`
+Navigation history и state management.
 
-Основная логика находится в [`frontend/src/features/workspace-search/useSearchPopup.ts`](../frontend/src/features/workspace-search/useSearchPopup.ts).
+#### `kernel/plugin-system`
 
-## Настройки
+Frontend kernel для плагинов:
 
-Раздел настроек состоит из нескольких экранов:
+- loader
+- API factory
+- lifecycle
+- event bus
+- registry
+- permission/prompt/task-status UI
 
-- general settings
-- shortcut settings
-- plugin catalog
-- plugin settings pages
-- about
+User plugin lifecycle работает по v5 схеме:
 
-Важно: host-rendered страница настроек плагина доступна только для включённого плагина, у которого есть `manifest.settings.sections`.
+- `onLoad(api)`
+- `onWorkspaceOpen(api, workspace)`
+- `onSettingsChange(api, event)`
+- `onUnload(api)`
 
-## Plugin runtime на стороне frontend
+Для старых внешних плагинов сохранён legacy fallback-режим загрузки.
 
-Ключевые runtime-модули:
+### `src/plugins`
 
-- [`frontend/src/shared/lib/plugin-runtime/pluginLoader.ts`](../frontend/src/shared/lib/plugin-runtime/pluginLoader.ts) — загрузка и выгрузка плагинов
-- [`frontend/src/shared/lib/plugin-runtime/pluginApiFactory.ts`](../frontend/src/shared/lib/plugin-runtime/pluginApiFactory.ts) — создание host API
-- [`frontend/src/shared/lib/plugin-runtime/pluginApi.ts`](../frontend/src/shared/lib/plugin-runtime/pluginApi.ts) — публичные TypeScript-типы plugin API
-- [`frontend/src/shared/lib/plugin-runtime/pluginEventBus.ts`](../frontend/src/shared/lib/plugin-runtime/pluginEventBus.ts) — отслеживаемые подписки
-- [`frontend/src/shared/lib/plugin-runtime/editorSessionManager.ts`](../frontend/src/shared/lib/plugin-runtime/editorSessionManager.ts) — detached editor sessions
-- [`frontend/src/shared/lib/plugin-runtime/hostEditorService.tsx`](../frontend/src/shared/lib/plugin-runtime/hostEditorService.tsx) — host editors и embedded mounts
-- [`frontend/src/shared/lib/plugin-runtime/pluginProcessManager.ts`](../frontend/src/shared/lib/plugin-runtime/pluginProcessManager.ts) — process bridge
+Встроенные плагины приложения:
 
-Во frontend также живёт `pluginRegistry`, куда плагины регистрируют:
+- `vault-manager`
+- `settings`
+- `file-tree`
+- `breadcrumbs`
+- `file-viewer`
+- `image-service`
+- `search`
+- `link-preview`
+
+## Shared API
+
+Frontend вызывает backend только через `shared/api/*`:
+
+- `file`
+- `process`
+- `dialog`
+- `storage`
+- runtime/browser helpers
+
+Legacy API-каталоги `note`, `volt`, `search`, `image`, `link-preview`, `settings`, `plugin` удалены.
+
+## Plugin system в UI
+
+Plugin registry держит:
 
 - commands
-- sidebar panels и sidebar buttons
-- toolbar buttons
+- sidebar panels
 - plugin pages
-- slash commands
-- context menu items
+- settings pages
 - file viewers
 - search providers
+- slash/context/toolbar/sidebar actions
 
-Для UI-регистраций runtime поддерживает как встроенные иконки Volt по имени, так и пользовательские SVG-иконки через `PluginIcon`.
+Плагины могут регистрировать custom settings UI через `api.ui.registerSettingsPage(...)`.
 
-## Lifecycle плагинов
+## Проверка
 
-При открытии workspace frontend:
+Основные frontend-команды:
 
-1. очищает предыдущий plugin runtime
-2. загружает список плагинов из backend
-3. оставляет только `enabled` плагины
-4. загружает `main.js`
-5. исполняет его с ограниченным объектом `api`
-
-При выгрузке runtime снимает listeners, процессы, editor sessions, host editors, task statuses и регистрации плагинов.
-
-Подробный контракт плагинов вынесен в [`plugins.md`](plugins.md).
+```bash
+npm run build
+npm run test:e2e
+```

@@ -1,85 +1,113 @@
-# Архитектура проекта
+# Архитектура Volt
 
 ## Общая схема
 
-Volt состоит из двух основных частей:
+VOLT состоит из двух крупных частей:
 
-- backend на `Go`, который работает с локальной файловой системой, настройками и desktop runtime через `Wails`
-- frontend на `React`, который рендерит интерфейс, редактор, поиск и plugin runtime
+- `backend/` — Go backend c локальным файловым и process-слоем.
+- `frontend/` — React/Vite desktop UI с редактором, workspace-shell и plugin system.
 
-Связь между ними проходит через Wails bindings из `interfaces/wailshandler/`.
+Связь между частями проходит через Wails bridge. В target-state bridge публикует только 4 handler'а:
 
-## Базовые термины
+- `FileHandler`
+- `ProcessHandler`
+- `DialogHandler`
+- `StorageHandler`
 
-- `volt` — подключённое локальное хранилище, путь к которому знает приложение
-- `workspace` — активный `volt`, открытый в интерфейсе
-- `plugin runtime` — часть frontend, которая загружает плагины, создаёт для них ограниченный API и управляет их жизненным циклом
+Все старые handler'ы и plugin-specific bridge-методы удалены.
 
-## Поток запроса
+## Frontend слои
 
-Типичный сценарий выглядит так:
+Frontend собирается вокруг пяти алиасов:
 
-1. Пользователь инициирует действие во frontend.
-2. Frontend вызывает один из Wails handlers.
-3. Handler делегирует выполнение в `commands.Manager`.
-4. Команда обращается к инфраструктуре или доменным контрактам.
-5. Результат возвращается во frontend и попадает в UI или store.
+- `@app` — провайдеры, app-shell, роутер.
+- `@pages` — страницы и route-level композиция.
+- `@shared` — UI-kit, API-клиенты, lib-хелперы, i18n, конфиг.
+- `@kernel` — editor, workspace, navigation, plugin-system.
+- `@plugins` — встроенные плагины.
 
-Для плагинов к этому добавляется промежуточный слой frontend runtime: плагин вызывает host API, а уже он при необходимости обращается к backend.
+Старые слои `@entities`, `@features`, `@widgets` и `kernel/compat` не используются.
 
-## Слои backend
+## Ядро frontend
 
-- `core/` — доменные сущности, ошибки и контракты репозиториев
-- `commands/` — use case-слой с конкретными командами
-- `infrastructure/` — локальное хранение, файловая система и runtime bridge
-- `interfaces/wailshandler/` — публичный API для frontend через Wails
-- [`bootstrap/container.go`](../bootstrap/container.go) — ручная сборка зависимостей и bindings
+### `kernel/editor`
 
-Backend остаётся локальным: отдельной базы данных, HTTP API и фонового сервиса в проекте нет.
+Отвечает за host editor surfaces, markdown serialization, autosave, image handling, anchor/session management и редакторные extension-модули.
 
-## Слои frontend
+### `kernel/workspace`
 
-- `frontend/src/app/` — корневое приложение, роутинг и провайдеры
-- `frontend/src/pages/` — страницы home, workspace и settings
-- `frontend/src/widgets/` — крупные UI-блоки рабочей области
-- `frontend/src/entities/` — store-ы и предметно-ориентированное состояние
-- `frontend/src/features/` — пользовательские сценарии вроде поиска, статусов задач и настроек горячих клавиш
-- `frontend/src/shared/lib/plugin-runtime/` — загрузка плагинов, host API, event bus, editor sessions и process manager
+Отвечает за:
 
-## Граница plugin runtime
+- lifecycle workspace
+- раскладку панелей
+- file/plugin tabs
+- workspace shell и route sync
 
-Плагинная система работает поверх frontend, а не внутри backend:
+### `kernel/navigation`
 
-- backend хранит плагины, читает `manifest.json`, загружает `main.js`, управляет `data.json` и запускает процессы
-- frontend исполняет plugin JavaScript через `new Function('api', source)`
-- все привилегированные действия проходят через ограниченный host API
+Держит историю переходов и навигационные store.
 
-Это разделение важно: plugin JS не получает прямой доступ к Go handlers, shell или внутренним store-ам приложения.
+### `kernel/plugin-system`
+
+Отвечает за:
+
+- загрузку пользовательских плагинов из `~/.volt/plugins/<pluginId>/main.js`
+- выдачу host API v5
+- lifecycle hooks `onLoad`, `onUnload`, `onSettingsChange`, `onWorkspaceOpen`
+- event bus и inter-plugin messaging
+- registry UI-регистраций плагинов
+- task-status, prompt и permission UI
+
+## Встроенные плагины
+
+`frontend/src/plugins/` содержит встроенные плагины приложения:
+
+- `vault-manager`
+- `settings`
+- `file-tree`
+- `breadcrumbs`
+- `file-viewer`
+- `image-service`
+- `search`
+- `link-preview`
+
+Они используют тот же plugin system, что и внешние плагины, но поставляются вместе с приложением.
+
+## Backend слои
+
+Backend организован по схеме:
+
+- `domain/`
+- `application/`
+- `infrastructure/`
+- `interfaces/`
+- `bootstrap/`
+
+`bootstrap/container.go` остаётся единым composition root. Отдельный `manager.go` не обязателен, пока orchestration остаётся там.
 
 ## Хранение данных
 
-Приложение использует домашний каталог пользователя:
+Канонический домашний каталог приложения: `~/.volt`.
 
-- `~/.volt/volts.json` — список подключённых хранилищ
-- `~/.volt/plugins/` — каталог установленных плагинов
-- `~/.volt/plugin-state.json` — включённые и выключенные плагины
-- `~/.volt/plugins/<plugin-id>/data.json` — plugin-local storage
+### Файлы
 
-Сами заметки и остальные файлы остаются в выбранных пользователем каталогах.
+- пользовательские плагины: `~/.volt/plugins/<pluginId>/manifest.json`
+- пользовательские плагины: `~/.volt/plugins/<pluginId>/main.js`
 
-## Основные точки входа
+### Namespace storage
 
-- [`main.go`](../main.go) — Wails app и desktop window configuration
-- [`bootstrap/container.go`](../bootstrap/container.go) — wiring backend-команд и handlers
-- [`frontend/src/app/routes/AppRouter.tsx`](../frontend/src/app/routes/AppRouter.tsx) — маршруты приложения
-- [`frontend/src/shared/lib/plugin-runtime/pluginLoader.ts`](../frontend/src/shared/lib/plugin-runtime/pluginLoader.ts) — загрузка и выгрузка плагинов
+`StorageHandler` хранит JSON-namespace файлы в `~/.volt/`:
 
-## Ключевые сценарии
+- `vaults`
+- `settings`
+- `plugins`
+- `plugin-data:<pluginId>`
 
-- управление списком volt-хранилищ
-- операции с файлами внутри workspace
-- создание и редактирование markdown-заметок
-- глобальный поиск по markdown и форматам плагинов
-- расширение UI и сценариев работы через плагины
+Это заменяет legacy-подход с `plugin-state.json` и `data.json`.
 
-Подробности по слоям вынесены в [`backend.md`](backend.md), [`frontend.md`](frontend.md) и [`plugins.md`](plugins.md).
+## Публичные инварианты
+
+- пользовательский plugin source-of-truth — файловая система, а не `StorageHandler`
+- plugin state/data — только namespace storage
+- canonical file bridge — `Read`, `Write`, `ListTree`, `CreateFile`, `CreateDirectory`, `Delete`, `Rename`
+- plugin API публикуется только как v5
