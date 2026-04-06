@@ -5,8 +5,8 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import type { LocalizationPayload } from '@shared/api/settings';
-import { useAppSettingsStore } from '@entities/app-settings';
+import type { LocalizationPayload } from '@shared/i18n';
+import { useAppSettingsStore } from '@plugins/settings/SettingsStore';
 import { translate, type TranslationParams } from '@shared/i18n';
 
 interface I18nContextValue extends LocalizationPayload {

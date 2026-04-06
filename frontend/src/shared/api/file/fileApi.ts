@@ -3,6 +3,11 @@ import { invokeWailsSafe } from '@shared/api/wailsWithError';
 
 const loadFileHandler = () => import('../../../../wailsjs/go/wailshandler/FileHandler');
 
+function ensureMarkdownPath(filePath: string): string {
+  const trimmed = filePath.trim();
+  return /\.md$/i.test(trimmed) ? trimmed : `${trimmed}.md`;
+}
+
 export async function readFile(voltPath: string, filePath: string): Promise<string> {
   return invokeWailsSafe(loadFileHandler, (mod) => mod.ReadFile(voltPath, filePath), 'readFile');
 }
@@ -17,6 +22,10 @@ export async function listTree(voltPath: string, dirPath: string = ''): Promise<
 
 export async function createFile(voltPath: string, filePath: string, content = ''): Promise<void> {
   return invokeWailsSafe(loadFileHandler, (mod) => mod.CreateFile(voltPath, filePath, content), 'createFile');
+}
+
+export async function createMarkdownFile(voltPath: string, filePath: string, content = ''): Promise<void> {
+  return createFile(voltPath, ensureMarkdownPath(filePath), content);
 }
 
 export async function createDirectory(voltPath: string, dirPath: string): Promise<void> {

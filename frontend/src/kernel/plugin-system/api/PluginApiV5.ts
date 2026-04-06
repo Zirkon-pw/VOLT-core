@@ -1,0 +1,17 @@
+export type {
+  DesktopProcessEvent,
+  DesktopProcessHandle,
+  EditorHandle,
+  EditorKindCapabilities,
+  EditorKindInfo,
+  EditorMountConfig,
+  EditorSession,
+  EditorSessionRange,
+  PluginEventMap,
+  PluginFileViewerConfig,
+  PluginSettingChangeEvent,
+  PluginTaskStatusHandle,
+  SearchFileTextProvider,
+  SearchFileTextProviderInput,
+  VoltPluginAPI,
+} from '@shared/lib/plugin-runtime/pluginApi';

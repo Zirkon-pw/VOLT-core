@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, type ReactNode } from 'react';
-import { useAppSettingsStore, type AppTheme } from '@entities/app-settings';
+import { useAppSettingsStore, type AppTheme } from '@plugins/settings/SettingsStore';
 import { applyThemeTokens, getBuiltinThemeByMode } from '@shared/config/theme';
 
 interface ThemeContextValue {

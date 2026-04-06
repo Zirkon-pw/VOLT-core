@@ -10,30 +10,53 @@ declare global {
 }
 
 export function installPlaywrightBootstrap() {
-  const localization = {
-    selectedLocale: 'en',
-    effectiveLocale: 'en',
-    availableLocales: [{ code: 'en', label: 'English', source: 'builtin' }],
-    messages: {},
-  };
+  const storageEntries = new Map<string, unknown>();
 
   window.go = {
     ...(window.go ?? {}),
     wailshandler: {
       ...(window.go?.wailshandler ?? {}),
-      SettingsHandler: {
-        GetLocalization: async () => localization,
-        SetLocale: async () => localization,
+      FileHandler: {
+        ReadFile: async () => '',
+        WriteFile: async () => undefined,
+        ListTree: async () => [],
+        CreateFile: async () => undefined,
+        CreateDirectory: async () => undefined,
+        DeletePath: async () => undefined,
+        RenamePath: async () => undefined,
       },
-      PluginCatalogHandler: {
-        ListPlugins: async () => [],
-        GetPluginsDirectory: async () => '',
-        PickPluginArchive: async () => '',
-        ImportPluginArchive: async () => {
-          throw new Error('Import is not available in Playwright bootstrap');
+      DialogHandler: {
+        SelectDirectory: async () => '',
+        PickFiles: async () => [],
+        PickImage: async () => '',
+      },
+      ProcessHandler: {
+        Start: async () => undefined,
+        Cancel: async () => undefined,
+      },
+      StorageHandler: {
+        Get: async (namespace: string, key: string) => {
+          const storageKey = `${namespace}:${key}`;
+          if (!storageEntries.has(storageKey)) {
+            throw new Error('key not found');
+          }
+          return storageEntries.get(storageKey);
         },
-        DeletePlugin: async () => undefined,
-        SetPluginEnabled: async () => undefined,
+        Set: async (namespace: string, key: string, value: unknown) => {
+          storageEntries.set(`${namespace}:${key}`, value);
+        },
+        Delete: async (namespace: string, key: string) => {
+          storageEntries.delete(`${namespace}:${key}`);
+        },
+        List: async (namespace: string) => {
+          const prefix = `${namespace}:`;
+          return Array.from(storageEntries.entries())
+            .filter(([storageKey]) => storageKey.startsWith(prefix))
+            .map(([storageKey, value]) => ({
+              key: storageKey.slice(prefix.length),
+              value,
+            }));
+        },
       },
     },
   };

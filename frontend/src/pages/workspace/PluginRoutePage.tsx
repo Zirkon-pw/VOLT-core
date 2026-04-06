@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { PluginPageHost } from '@widgets/plugin-page';
+import { PluginPageHost } from '@kernel/plugin-system/ui/PluginPageHost';
 import { useWorkspaceRuntimeRoute } from './hooks/useWorkspaceRuntimeRoute';
 
 export function PluginRoutePage() {

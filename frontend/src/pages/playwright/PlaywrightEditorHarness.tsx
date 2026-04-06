@@ -2,12 +2,12 @@ import { useEffect } from 'react';
 import { TextSelection } from '@tiptap/pm/state';
 import type { FileEntry } from '@shared/api/file/types';
 import { SIDEBAR } from '@shared/config/constants';
+import { useNavigationStore } from '@kernel/navigation/NavigationStore';
+import { WorkspaceShell } from '@kernel/workspace/ui/WorkspaceShell';
+import { useWorkspaceViewStore } from '@kernel/workspace/panes/PaneStore';
+import { useFileTreeStore } from '@plugins/file-tree';
 import { getEditor } from '@shared/lib/plugin-runtime';
-import { useFileTreeStore } from '@entities/file-tree';
-import { useNavigationStore } from '@entities/navigation';
 import { useTabStore } from '@entities/tab';
-import { useWorkspaceViewStore } from '@entities/workspace-view';
-import { WorkspaceShell } from '@widgets/workspace-shell';
 
 declare global {
   interface Window {
@@ -95,6 +95,7 @@ const INITIAL_FILES = new Map<string, string>([
 ]);
 
 const savedFiles = new Map<string, string>(INITIAL_FILES);
+const storageEntries = new Map<string, unknown>();
 let lastOpenedUrl: string | null = null;
 
 function resetSavedFiles() {
@@ -102,6 +103,10 @@ function resetSavedFiles() {
   INITIAL_FILES.forEach((value, key) => {
     savedFiles.set(key, value);
   });
+}
+
+function resetStorageEntries() {
+  storageEntries.clear();
 }
 
 function cloneTree(entries: FileEntry[]): FileEntry[] {
@@ -114,6 +119,7 @@ function cloneTree(entries: FileEntry[]): FileEntry[] {
 export function PlaywrightEditorHarness() {
   useEffect(() => {
     resetSavedFiles();
+    resetStorageEntries();
     lastOpenedUrl = null;
     localStorage.setItem(SIDEBAR.COLLAPSED_STORAGE_KEY, 'false');
     localStorage.setItem(SIDEBAR.STORAGE_KEY, '260');
@@ -135,85 +141,37 @@ export function PlaywrightEditorHarness() {
           DeletePath: async () => undefined,
           RenamePath: async () => undefined,
         },
-        LinkPreviewHandler: {
-          ResolveLinkPreview: async (url: string) => {
-            if (url.includes('github.com/example/volt')) {
-              return {
-                Kind: 'githubRepo',
-                URL: url,
-                Title: 'example/volt',
-                Description: 'Volt test repository preview',
-                ImageURL: 'https://images.example/github.png',
-                Owner: 'example',
-                Repo: 'volt',
-                Stars: 128,
-                Language: 'TypeScript',
-                SourceURL: '',
-                EmbedURL: '',
-                MimeType: '',
-                PosterURL: '',
-                Provider: '',
-                SiteName: 'GitHub',
-              };
+        DialogHandler: {
+          SelectDirectory: async () => '',
+          PickFiles: async () => [],
+          PickImage: async () => '',
+        },
+        ProcessHandler: {
+          Start: async () => undefined,
+          Cancel: async () => undefined,
+        },
+        StorageHandler: {
+          Get: async (namespace: string, key: string) => {
+            const storageKey = `${namespace}:${key}`;
+            if (!storageEntries.has(storageKey)) {
+              throw new Error('key not found');
             }
-
-            if (url.includes('videos.example.com/demo.mp4')) {
-              return {
-                Kind: 'video',
-                URL: url,
-                Title: 'Demo video',
-                Description: '',
-                ImageURL: '',
-                Owner: '',
-                Repo: '',
-                Stars: 0,
-                Language: '',
-                SourceURL: url,
-                EmbedURL: '',
-                MimeType: 'video/mp4',
-                PosterURL: 'https://images.example/video-poster.png',
-                Provider: 'direct',
-                SiteName: '',
-              };
-            }
-
-            if (url.includes('youtu.be/volt-demo-123')) {
-              return {
-                Kind: 'video',
-                URL: url,
-                Title: 'Volt demo on YouTube',
-                Description: '',
-                ImageURL: '',
-                Owner: '',
-                Repo: '',
-                Stars: 0,
-                Language: '',
-                SourceURL: url,
-                EmbedURL: 'https://www.youtube.com/embed/volt-demo-123',
-                MimeType: '',
-                PosterURL: 'https://images.example/youtube-poster.png',
-                Provider: 'youtube',
-                SiteName: '',
-              };
-            }
-
-            return {
-              Kind: 'generic',
-              URL: url,
-              Title: 'Generic preview title',
-              Description: 'Generic preview description',
-              SiteName: 'example.com',
-              ImageURL: 'https://images.example/generic.png',
-              Owner: '',
-              Repo: '',
-              Stars: 0,
-              Language: '',
-              SourceURL: '',
-              EmbedURL: '',
-              MimeType: '',
-              PosterURL: '',
-              Provider: '',
-            };
+            return storageEntries.get(storageKey);
+          },
+          Set: async (namespace: string, key: string, value: unknown) => {
+            storageEntries.set(`${namespace}:${key}`, value);
+          },
+          Delete: async (namespace: string, key: string) => {
+            storageEntries.delete(`${namespace}:${key}`);
+          },
+          List: async (namespace: string) => {
+            const prefix = `${namespace}:`;
+            return Array.from(storageEntries.entries())
+              .filter(([storageKey]) => storageKey.startsWith(prefix))
+              .map(([storageKey, value]) => ({
+                key: storageKey.slice(prefix.length),
+                value,
+              }));
           },
         },
       },
@@ -324,6 +282,7 @@ export function PlaywrightEditorHarness() {
       },
       reset: () => {
         resetSavedFiles();
+        resetStorageEntries();
         lastOpenedUrl = null;
       },
     };

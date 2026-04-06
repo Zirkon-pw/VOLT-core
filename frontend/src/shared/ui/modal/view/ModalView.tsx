@@ -1,5 +1,5 @@
 import { ReactNode, MouseEvent } from 'react';
-import { BUILTIN_SHORTCUT_ACTIONS, useShortcutAction } from '@entities/app-settings';
+import { BUILTIN_SHORTCUT_ACTIONS, useShortcutAction } from '@plugins/settings/SettingsStore';
 import { translate } from '@shared/i18n';
 import { Icon } from '@shared/ui/icon';
 import styles from './ModalView.module.scss';

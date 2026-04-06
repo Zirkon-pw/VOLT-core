@@ -4,11 +4,11 @@ import { DetachedFileWindowPage } from '@pages/window/DetachedFileWindowPage';
 import { DetachedSidebarWindowPage } from '@pages/window/DetachedSidebarWindowPage';
 import { PluginRoutePage } from '@pages/workspace/PluginRoutePage';
 import { WorkspacePage } from '@pages/workspace/WorkspacePage';
-import { PluginSettingsPage } from '@pages/settings/PluginSettingsPage';
-import { PluginSettingsHostPage } from '@pages/settings/PluginSettingsHostPage';
-import { SettingsPage } from '@pages/settings/SettingsPage';
+import { PluginSettingsPage } from '@plugins/settings/PluginSettingsPage';
+import { PluginSettingsHostPage } from '@plugins/settings/PluginSettingsHostPage';
+import { SettingsPage } from '@plugins/settings/SettingsPage';
+import { WorkspaceTabs } from '@kernel/workspace/ui/WorkspaceTabs';
 import { PlaywrightEditorHarness } from '@pages/playwright/PlaywrightEditorHarness';
-import { WorkspaceTabs } from '@widgets/workspace-tabs';
 import styles from './AppRouter.module.scss';
 
 function AppLayout() {

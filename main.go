@@ -8,8 +8,8 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
 	"github.com/wailsapp/wails/v2/pkg/options/mac"
 
-	"volt/bootstrap"
-	"volt/interfaces/wailshandler"
+	"volt/backend/bootstrap"
+	wailshandler "volt/backend/interfaces"
 )
 
 //go:embed all:frontend/dist

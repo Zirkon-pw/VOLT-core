@@ -4,6 +4,7 @@ export {
   writeFile,
   listTree,
   createFile,
+  createMarkdownFile,
   createDirectory,
   deletePath,
   renamePath,

@@ -1,0 +1,121 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - generic [ref=e5]:
+    - button "Home" [ref=e6] [cursor=pointer]:
+      - img [ref=e7]
+    - button "Settings" [ref=e10] [cursor=pointer]:
+      - img [ref=e11]
+  - generic [ref=e18]:
+    - complementary [ref=e19]:
+      - generic [ref=e20]:
+        - generic [ref=e22]:
+          - button "Search" [ref=e23] [cursor=pointer]:
+            - img [ref=e24]
+          - button "New note" [ref=e27] [cursor=pointer]:
+            - img [ref=e28]
+          - button "New folder" [ref=e31] [cursor=pointer]:
+            - img [ref=e32]
+        - generic [ref=e37]:
+          - generic [ref=e38]:
+            - generic [ref=e39] [cursor=pointer]:
+              - img [ref=e42]
+              - generic [ref=e45]: notes
+            - generic [ref=e46]:
+              - generic [ref=e48] [cursor=pointer]:
+                - img [ref=e51]
+                - generic [ref=e56]: test
+              - generic [ref=e58] [cursor=pointer]:
+                - img [ref=e61]
+                - generic [ref=e66]: target
+          - generic [ref=e67]:
+            - generic [ref=e68] [cursor=pointer]:
+              - img [ref=e71]
+              - generic [ref=e74]: docs
+            - generic [ref=e77] [cursor=pointer]:
+              - img [ref=e80]
+              - generic [ref=e85]: guide
+          - generic [ref=e86]:
+            - generic [ref=e87] [cursor=pointer]:
+              - img [ref=e90]
+              - generic [ref=e93]: files
+            - generic [ref=e96] [cursor=pointer]:
+              - img [ref=e99]
+              - generic [ref=e104]: spec.pdf
+      - button "Collapse sidebar" [ref=e106] [cursor=pointer]:
+        - img [ref=e107]
+    - generic [ref=e109]:
+      - generic [ref=e112] [cursor=pointer]:
+        - generic "test" [ref=e113]
+        - button "Close test" [ref=e114]:
+          - img [ref=e115]
+      - generic [ref=e118]:
+        - generic [ref=e119]:
+          - generic [ref=e120]:
+            - button "Go back" [disabled] [ref=e121]:
+              - img [ref=e122]
+            - button "Go forward" [disabled] [ref=e124]:
+              - img [ref=e125]
+          - generic [ref=e127]:
+            - generic "notes" [ref=e128]
+            - img [ref=e129]
+            - generic "test.md" [ref=e131]
+        - generic [ref=e137]:
+          - textbox [active] [ref=e138]:
+            - heading "Playwright harness" [level=1] [ref=e139]
+            - paragraph [ref=e140]: Alpha paragraph
+            - paragraph [ref=e141]: Beta paragraph
+            - paragraph [ref=e142]: Legacy inline $math$ text
+            - paragraph [ref=e143]:
+              - link "External" [ref=e144] [cursor=pointer]:
+                - /url: https://example.com
+            - paragraph [ref=e145]:
+              - link "Internal" [ref=e146] [cursor=pointer]:
+                - /url: ../docs/guide.md
+            - paragraph [ref=e147]:
+              - link "File" [ref=e148] [cursor=pointer]:
+                - /url: ../files/spec.pdf
+            - table [ref=e150]:
+              - rowgroup [ref=e154]:
+                - row "Name Value" [ref=e155]:
+                  - columnheader "Name" [ref=e156]:
+                    - paragraph [ref=e157]: Name
+                  - columnheader "Value" [ref=e158]:
+                    - paragraph [ref=e159]: Value
+                - row "One 1" [ref=e160]:
+                  - cell "One" [ref=e161]:
+                    - paragraph [ref=e162]: One
+                  - cell "1" [ref=e163]:
+                    - paragraph [ref=e164]: "1"
+                - row "Two 2" [ref=e165]:
+                  - cell "Two" [ref=e166]:
+                    - paragraph [ref=e167]: Two
+                  - cell "2" [ref=e168]:
+                    - paragraph [ref=e169]: "2"
+            - link "GitHub example/volt GitHub repository example/volt" [ref=e173] [cursor=pointer]:
+              - /url: https://github.com/example/volt
+              - generic [ref=e174]:
+                - generic [ref=e175]: GitHub
+                - heading "example/volt" [level=4] [ref=e176]
+                - paragraph [ref=e177]: GitHub repository
+                - generic [ref=e179]: example/volt
+            - paragraph [ref=e180]
+          - generic [ref=e183]:
+            - button "Bold" [ref=e184] [cursor=pointer]:
+              - img [ref=e185]
+            - button "Italic" [ref=e188] [cursor=pointer]:
+              - img [ref=e189]
+            - button "U" [ref=e191] [cursor=pointer]:
+              - generic [ref=e192]: U
+            - button "Strikethrough" [ref=e193] [cursor=pointer]:
+              - img [ref=e194]
+            - button "Inline code" [ref=e197] [cursor=pointer]:
+              - img [ref=e198]
+            - button "Link" [ref=e202] [cursor=pointer]:
+              - img [ref=e203]
+            - button "A" [ref=e207] [cursor=pointer]:
+              - generic [ref=e208]: A
+            - button "H" [ref=e209] [cursor=pointer]:
+              - generic [ref=e210]: H
+```
