@@ -3,7 +3,7 @@ build/bin/
 frontend/dist/
 frontend/node_modules/
 
-plugins/
+/plugins/
 
 # IDE
 .idea/
@@ -29,4 +29,3 @@ Thumbs.db
 .claude/
 .qwen/
 .codex/
-
